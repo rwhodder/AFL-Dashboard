@@ -3,6 +3,7 @@ import numpy as np
 import dash
 from dash import html, dcc, dash_table, Input, Output, callback_context
 import dash_bootstrap_components as dbc
+import os
 
 # Import from existing modules
 from fixture_scraper import scrape_next_round_fixture
@@ -10,6 +11,10 @@ from travel_fatigue import build_travel_log
 from stadium_locations import STADIUM_COORDS
 from stat_rules import apply_sensitivity
 from data_processor import load_and_prepare_data, calculate_dvp
+
+app = dash.Dash(__name__)
+server = app.server  # Required for Render to detect the WSGI app
+
 
 # ===== CONSTANTS =====
 OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # From main.py
@@ -1442,4 +1447,12 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8050))  # default to 8050 locally
+    app.run(host="0.0.0.0", port=port)
+
+
+
+    
+
+
+
