@@ -1,9 +1,8 @@
 import pandas as pd
 import numpy as np
 import dash
-from dash import html, dcc, dash_table, Input, Output, callback_context
+from dash import html, dcc, dash_table, Input, Output, State, callback_context
 import dash_bootstrap_components as dbc
-import os
 
 # Import from existing modules
 from fixture_scraper import scrape_next_round_fixture
@@ -12,11 +11,7 @@ from stadium_locations import STADIUM_COORDS
 from stat_rules import apply_sensitivity
 from data_processor import load_and_prepare_data, calculate_dvp
 
-app = dash.Dash(__name__)
-server = app.server  # Required for Render to detect the WSGI app
-
-
-# ===== CONSTANTS =====
+# ===== CONSTANTS =====s
 OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # From main.py
 POSITION_MAP = {
     "KeyF": ["FF", "CHF"],
@@ -112,13 +107,14 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         
         # Rain impacts
         if rain > 2:
-            if stat_type == 'disposals' or stat_type == 'marks':
+            # For tackles we're focusing on unders too but with inverse impacts
+            if stat_type in ['disposals', 'marks']:
                 flag_count += 1
-                impact = "↓" if stat_type == 'disposals' or stat_type == 'marks' else "↑"
-                flags_hit.append(f"High Rain ({impact})")
+                flags_hit.append(f"High Rain (↓)")
             elif stat_type == 'tackles':
-                flag_count += 1
-                flags_hit.append(f"High Rain (↑)")
+                # For tackles, we're now looking for conditions that decrease tackles
+                # No flag for rain since it increases tackles (which isn't what we want for unders)
+                pass
         
         # Wind impacts
         if wind > 6:
@@ -129,28 +125,27 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
                 flag_count += 1
                 flags_hit.append(f"High Wind (↓)")
             elif stat_type == 'tackles':
-                flag_count += 1
-                flags_hit.append(f"High Wind (↑)")
+                # For tackles unders, high wind is bad (increases tackles)
+                # No flag since it works against unders
+                pass
         
         # Humidity/Dew impacts
         if humidity > 70:
-            if stat_type == 'disposals':
-                flag_count += 1
-                flags_hit.append(f"High Humidity (↓)")
-            elif stat_type == 'marks':
+            if stat_type in ['disposals', 'marks']:
                 flag_count += 1
                 flags_hit.append(f"High Humidity (↓)")
             elif stat_type == 'tackles':
-                flag_count += 1
-                flags_hit.append(f"High Humidity (↑)")
+                # For tackles unders, high humidity is bad (increases tackles)
+                # No flag since it works against unders
+                pass
             
         # Set rating based on flag count
         if flag_count == 0:
             rating = "✅ Neutral"
         elif flag_count == 1:
-            rating = f"⚠️ Medium Edge ({flags_hit[0]})"
+            rating = f"⚠️ Medium Unders Edge ({flags_hit[0]})"
         else:
-            rating = f"🔴 Strong Edge ({', '.join(flags_hit)})"
+            rating = f"🔴 Strong Unders Edge ({', '.join(flags_hit)})"
             
         return {
             "Rain": rain_cat,
@@ -230,7 +225,7 @@ def calculate_dvp_for_stat(processed_df, stat_type='disposals'):
     return simplified_dvp
 
 # Calculate the score for a specific stat type
-def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposals', is_unders=True):
+def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposals'):
     score_value = 0
     score_factors = []
     
@@ -255,42 +250,42 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         flags = weather_data.get('Flags', [])
         
         for flag in flags:
-            # Rain impacts
+            # Rain impacts - for all stat types now looking at unders
             if 'Rain' in flag:
                 if stat_type in ['disposals', 'marks']:
-                    # Rain reduces disposals and marks
-                    weather_points += 2 if is_unders else 0
-                    weather_flags.append('Rain(2)' if is_unders else 'Rain(0)')
+                    # Rain reduces disposals and marks (good for unders)
+                    weather_points += 2
+                    weather_flags.append('Rain(2)')
                 elif stat_type == 'tackles':
-                    # Rain increases tackles
-                    weather_points += 0 if is_unders else 2
-                    weather_flags.append('Rain(0)' if is_unders else 'Rain(2)')
+                    # Rain increases tackles (bad for unders)
+                    # No points for this condition
+                    pass
             
             # Wind impacts
             elif 'Wind' in flag:
                 if stat_type == 'disposals':
                     # Mixed impact on disposals, so minor points
-                    weather_points += 1 if is_unders else 1
-                    weather_flags.append('Wind(Mixed)')
+                    weather_points += 1
+                    weather_flags.append('Wind(1)')
                 elif stat_type == 'marks':
-                    # Wind decreases marks
-                    weather_points += 2 if is_unders else 0
-                    weather_flags.append('Wind(2)' if is_unders else 'Wind(0)')
+                    # Wind decreases marks (good for unders)
+                    weather_points += 2
+                    weather_flags.append('Wind(2)')
                 elif stat_type == 'tackles':
-                    # Wind increases tackles
-                    weather_points += 0 if is_unders else 2
-                    weather_flags.append('Wind(0)' if is_unders else 'Wind(2)')
+                    # Wind increases tackles (bad for unders)
+                    # No points for this condition
+                    pass
             
             # Humidity impacts
             elif 'Humidity' in flag:
                 if stat_type in ['disposals', 'marks']:
-                    # Humidity decreases disposals and marks
-                    weather_points += 1 if is_unders else 0
-                    weather_flags.append('Dew(1)' if is_unders else 'Dew(0)')
+                    # Humidity decreases disposals and marks (good for unders)
+                    weather_points += 1
+                    weather_flags.append('Humidity(1)')
                 elif stat_type == 'tackles':
-                    # Humidity increases tackles
-                    weather_points += 0 if is_unders else 1
-                    weather_flags.append('Dew(0)' if is_unders else 'Dew(1)')
+                    # Humidity increases tackles (bad for unders)
+                    # No points for this condition
+                    pass
     
     if weather_points > 0:
         score_factors.append(f"Weather: +{weather_points} ({', '.join(weather_flags)})")
@@ -348,6 +343,12 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         factor = "Low Usage"
         score_factors.append(f"Role: +{role_points} ({factor})")
         score_value += role_points
+    elif 'UNSTABLE' in role_status:
+        role_points = -1
+        factor = "Unstable"
+        score_factors.append(f"Role: {role_points} ({factor})")
+        score_value += role_points
+# No points added for STABLE (still 0)
     
     # Create a summary of all factors
     factors_summary = " | ".join(score_factors)
@@ -360,13 +361,8 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
 # Add score to dataframe based on stat type
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
     """Add a score to the dataframe based on the specific stat type"""
-    is_unders = True
+    # Always calculating unders for all stat types now
     score_column = 'Score'
-    
-    # Determine if we're calculating unders or overs based on stat type and conditions
-    # Based on the weather cheatsheet, for tackles we should be calculating overs
-    if stat_type == 'tackles':
-        is_unders = False
     
     # Create new columns for the score
     df[score_column] = 0
@@ -374,7 +370,7 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
     
     # Calculate scores for each player
     for idx, row in df.iterrows():
-        score_data = calculate_score(row, team_weather, simplified_dvp, stat_type, is_unders)
+        score_data = calculate_score(row, team_weather, simplified_dvp, stat_type)
         score_value = score_data["ScoreValue"]
         
         # Add a descriptive rating based on the score
@@ -960,7 +956,7 @@ def process_data_for_dashboard(stat_type='disposals'):
         result_df = next_round_players[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
                                         'weather', 'dvp', 'TOG_Trend', 'CBA_Trend', 'Role_Status']].copy()
         
-        # Calculate the Unders/Overs Score for each player
+        # Calculate the Unders Score for each player
         result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
         
         # Final columns for display - include only the Score column, not Score Factors
@@ -1029,12 +1025,15 @@ processed_data_by_stat = {
     'tackles': None
 }
 
-# Define the layout with stat type selector
+# Define the layout with Export to CSV feature
 app.layout = dbc.Container([
     html.H1("AFL Player Dashboard - Next Round", className="text-center my-4"),
     
     # Hidden div to store the loaded data
     html.Div(id='loaded-data', style={'display': 'none'}),
+    
+    # Add Download component for CSV export
+    dcc.Download(id="download-csv"),
     
     # Add tabs for stat selection
     dbc.Tabs([
@@ -1103,12 +1102,12 @@ app.layout = dbc.Container([
                         html.H4("Weather", className="text-center"),
                         html.Div([
                             html.Span("✅ Neutral", className="badge bg-success me-2"),
-                            html.Span("⚠️ Medium Edge", className="badge bg-warning me-2"),
-                            html.Span("🔴 Strong Edge", className="badge bg-danger")
+                            html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
+                            html.Span("🔴 Strong Unders Edge", className="badge bg-danger")
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3",
                     id="weather-legend",
-                    title="Weather impacts vary by stat type - see detailed tooltips on values")
+                    title="Weather impacts vary by stat type - each stat type has different conditions that favor unders")
                 ], width=12),
                 
                 dbc.Col([
@@ -1116,13 +1115,13 @@ app.layout = dbc.Container([
                         html.H4("DvP", className="text-center"),
                         html.Div([
                             html.Span("✅ Neutral", className="badge bg-success me-2"),
-                            html.Span("🟡 Slight Edge", className="badge bg-warning text-dark me-2"),
-                            html.Span("🟠 Moderate Edge", className="badge bg-warning me-2"),
-                            html.Span("🔴 Strong Edge", className="badge bg-danger")
+                            html.Span("🟡 Slight Unders", className="badge bg-warning text-dark me-2"),
+                            html.Span("🟠 Moderate Unders", className="badge bg-warning me-2"),
+                            html.Span("🔴 Strong Unders", className="badge bg-danger")
                         ], className="d-flex justify-content-center flex-wrap")
                     ], className="border rounded p-2 mb-3",
                     id="dvp-legend",
-                    title="Defenders vs Position shows historical matchup difficulty; +1 for Slight, +2 for Moderate, +3 for Strong edge")
+                    title="Defenders vs Position shows historical matchup difficulty; +1 for Slight, +2 for Moderate, +3 for Strong unders")
                 ], width=12)
             ])
         ], width=3),
@@ -1170,7 +1169,7 @@ app.layout = dbc.Container([
                         ], className="d-flex justify-content-center flex-wrap gap-1")
                     ], className="border rounded p-2 mb-3",
                     id="score-legend",
-                    title="Combined score from all factors; higher scores indicate stronger edge")
+                    title="Combined score from all factors; higher scores indicate stronger unders play")
                 ], width=12)
             ])
         ], width=3),
@@ -1179,48 +1178,21 @@ app.layout = dbc.Container([
         dbc.Col([], width=3)
     ], className="mb-4"),
     
-    # Weather impact cheatsheet reference
-    dbc.Row([
-        dbc.Col([
-            html.Div([
-                html.H5("Weather Impact Reference", className="mb-2"),
-                html.Table([
-                    html.Thead([
-                        html.Tr([
-                            html.Th("Weather", className="px-2 text-center"),
-                            html.Th("Disposals", className="px-2 text-center"),
-                            html.Th("Marks", className="px-2 text-center"),
-                            html.Th("Tackles", className="px-2 text-center")
-                        ])
-                    ]),
-                    html.Tbody([
-                        html.Tr([
-                            html.Td("Rain", className="px-2"),
-                            html.Td("↓", className="px-2 text-center"),
-                            html.Td("↓", className="px-2 text-center"),
-                            html.Td("↑", className="px-2 text-center")
-                        ]),
-                        html.Tr([
-                            html.Td("Wind", className="px-2"),
-                            html.Td("Mixed", className="px-2 text-center"),
-                            html.Td("↓", className="px-2 text-center"),
-                            html.Td("↑", className="px-2 text-center")
-                        ]),
-                        html.Tr([
-                            html.Td("Humidity/Dew", className="px-2"),
-                            html.Td("↓ (Slight)", className="px-2 text-center"),
-                            html.Td("↓", className="px-2 text-center"),
-                            html.Td("↑", className="px-2 text-center")
-                        ])
-                    ])
-                ], className="table table-sm table-bordered table-dark")
-            ], className="border rounded p-2")
-        ], width=6)
-    ], className="mb-4"),
-    
     html.Hr(),
     
-    html.Div(id="loading-message", children="Loading player data...", className="text-center fs-4 mb-3"),
+    # Add Export to CSV button row
+    dbc.Row([
+        dbc.Col([
+            html.Div(id="loading-message", children="Loading player data...", className="text-center fs-4")
+        ], width=8),
+        dbc.Col([
+            html.Button(
+                "Export to CSV",
+                id="export-button",
+                className="btn btn-success float-end"
+            )
+        ], width=4)
+    ], className="mb-3"),
     
     dash_table.DataTable(
         id='player-table',
@@ -1295,12 +1267,12 @@ def load_data(data):
 )
 def update_score_legend_title(active_tab):
     if active_tab == "tab-disposals":
-        return "Disposals Score Rating"
+        return "Disposals Unders Score"
     elif active_tab == "tab-marks":
-        return "Marks Score Rating"
+        return "Marks Unders Score"
     elif active_tab == "tab-tackles":
-        return "Tackles Score Rating"
-    return "Score Rating"
+        return "Tackles Unders Score"
+    return "Unders Score"
 
 # Callback to filter and display data based on stat type
 @app.callback(
@@ -1334,7 +1306,6 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
     
     try:
         # Check if the clear button was clicked
-       # Check if the clear button was clicked
         ctx = dash.callback_context
         if ctx.triggered and 'clear-team-filter' in ctx.triggered[0]['prop_id']:
             team_filter = None  # Clear the team filter
@@ -1445,14 +1416,38 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         columns = [{"name": i, "id": i} for i in error_df.columns]
         return error_df.to_dict('records'), columns, [], [], f"Error filtering {stat_type} data: {str(e)}"
 
+# Update the export_data callback
+@app.callback(
+    Output("download-csv", "data"),
+    Input("export-button", "n_clicks"),
+    [State("stat-tabs", "active_tab")],
+    prevent_initial_call=True
+)
+def export_data(n_clicks, active_tab):
+    if n_clicks is None:
+        return dash.no_update
+    
+    # Get the current stat type
+    stat_type = 'disposals'  # default
+    if active_tab == "tab-marks":
+        stat_type = 'marks'
+    elif active_tab == "tab-tackles":
+        stat_type = 'tackles'
+    
+    # Get the full dataset for this stat type
+    full_data = processed_data_by_stat.get(stat_type)
+    
+    # If we have data, export it
+    if full_data is not None and not full_data.empty:
+        # Create a filename with the stat type and current datetime
+        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"afl_{stat_type}_dashboard_{current_time}.csv"
+        
+        # Return the data as a CSV download
+        return dcc.send_data_frame(full_data.to_csv, filename, index=False)
+    
+    return dash.no_update
+
 # Run the app
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8050))  # default to 8050 locally
-    app.run(host="0.0.0.0", port=port)
-
-
-
-    
-
-
-
+    app.run(debug=True)
