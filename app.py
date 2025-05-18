@@ -80,7 +80,7 @@ def extract_weather_for_datetime(forecast_list, target_datetime):
     humid = closest.get("main", {}).get("humidity", 0.0)
     return {"rain": rain, "wind": wind, "humidity": humid}
 
-# Updated weather categorization that accounts for stat type
+# Updated categorize_weather_for_stat function with new rain logic
 def categorize_weather_for_stat(weather, stat_type='disposals'):
     """Categorize weather considering its effect on different stats (disposals, marks, tackles)"""
     try:
@@ -94,8 +94,26 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         wind = float(wind) if wind is not None else 0
         humidity = float(humidity) if humidity is not None else 0
         
-        # Categorize
-        rain_cat = "Low" if rain == 0 else "Med" if rain <= 2 else "High"
+        # NEW RAIN CATEGORIZATION LOGIC
+        # < 0.5mm = 0
+        # 0.5mm - 1mm = 0.5
+        # 1mm - 2mm = 1
+        # >2mm = 2
+        rain_value = 0
+        if rain < 0.5:
+            rain_value = 0
+            rain_cat = "Low"
+        elif rain < 1:
+            rain_value = 0.5
+            rain_cat = "Low-Med"
+        elif rain <= 2:
+            rain_value = 1
+            rain_cat = "Med"
+        else:
+            rain_value = 2
+            rain_cat = "High"
+        
+        # Keep original wind and humidity categorization
         wind_cat = "Low" if wind <= 10 else "Med" if wind <= 20 else "High"
         humid_cat = "Low" if humidity <= 60 else "Med" if humidity <= 70 else "High"
         
@@ -105,18 +123,26 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         # Count the flags with adjustments based on stat type
         flag_count = 0
         
-        # Rain impacts
-        if rain > 2:
-            # For tackles we're focusing on unders too but with inverse impacts
+        # Rain impacts - UPDATED LOGIC
+        if rain_value > 0:
+            # For disposals and marks, rain is good for unders
             if stat_type in ['disposals', 'marks']:
-                flag_count += 1
-                flags_hit.append(f"High Rain (↓)")
+                # Scale the rain impact based on the value
+                if rain_value == 0.5:
+                    flag_count += 0.5
+                    flags_hit.append(f"Rain 0.5-1mm (↓ 0.5)")
+                elif rain_value == 1:
+                    flag_count += 1
+                    flags_hit.append(f"Rain 1-2mm (↓ 1)")
+                elif rain_value == 2:
+                    flag_count += 2
+                    flags_hit.append(f"Rain >2mm (↓ 2)")
             elif stat_type == 'tackles':
                 # For tackles, we're now looking for conditions that decrease tackles
                 # No flag for rain since it increases tackles (which isn't what we want for unders)
                 pass
         
-        # Wind impacts
+        # Wind impacts (unchanged)
         if wind > 6:
             if stat_type == 'disposals':
                 # Mixed effect on disposals
@@ -129,7 +155,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
                 # No flag since it works against unders
                 pass
         
-        # Humidity/Dew impacts
+        # Humidity/Dew impacts (unchanged)
         if humidity > 70:
             if stat_type in ['disposals', 'marks']:
                 flag_count += 1
@@ -142,8 +168,8 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         # Set rating based on flag count
         if flag_count == 0:
             rating = "✅ Neutral"
-        elif flag_count == 1:
-            rating = f"⚠️ Medium Unders Edge ({flags_hit[0]})"
+        elif flag_count <= 1:
+            rating = f"⚠️ Medium Unders Edge ({', '.join(flags_hit)})"
         else:
             rating = f"🔴 Strong Unders Edge ({', '.join(flags_hit)})"
             
@@ -250,18 +276,24 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         flags = weather_data.get('Flags', [])
         
         for flag in flags:
-            # Rain impacts - for all stat types now looking at unders
+            # UPDATED RAIN impacts with new points scale
             if 'Rain' in flag:
                 if stat_type in ['disposals', 'marks']:
-                    # Rain reduces disposals and marks (good for unders)
-                    weather_points += 2
-                    weather_flags.append('Rain(2)')
+                    # Extract the point value from the flag
+                    if "0.5)" in flag:
+                        weather_points += 0.5
+                        weather_flags.append('Rain(0.5)')
+                    elif "1)" in flag:
+                        weather_points += 1
+                        weather_flags.append('Rain(1)')
+                    elif "2)" in flag:
+                        weather_points += 2
+                        weather_flags.append('Rain(2)')
                 elif stat_type == 'tackles':
-                    # Rain increases tackles (bad for unders)
-                    # No points for this condition
+                    # No points for rain with tackles unders
                     pass
             
-            # Wind impacts
+            # Wind impacts (unchanged)
             elif 'Wind' in flag:
                 if stat_type == 'disposals':
                     # Mixed impact on disposals, so minor points
@@ -272,18 +304,16 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
                     weather_points += 2
                     weather_flags.append('Wind(2)')
                 elif stat_type == 'tackles':
-                    # Wind increases tackles (bad for unders)
                     # No points for this condition
                     pass
             
-            # Humidity impacts
+            # Humidity impacts (unchanged)
             elif 'Humidity' in flag:
                 if stat_type in ['disposals', 'marks']:
                     # Humidity decreases disposals and marks (good for unders)
                     weather_points += 1
                     weather_flags.append('Humidity(1)')
                 elif stat_type == 'tackles':
-                    # Humidity increases tackles (bad for unders)
                     # No points for this condition
                     pass
     
@@ -291,6 +321,7 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         score_factors.append(f"Weather: +{weather_points} ({', '.join(weather_flags)})")
         score_value += weather_points
     
+    # Rest of the function remains unchanged
     # 3. DVP impacts
     dvp_text = player_row.get('dvp', '')
     dvp_points = 0
@@ -348,7 +379,6 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         factor = "Unstable"
         score_factors.append(f"Role: {role_points} ({factor})")
         score_value += role_points
-# No points added for STABLE (still 0)
     
     # Create a summary of all factors
     factors_summary = " | ".join(score_factors)
