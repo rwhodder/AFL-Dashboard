@@ -80,7 +80,6 @@ def extract_weather_for_datetime(forecast_list, target_datetime):
     humid = closest.get("main", {}).get("humidity", 0.0)
     return {"rain": rain, "wind": wind, "humidity": humid}
 
-# Updated categorize_weather_for_stat function with new rain logic
 def categorize_weather_for_stat(weather, stat_type='disposals'):
     """Categorize weather considering its effect on different stats (disposals, marks, tackles)"""
     try:
@@ -95,27 +94,44 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         humidity = float(humidity) if humidity is not None else 0
         
         # NEW RAIN CATEGORIZATION LOGIC
-        # < 0.5mm = 0
-        # 0.5mm - 1mm = 0.5
-        # 1mm - 2mm = 1
-        # >2mm = 2
-        rain_value = 0
-        if rain < 0.5:
+        # < 0.3mm = No Impact
+        # 0.3mm - 1mm = Light Rain
+        # 1mm - 3mm = Moderate Rain
+        # >3mm = Heavy Rain
+        if rain < 0.3:
             rain_value = 0
             rain_cat = "Low"
         elif rain < 1:
-            rain_value = 0.5
-            rain_cat = "Low-Med"
-        elif rain <= 2:
             rain_value = 1
-            rain_cat = "Med"
-        else:
+            rain_cat = "Light"
+        elif rain <= 3:
             rain_value = 2
-            rain_cat = "High"
+            rain_cat = "Moderate"
+        else:
+            rain_value = 3
+            rain_cat = "Heavy"
         
-        # Keep original wind and humidity categorization
-        wind_cat = "Low" if wind <= 10 else "Med" if wind <= 20 else "High"
-        humid_cat = "Low" if humidity <= 60 else "Med" if humidity <= 70 else "High"
+        # NEW WIND CATEGORIZATION
+        if wind < 15:
+            wind_value = 0
+            wind_cat = "Low"
+        elif wind <= 25:
+            wind_value = 1
+            wind_cat = "Moderate"
+        else:
+            wind_value = 2
+            wind_cat = "High"
+        
+        # NEW HUMIDITY CATEGORIZATION
+        if humidity <= 65:
+            humid_value = 0
+            humid_cat = "Low"
+        elif humidity <= 75:
+            humid_value = 1
+            humid_cat = "Moderate"
+        else:
+            humid_value = 2
+            humid_cat = "High"
         
         # Track which flags are hit for detailed display
         flags_hit = []
@@ -123,52 +139,57 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         # Count the flags with adjustments based on stat type
         flag_count = 0
         
-        # Rain impacts - UPDATED LOGIC
+        # RAIN IMPACTS - Adjusted by stat type
         if rain_value > 0:
-            # For disposals and marks, rain is good for unders
             if stat_type in ['disposals', 'marks']:
-                # Scale the rain impact based on the value
-                if rain_value == 0.5:
-                    flag_count += 0.5
-                    flags_hit.append(f"Rain 0.5-1mm (↓ 0.5)")
-                elif rain_value == 1:
-                    flag_count += 1
-                    flags_hit.append(f"Rain 1-2mm (↓ 1)")
+                # Multiplier for marks (more impact)
+                multiplier = 1.5 if stat_type == 'marks' else 1
+                
+                rain_points = rain_value * multiplier
+                flag_count += rain_points
+                
+                # Description for the flag
+                rain_desc = ""
+                if rain_value == 1:
+                    rain_desc = "Light Rain (0.3-1mm)"
                 elif rain_value == 2:
-                    flag_count += 2
-                    flags_hit.append(f"Rain >2mm (↓ 2)")
-            elif stat_type == 'tackles':
-                # For tackles, we're now looking for conditions that decrease tackles
-                # No flag for rain since it increases tackles (which isn't what we want for unders)
-                pass
+                    rain_desc = "Moderate Rain (1-3mm)"
+                else:
+                    rain_desc = "Heavy Rain (>3mm)"
+                
+                flags_hit.append(f"{rain_desc} (↓ {rain_points:.1f})")
+            # No impact for tackles since rain typically increases tackles
         
-        # Wind impacts (unchanged)
-        if wind > 6:
+        # WIND IMPACTS - Adjusted by stat type
+        if wind_value > 0:
             if stat_type == 'disposals':
-                # Mixed effect on disposals
-                flags_hit.append(f"High Wind (Mixed)")
+                # For disposals, moderate effect
+                wind_points = wind_value
+                flag_count += wind_points
+                flags_hit.append(f"Wind {wind_cat} (↓ {wind_points:.1f})")
             elif stat_type == 'marks':
-                flag_count += 1
-                flags_hit.append(f"High Wind (↓)")
-            elif stat_type == 'tackles':
-                # For tackles unders, high wind is bad (increases tackles)
-                # No flag since it works against unders
-                pass
+                # For marks, stronger effect
+                wind_points = wind_value * 1.5
+                flag_count += wind_points
+                flags_hit.append(f"Wind {wind_cat} (↓ {wind_points:.1f})")
+            # No impact for tackles
         
-        # Humidity/Dew impacts (unchanged)
-        if humidity > 70:
+        # HUMIDITY IMPACTS - Adjusted by stat type
+        if humid_value > 0:
             if stat_type in ['disposals', 'marks']:
-                flag_count += 1
-                flags_hit.append(f"High Humidity (↓)")
+                humid_points = humid_value
+                flag_count += humid_points
+                flags_hit.append(f"Humidity {humid_cat} (↓ {humid_points:.1f})")
             elif stat_type == 'tackles':
-                # For tackles unders, high humidity is bad (increases tackles)
-                # No flag since it works against unders
-                pass
-            
+                # Less impact on tackles
+                humid_points = humid_value * 0.5
+                flag_count += humid_points
+                flags_hit.append(f"Humidity {humid_cat} (↓ {humid_points:.1f})")
+        
         # Set rating based on flag count
         if flag_count == 0:
             rating = "✅ Neutral"
-        elif flag_count <= 1:
+        elif flag_count <= 1.5:
             rating = f"⚠️ Medium Unders Edge ({', '.join(flags_hit)})"
         else:
             rating = f"🔴 Strong Unders Edge ({', '.join(flags_hit)})"
@@ -250,135 +271,149 @@ def calculate_dvp_for_stat(processed_df, stat_type='disposals'):
     
     return simplified_dvp
 
-# Calculate the score for a specific stat type
+
 def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposals'):
     score_value = 0
     score_factors = []
     
-    # 1. TRAVEL FATIGUE impacts (consistent across stat types)
+    # 1. TRAVEL FATIGUE impacts (0-3.5 points) - Updated with specific points per flag
     travel_fatigue = player_row.get('travel_fatigue', '')
     if '(' in travel_fatigue:
         flags_part = travel_fatigue.split('(')[1].split(')')[0]
         flags = [flag.strip() for flag in flags_part.split(',')]
-        travel_points = len(flags)
+        
+        # NEW LOGIC: Specific points per flag type
+        travel_points = 0
+        flag_details = []
+        
+        if "Long Travel" in flags:
+            travel_points += 2
+            flag_details.append("Long Travel: +2")
+            
+        if "Short Break" in flags:
+            travel_points += 1
+            flag_details.append("Short Break: +1")
+            
+        if "Time Zone" in flags:
+            travel_points += 0.5
+            flag_details.append("Time Zone: +0.5")
+            
+        # For any other flags, add 0.5 points
+        other_flags = [f for f in flags if f not in ["Long Travel", "Short Break", "Time Zone"]]
+        if other_flags:
+            travel_points += len(other_flags) * 0
+            flag_details.append(f"Other ({', '.join(other_flags)}): +{len(other_flags) * 0.5}")
         
         if travel_points > 0:
-            score_factors.append(f"Travel: +{travel_points} ({', '.join(flags)})")
+            score_factors.append(f"Travel: +{travel_points:.1f} ({', '.join(flag_details)})")
             score_value += travel_points
     
-    # 2. WEATHER impacts (vary by stat type)
+    # 2. WEATHER impacts (unchanged since it varies by stat type)
     team = player_row.get('team', '')
     weather_points = 0
     weather_flags = []
     
     if team in team_weather:
         weather_data = team_weather[team]
+        flag_count = weather_data.get('FlagCount', 0)
         flags = weather_data.get('Flags', [])
         
-        for flag in flags:
-            # UPDATED RAIN impacts with new points scale
-            if 'Rain' in flag:
-                if stat_type in ['disposals', 'marks']:
-                    # Extract the point value from the flag
-                    if "0.5)" in flag:
-                        weather_points += 0.5
-                        weather_flags.append('Rain(0.5)')
-                    elif "1)" in flag:
-                        weather_points += 1
-                        weather_flags.append('Rain(1)')
-                    elif "2)" in flag:
-                        weather_points += 2
-                        weather_flags.append('Rain(2)')
-                elif stat_type == 'tackles':
-                    # No points for rain with tackles unders
-                    pass
-            
-            # Wind impacts (unchanged)
-            elif 'Wind' in flag:
-                if stat_type == 'disposals':
-                    # Mixed impact on disposals, so minor points
-                    weather_points += 1
-                    weather_flags.append('Wind(1)')
-                elif stat_type == 'marks':
-                    # Wind decreases marks (good for unders)
-                    weather_points += 2
-                    weather_flags.append('Wind(2)')
-                elif stat_type == 'tackles':
-                    # No points for this condition
-                    pass
-            
-            # Humidity impacts (unchanged)
-            elif 'Humidity' in flag:
-                if stat_type in ['disposals', 'marks']:
-                    # Humidity decreases disposals and marks (good for unders)
-                    weather_points += 1
-                    weather_flags.append('Humidity(1)')
-                elif stat_type == 'tackles':
-                    # No points for this condition
-                    pass
+        if flag_count > 0:
+            weather_points = flag_count
+            weather_flags = flags
     
     if weather_points > 0:
-        score_factors.append(f"Weather: +{weather_points} ({', '.join(weather_flags)})")
+        score_factors.append(f"Weather: +{weather_points:.1f} ({', '.join(weather_flags)})")
         score_value += weather_points
     
-    # Rest of the function remains unchanged
-    # 3. DVP impacts
+    # 3. DVP impacts (-1 to 4 points) - Updated with negative penalty for Neutral
     dvp_text = player_row.get('dvp', '')
     dvp_points = 0
     
     if 'Strong' in dvp_text:
-        dvp_points = 3
+        dvp_points = 4  # Increased from 3 to 4
     elif 'Moderate' in dvp_text:
-        dvp_points = 2
+        dvp_points = 2  # Unchanged
     elif 'Slight' in dvp_text:
-        dvp_points = 1
+        dvp_points = 1  # Unchanged
+    elif 'Neutral' in dvp_text:
+        dvp_points = -1  # NEW: negative penalty for Neutral
     
-    if dvp_points > 0:
+    if dvp_points != 0:
         # Extract the numeric value if available
         dvp_value = ""
         if '(' in dvp_text and ')' in dvp_text:
             dvp_value = dvp_text.split('(')[1].split(')')[0]
         
-        score_factors.append(f"DvP: +{dvp_points} ({dvp_value})")
+        sign = "+" if dvp_points > 0 else ""
+        score_factors.append(f"DvP: {sign}{dvp_points} ({dvp_value})")
         score_value += dvp_points
     
-    # 4. CBA TREND (0 to 1 points)
-    cba_trend = player_row.get('CBA_Trend', '')
-    cba_points = 0
-    
-    if 'Declining' in cba_trend:
-        cba_points = 1
-    
-    if cba_points > 0:
-        score_factors.append(f"CBA Trend: +{cba_points} (Declining)")
-        score_value += cba_points
-    
-    # 5. TOG TREND (0 to 1 points)
+    # 4. TOG TREND (-1 to 2 points) - Updated
     tog_trend = player_row.get('TOG_Trend', '')
     tog_points = 0
     
     if 'Declining' in tog_trend:
-        tog_points = 1
+        tog_points = 2  # Increased from 1 to 2
+    elif 'Flat' in tog_trend:
+        tog_points = 1  # Increased from 0 to 1
+    elif 'Increasing' in tog_trend:
+        tog_points = -1  # NEW: negative penalty
     
-    if tog_points > 0:
-        factor = "Declining"
-        score_factors.append(f"TOG Trend: +{tog_points} ({factor})")
+    if tog_points != 0:
+        sign = "+" if tog_points > 0 else ""
+        # Strip emoji from the trend text
+        clean_trend = tog_trend.replace('📈 ', '').replace('📉 ', '').replace('⚠️ ', '')
+        score_factors.append(f"TOG Trend: {sign}{tog_points} ({clean_trend})")
         score_value += tog_points
     
-    # 6. ROLE STATUS (1 or 0 points)
+    # 5. CBA TREND (-1 to 1 points) - Updated
+    cba_trend = player_row.get('CBA_Trend', '')
+    cba_points = 0
+    
+    if 'Declining' in cba_trend:
+        cba_points = 1  # Unchanged
+    elif 'Flat' in cba_trend:
+        cba_points = 0  # Increased from 0 to 1
+    elif 'Increasing' in cba_trend:
+        cba_points = -1  # NEW: negative penalty
+    
+    if cba_points != 0:
+        sign = "+" if cba_points > 0 else ""
+        # Strip emoji from the trend text
+        clean_trend = cba_trend.replace('📈 ', '').replace('📉 ', '').replace('⚠️ ', '')
+        score_factors.append(f"CBA Trend: {sign}{cba_points} ({clean_trend})")
+        score_value += cba_points
+    
+    # 6. ROLE STATUS (-1 to 2 points) - Updated
     role_status = player_row.get('Role_Status', '')
     role_points = 0
     
-    if 'LOW USAGE' in role_status:
-        role_points = 1
-        factor = "Low Usage"
-        score_factors.append(f"Role: +{role_points} ({factor})")
+    if 'UNSTABLE' in role_status:
+        role_points = 2  # Increased from -1 to 2
+    elif 'LOW USAGE' in role_status:
+        role_points = 1  # Unchanged
+    elif 'STABLE' in role_status:
+        role_points = -1  # Changed from 0 to -1
+    
+    if role_points != 0:
+        sign = "+" if role_points > 0 else ""
+        # Strip emoji from the role status
+        clean_status = role_status.replace('🎯 ', '').replace('⚠️ ', '').replace('📉 ', '')
+        score_factors.append(f"Role: {sign}{role_points} ({clean_status})")
         score_value += role_points
-    elif 'UNSTABLE' in role_status:
-        role_points = -1
-        factor = "Unstable"
-        score_factors.append(f"Role: {role_points} ({factor})")
-        score_value += role_points
+    
+    # 7. NEW: BET TYPE FACTOR (0-2 points)
+    bet_type_points = 0
+    if stat_type == 'tackles':
+        bet_type_points = 2
+    elif stat_type == 'marks':
+        bet_type_points = 1
+    # disposals remains 0
+    
+    if bet_type_points > 0:
+        score_factors.append(f"Bet Type: +{bet_type_points} ({stat_type})")
+        score_value += bet_type_points
     
     # Create a summary of all factors
     factors_summary = " | ".join(score_factors)
@@ -404,19 +439,19 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
         score_value = score_data["ScoreValue"]
         
         # Add a descriptive rating based on the score
-        if score_value >= 8:
+        if score_value >= 12:
             rating = "Strong Play"
-        elif score_value >= 6:
+        elif score_value >= 8:
             rating = "Good Play"
         elif score_value >= 4:
             rating = "Consider"
-        elif score_value >= 2:
+        elif score_value >= 0:
             rating = "Weak"
         else:
             rating = "Avoid"
             
         # Set the Score column to include both numeric score and rating
-        df.at[idx, score_column] = f"{score_value} - {rating}"
+        df.at[idx, score_column] = f"{score_value:.1f} - {rating}"
         df.at[idx, 'ScoreFactors'] = score_data["Factors"]  # Keep for possible filtering but won't display
     
     return df
@@ -1012,7 +1047,7 @@ def process_data_for_dashboard(stat_type='disposals'):
         display_df.columns = list(column_mapping.values())
         
         # Create a numeric-only version of the Score for sorting
-        display_df['SortScore'] = display_df[score_column_name].apply(lambda x: int(x.split(' - ')[0]) if isinstance(x, str) else 0)
+        display_df['SortScore'] = display_df[score_column_name].apply(lambda x: float(x.split(' - ')[0]) if isinstance(x, str) else 0)
         
         # Sort by the numeric Score (descending) and then by team and player
         display_df = display_df.sort_values(['SortScore', 'Team', 'Player'], ascending=[False, True, True])
@@ -1129,15 +1164,15 @@ app.layout = dbc.Container([
                 
                 dbc.Col([
                     html.Div([
-                        html.H4("Weather", className="text-center"),
-                        html.Div([
-                            html.Span("✅ Neutral", className="badge bg-success me-2"),
-                            html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
-                            html.Span("🔴 Strong Unders Edge", className="badge bg-danger")
-                        ], className="d-flex justify-content-center")
-                    ], className="border rounded p-2 mb-3",
-                    id="weather-legend",
-                    title="Weather impacts vary by stat type - each stat type has different conditions that favor unders")
+    html.H4("Weather", className="text-center"),
+    html.Div([
+        html.Span("✅ Neutral", className="badge bg-success me-2"),
+        html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
+        html.Span("🔴 Strong Unders Edge", className="badge bg-danger")
+    ], className="d-flex justify-content-center")
+], className="border rounded p-2 mb-3",
+id="weather-legend",
+title="Weather impacts vary by stat type - Rain, wind, and humidity have different effects on each stat type. Rain and wind decrease disposals and marks but can increase tackles.")
                 ], width=12),
                 
                 dbc.Col([
@@ -1170,7 +1205,7 @@ app.layout = dbc.Container([
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3",
                     id="tog-cba-legend",
-                    title="Time on Ground and Center Bounce Attendance trends; TOG: +1 point for Declining only, CBA: +1 for Declining only")
+                    title="TOG: Declining = 2, Flat = 1, Increasing = -1. CBA:Time on Ground and Center Bounce Attendance trends; TOG: +1 point for Declining only, CBA: +1 for Declining only")
                 ], width=12),
                 
                 dbc.Col([
@@ -1189,17 +1224,17 @@ app.layout = dbc.Container([
                 dbc.Col([
                     # This will be dynamically updated based on selected stat
                     html.Div([
-                        html.H4(id="score-legend-title", className="text-center"),
-                        html.Div([
-                            html.Span("8+ - Strong Play", className="badge bg-danger me-2"),
-                            html.Span("6-7 - Good Play", className="badge bg-warning me-2"),
-                            html.Span("4-5 - Consider", className="badge bg-warning text-dark me-2"),
-                            html.Span("2-3 - Weak", className="badge bg-success text-dark me-2"),
-                            html.Span("0-1 - Avoid", className="badge bg-success me-2")
-                        ], className="d-flex justify-content-center flex-wrap gap-1")
-                    ], className="border rounded p-2 mb-3",
-                    id="score-legend",
-                    title="Combined score from all factors; higher scores indicate stronger unders play")
+    html.H4(id="score-legend-title", className="text-center"),
+    html.Div([
+        html.Span("8.0+ - Strong Play", className="badge bg-danger me-2"),
+        html.Span("6.0-7.9 - Good Play", className="badge bg-warning me-2"),
+        html.Span("4.0-5.9 - Consider", className="badge bg-warning text-dark me-2"),
+        html.Span("2.0-3.9 - Weak", className="badge bg-success text-dark me-2"),
+        html.Span("0.0-1.9 - Avoid", className="badge bg-success me-2")
+    ], className="d-flex justify-content-center flex-wrap gap-1")
+], className="border rounded p-2 mb-3",
+id="score-legend",
+title="Combined score from all factors; higher scores indicate stronger unders play")
                 ], width=12)
             ])
         ], width=3),
@@ -1409,16 +1444,16 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
              'backgroundColor': '#f8d7da', 'color': 'black'},
              
             # Score column - gradient coloring based on score value
-            {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Strong Play"'},
-             'backgroundColor': '#f8d7da', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Good Play"'},
-             'backgroundColor': '#ffecb3', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Consider"'},
-             'backgroundColor': '#fff9c4', 'color': 'black'},
-            {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Weak"'},
-             'backgroundColor': '#e8f5e9', 'color': 'black'},
-            {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Avoid"'},
-             'backgroundColor': '#d4edda', 'color': 'black'},
+{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Strong Play"'},
+ 'backgroundColor': '#f8d7da', 'color': 'black', 'fontWeight': 'bold'},
+{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Good Play"'},
+ 'backgroundColor': '#ffecb3', 'color': 'black', 'fontWeight': 'bold'},
+{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Consider"'},
+ 'backgroundColor': '#fff9c4', 'color': 'black'},
+{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Weak"'},
+ 'backgroundColor': '#e8f5e9', 'color': 'black'},
+{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Avoid"'},
+ 'backgroundColor': '#d4edda', 'color': 'black'},
         ]
         
         return df.to_dict('records'), columns, style_data_conditional, team_options, ""
