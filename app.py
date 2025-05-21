@@ -93,11 +93,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         wind = float(wind) if wind is not None else 0
         humidity = float(humidity) if humidity is not None else 0
         
-        # NEW RAIN CATEGORIZATION LOGIC
-        # < 0.3mm = No Impact
-        # 0.3mm - 1mm = Light Rain
-        # 1mm - 3mm = Moderate Rain
-        # >3mm = Heavy Rain
+        # RAIN CATEGORIZATION LOGIC
         if rain < 0.3:
             rain_value = 0
             rain_cat = "Low"
@@ -111,7 +107,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
             rain_value = 3
             rain_cat = "Heavy"
         
-        # NEW WIND CATEGORIZATION
+        # WIND CATEGORIZATION
         if wind < 15:
             wind_value = 0
             wind_cat = "Low"
@@ -122,7 +118,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
             wind_value = 2
             wind_cat = "High"
         
-        # NEW HUMIDITY CATEGORIZATION
+        # HUMIDITY CATEGORIZATION
         if humidity <= 65:
             humid_value = 0
             humid_cat = "Low"
@@ -143,7 +139,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         if rain_value > 0:
             if stat_type in ['disposals', 'marks']:
                 # Multiplier for marks (more impact)
-                multiplier = 1.5 if stat_type == 'marks' else 1
+                multiplier = 0.75 if stat_type == 'marks' else 0.5
                 
                 rain_points = rain_value * multiplier
                 flag_count += rain_points
@@ -151,25 +147,41 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
                 # Description for the flag
                 rain_desc = ""
                 if rain_value == 1:
-                    rain_desc = "Light Rain (0.3-1mm)"
+                    rain_desc = "Light Rain"
                 elif rain_value == 2:
-                    rain_desc = "Moderate Rain (1-3mm)"
+                    rain_desc = "Moderate Rain"
                 else:
-                    rain_desc = "Heavy Rain (>3mm)"
+                    rain_desc = "Heavy Rain"
                 
                 flags_hit.append(f"{rain_desc} (↓ {rain_points:.1f})")
-            # No impact for tackles since rain typically increases tackles
+            elif stat_type == 'tackles':
+                # For tackles, rain increases tackles - negative impact for unders
+                rain_multiplier = -0.5
+                
+                rain_points = rain_value * rain_multiplier
+                flag_count += rain_points
+                
+                # Description for the flag
+                rain_desc = ""
+                if rain_value == 1:
+                    rain_desc = "Light Rain"
+                elif rain_value == 2:
+                    rain_desc = "Moderate Rain"
+                else:
+                    rain_desc = "Heavy Rain"
+                
+                flags_hit.append(f"{rain_desc} (↑ {abs(rain_points):.1f})")  # Up arrow for increase
         
         # WIND IMPACTS - Adjusted by stat type
         if wind_value > 0:
             if stat_type == 'disposals':
                 # For disposals, moderate effect
-                wind_points = wind_value
+                wind_points = wind_value * 0.5
                 flag_count += wind_points
                 flags_hit.append(f"Wind {wind_cat} (↓ {wind_points:.1f})")
             elif stat_type == 'marks':
                 # For marks, stronger effect
-                wind_points = wind_value * 1.5
+                wind_points = wind_value * 0.75
                 flag_count += wind_points
                 flags_hit.append(f"Wind {wind_cat} (↓ {wind_points:.1f})")
             # No impact for tackles
@@ -177,22 +189,36 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         # HUMIDITY IMPACTS - Adjusted by stat type
         if humid_value > 0:
             if stat_type in ['disposals', 'marks']:
-                humid_points = humid_value
+                humid_points = humid_value * 0.5
                 flag_count += humid_points
                 flags_hit.append(f"Humidity {humid_cat} (↓ {humid_points:.1f})")
             elif stat_type == 'tackles':
                 # Less impact on tackles
-                humid_points = humid_value * 0.5
+                humid_points = humid_value * 0.25
                 flag_count += humid_points
                 flags_hit.append(f"Humidity {humid_cat} (↓ {humid_points:.1f})")
         
-        # Set rating based on flag count
-        if flag_count == 0:
+        # Create weather value string with actual measurements
+        weather_values = []
+        if rain_value > 0:
+            weather_values.append(f"Rain: {rain:.1f}mm")
+        if wind_value > 0:
+            weather_values.append(f"Wind: {wind:.1f}km/h")
+        if humid_value > 0:
+            weather_values.append(f"Humidity: {int(humidity)}%")
+        
+        weather_values_str = ', '.join(weather_values)
+        
+        # Special handling for tackles with rain
+        if stat_type == 'tackles' and rain_value > 0:
+            # Show blue dot and "Avoid" for tackles with any rain
+            rating = f"🔵 Avoid ({weather_values_str})"
+        elif flag_count <= 0:
             rating = "✅ Neutral"
-        elif flag_count <= 1.5:
-            rating = f"⚠️ Medium Unders Edge ({', '.join(flags_hit)})"
-        else:
-            rating = f"🔴 Strong Unders Edge ({', '.join(flags_hit)})"
+        elif flag_count <= 1.5:  # Medium threshold
+            rating = f"⚠️ Medium Unders Edge ({weather_values_str})"
+        else:  # Strong threshold
+            rating = f"🔴 Strong Unders Edge ({weather_values_str})"
             
         return {
             "Rain": rain_cat,
@@ -214,6 +240,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
             "Flags": [],
             "RawValues": "No data available"
         }
+
 
 # Function to calculate DvP for different stat types
 def calculate_dvp_for_stat(processed_df, stat_type='disposals'):
@@ -276,39 +303,36 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     score_value = 0
     score_factors = []
     
-    # 1. TRAVEL FATIGUE impacts (0-3.5 points) - Updated with specific points per flag
+    # 1. TRAVEL FATIGUE IMPACTS (0 to 3.5 points)
     travel_fatigue = player_row.get('travel_fatigue', '')
     if '(' in travel_fatigue:
         flags_part = travel_fatigue.split('(')[1].split(')')[0]
         flags = [flag.strip() for flag in flags_part.split(',')]
         
-        # NEW LOGIC: Specific points per flag type
         travel_points = 0
-        flag_details = []
+        travel_details = []
         
-        if "Long Travel" in flags:
-            travel_points += 2
-            flag_details.append("Long Travel: +2")
-            
-        if "Short Break" in flags:
-            travel_points += 1
-            flag_details.append("Short Break: +1")
-            
-        if "Time Zone" in flags:
-            travel_points += 0.5
-            flag_details.append("Time Zone: +0.5")
-            
-        # For any other flags, add 0.5 points
-        other_flags = [f for f in flags if f not in ["Long Travel", "Short Break", "Time Zone"]]
-        if other_flags:
-            travel_points += len(other_flags) * 0
-            flag_details.append(f"Other ({', '.join(other_flags)}): +{len(other_flags) * 0.5}")
+        # Assign points based on specific travel flags
+        for flag in flags:
+            if "Long Travel" in flag:
+                travel_points += 2.0
+                travel_details.append("Long Travel: +2.0")
+            elif "Short Break" in flag:
+                travel_points += 1.0
+                travel_details.append("Short Break: +1.0")
+            elif "Time Zone" in flag:
+                travel_points += 0.5
+                travel_details.append("Time Zone: +0.5")
+            else:
+                travel_points += 0.5
+                travel_details.append(f"{flag}: +0.5")
         
+        # Apply travel points if any
         if travel_points > 0:
-            score_factors.append(f"Travel: +{travel_points:.1f} ({', '.join(flag_details)})")
+            score_factors.append(f"Travel: +{travel_points:.1f} ({', '.join(travel_details)})")
             score_value += travel_points
     
-    # 2. WEATHER impacts (unchanged since it varies by stat type)
+    # 2. WEATHER IMPACTS (0 to 4 for disposals/marks, -1 to 4 for tackles)
     team = player_row.get('team', '')
     weather_points = 0
     weather_flags = []
@@ -318,38 +342,54 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         flag_count = weather_data.get('FlagCount', 0)
         flags = weather_data.get('Flags', [])
         
-        if flag_count > 0:
-            weather_points = flag_count
-            weather_flags = flags
+        # Scale the weather flag count to the appropriate range
+        if stat_type == 'tackles':
+            # For tackles: Scale -2 to 3 range to -1 to 4 range
+            if flag_count < 0:
+                # Negative values (rain increasing tackles): scale to -1 to 0 range
+                weather_points = max(-1, flag_count / 2)  # Divide by 2 to scale -2 to -1
+            else:
+                # Positive values: scale to 0 to 4 range
+                weather_points = min(4, flag_count * (4/3))  # Multiply by 4/3 to scale 3 to 4
+        else:
+            # For disposals and marks: Scale 0 to 3 range to 0 to 4 range
+            weather_points = min(4, flag_count * (4/3))  # Multiply by 4/3 to scale 3 to 4
+        
+        weather_flags = flags
     
     if weather_points > 0:
         score_factors.append(f"Weather: +{weather_points:.1f} ({', '.join(weather_flags)})")
         score_value += weather_points
+    elif weather_points < 0:
+        score_factors.append(f"Weather: {weather_points:.1f} ({', '.join(weather_flags)})")
+        score_value += weather_points
     
-    # 3. DVP impacts (-1 to 4 points) - Updated with negative penalty for Neutral
+    # 3. DVP IMPACTS (-1 to 4 points)
     dvp_text = player_row.get('dvp', '')
     dvp_points = 0
     
     if 'Strong' in dvp_text:
         dvp_points = 4  # Increased from 3 to 4
     elif 'Moderate' in dvp_text:
-        dvp_points = 2  # Unchanged
+        dvp_points = 2  # Stays at 2
     elif 'Slight' in dvp_text:
-        dvp_points = 1  # Unchanged
-    elif 'Neutral' in dvp_text:
-        dvp_points = -1  # NEW: negative penalty for Neutral
+        dvp_points = 1  # Stays at 1
+    else:
+        dvp_points = -1  # New penalty for Neutral
     
-    if dvp_points != 0:
-        # Extract the numeric value if available
-        dvp_value = ""
-        if '(' in dvp_text and ')' in dvp_text:
-            dvp_value = dvp_text.split('(')[1].split(')')[0]
-        
-        sign = "+" if dvp_points > 0 else ""
-        score_factors.append(f"DvP: {sign}{dvp_points} ({dvp_value})")
-        score_value += dvp_points
+    # Extract the numeric value if available for display
+    dvp_value = ""
+    if '(' in dvp_text and ')' in dvp_text:
+        dvp_value = dvp_text.split('(')[1].split(')')[0]
     
-    # 4. TOG TREND (-1 to 2 points) - Updated
+    if dvp_points > 0:
+        score_factors.append(f"DvP: +{dvp_points} ({dvp_value})")
+    else:
+        score_factors.append(f"DvP: {dvp_points} (Neutral)")
+    
+    score_value += dvp_points
+    
+    # 4. TOG TREND (-1 to 2 points)
     tog_trend = player_row.get('TOG_Trend', '')
     tog_points = 0
     
@@ -358,61 +398,65 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     elif 'Flat' in tog_trend:
         tog_points = 1  # Increased from 0 to 1
     elif 'Increasing' in tog_trend:
-        tog_points = -1  # NEW: negative penalty
+        tog_points = -1  # New penalty
     
-    if tog_points != 0:
-        sign = "+" if tog_points > 0 else ""
-        # Strip emoji from the trend text
-        clean_trend = tog_trend.replace('📈 ', '').replace('📉 ', '').replace('⚠️ ', '')
-        score_factors.append(f"TOG Trend: {sign}{tog_points} ({clean_trend})")
-        score_value += tog_points
+    if tog_points > 0:
+        score_factors.append(f"TOG Trend: +{tog_points} ({tog_trend.split(' ')[0]})")
+    elif tog_points < 0:
+        score_factors.append(f"TOG Trend: {tog_points} ({tog_trend.split(' ')[0]})")
     
-    # 5. CBA TREND (-1 to 1 points) - Updated
+    score_value += tog_points
+    
+    # 5. CBA TREND (-1 to 1 points)
     cba_trend = player_row.get('CBA_Trend', '')
     cba_points = 0
     
     if 'Declining' in cba_trend:
-        cba_points = 1  # Unchanged
+        cba_points = 1  # Stays at 1
     elif 'Flat' in cba_trend:
-        cba_points = 0  # Increased from 0 to 1
+        cba_points = 1  # Increased from 0 to 1
     elif 'Increasing' in cba_trend:
-        cba_points = -1  # NEW: negative penalty
+        cba_points = -1  # New penalty
     
-    if cba_points != 0:
-        sign = "+" if cba_points > 0 else ""
-        # Strip emoji from the trend text
-        clean_trend = cba_trend.replace('📈 ', '').replace('📉 ', '').replace('⚠️ ', '')
-        score_factors.append(f"CBA Trend: {sign}{cba_points} ({clean_trend})")
-        score_value += cba_points
+    if cba_points > 0:
+        score_factors.append(f"CBA Trend: +{cba_points} ({cba_trend.split(' ')[0]})")
+    elif cba_points < 0:
+        score_factors.append(f"CBA Trend: {cba_points} ({cba_trend.split(' ')[0]})")
     
-    # 6. ROLE STATUS (-1 to 2 points) - Updated
+    score_value += cba_points
+    
+    # 6. ROLE STATUS (-1 to 2 points)
     role_status = player_row.get('Role_Status', '')
     role_points = 0
     
     if 'UNSTABLE' in role_status:
-        role_points = 2  # Increased from -1 to 2
+        role_points = 2  # Major change from -1 to 2
+        factor = "Unstable"
     elif 'LOW USAGE' in role_status:
-        role_points = 1  # Unchanged
+        role_points = 1  # Stays at 1
+        factor = "Low Usage"
     elif 'STABLE' in role_status:
-        role_points = -1  # Changed from 0 to -1
+        role_points = -1  # New penalty from 0 to -1
+        factor = "Stable"
     
-    if role_points != 0:
-        sign = "+" if role_points > 0 else ""
-        # Strip emoji from the role status
-        clean_status = role_status.replace('🎯 ', '').replace('⚠️ ', '').replace('📉 ', '')
-        score_factors.append(f"Role: {sign}{role_points} ({clean_status})")
-        score_value += role_points
+    if role_points > 0:
+        score_factors.append(f"Role: +{role_points} ({factor})")
+    elif role_points < 0:
+        score_factors.append(f"Role: {role_points} ({factor})")
     
-    # 7. NEW: BET TYPE FACTOR (0-2 points)
+    score_value += role_points
+    
+    # 7. BET TYPE FACTOR (0 to 2 points) - NEW
     bet_type_points = 0
+    
     if stat_type == 'tackles':
         bet_type_points = 2
     elif stat_type == 'marks':
         bet_type_points = 1
-    # disposals remains 0
+    # Disposals: 0 points (no adjustment)
     
     if bet_type_points > 0:
-        score_factors.append(f"Bet Type: +{bet_type_points} ({stat_type})")
+        score_factors.append(f"Bet Type: +{bet_type_points} ({stat_type.capitalize()})")
         score_value += bet_type_points
     
     # Create a summary of all factors
@@ -423,7 +467,6 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         "Factors": factors_summary
     }
 
-# Add score to dataframe based on stat type
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
     """Add a score to the dataframe based on the specific stat type"""
     # Always calculating unders for all stat types now
@@ -438,7 +481,7 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
         score_data = calculate_score(row, team_weather, simplified_dvp, stat_type)
         score_value = score_data["ScoreValue"]
         
-        # Add a descriptive rating based on the score
+        # Add a descriptive rating based on the new score thresholds
         if score_value >= 12:
             rating = "Strong Play"
         elif score_value >= 8:
@@ -611,7 +654,36 @@ def process_data_for_dashboard(stat_type='disposals'):
                 weather_data[match["match"]] = {"rain": 0, "wind": 0, "humidity": 50}
         
         print(f"Processed weather data for {len(weather_data)} matches")
-        
+        print("Weather information for each match:")
+        for match_key, weather in weather_data.items():
+            # Get the weather categorization for this match
+            weather_rating = categorize_weather_for_stat(weather, stat_type)
+            
+            # Extract teams from the match key
+            try:
+                home_team, away_team = match_key.split(" vs ")
+            except:
+                home_team = "Unknown"
+                away_team = "Unknown"
+            
+            # Print detailed weather info
+            rating = weather_rating.get('Rating', '✅ Neutral')
+            raw_values = weather_rating.get('RawValues', 'No data')
+            flags = weather_rating.get('Flags', [])
+            flag_count = weather_rating.get('FlagCount', 0)
+            
+            # Format the flags for display
+            flags_text = ", ".join(flags) if flags else "None"
+            
+            # Print the formatted weather information
+            print(f" - {match_key}: {raw_values}")
+            print(f"   Rating: {rating} (Impact Score: {flag_count:.1f})")
+            if flags:
+                print(f"   Flags: {flags_text}")
+            
+            # Add a separator between matches for readability
+            print("   ---")
+
         # Step 3: Process travel fatigue data
         try:
             travel_log = build_travel_log()
@@ -716,12 +788,20 @@ def process_data_for_dashboard(stat_type='disposals'):
                 home_team, away_team = match_str.split(" vs ")
                 teams_playing.extend([home_team, away_team])
                 
-                # Map teams to weather with stat-specific categorization
+# Map teams to weather with stat-specific categorization
                 weather = weather_data.get(match_str)
                 if weather:
                     weather_rating = categorize_weather_for_stat(weather, stat_type)
+                    # Store by full name
                     team_weather[home_team] = weather_rating
                     team_weather[away_team] = weather_rating
+                    
+                    # Also store by abbreviation for each team
+                    for abbr, name in TEAM_NAME_MAP.items():
+                        if name == home_team:
+                            team_weather[abbr] = weather_rating
+                        if name == away_team:
+                            team_weather[abbr] = weather_rating
                 
                 # Map teams to opponents
                 team_opponents[home_team] = away_team
@@ -893,10 +973,18 @@ def process_data_for_dashboard(stat_type='disposals'):
         )
         
         # Step 10: Add weather data with fallback for all teams
-        # For teams not playing next round, just use neutral weather
+# For teams not playing next round, just use neutral weather
         next_round_players['weather'] = next_round_players['team'].map(
             lambda x: team_weather.get(x, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
-        )
+)
+
+# Debug: Print the team name mappings for weather data
+        print("\nTeam weather mapping check:")
+        for team_abbr in next_round_players['team'].unique():
+            # Use TEAM_NAME_MAP directly instead of calling get_team_full_name
+            team_full = TEAM_NAME_MAP.get(team_abbr, team_abbr)
+            weather_rating = team_weather.get(team_abbr, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
+            print(f" - {team_abbr} ({team_full}): {weather_rating}")
         
         # Step 11: Add opponent for DvP with fallback
         # Map team abbreviations to full names for lookup
@@ -1168,11 +1256,12 @@ app.layout = dbc.Container([
     html.Div([
         html.Span("✅ Neutral", className="badge bg-success me-2"),
         html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
-        html.Span("🔴 Strong Unders Edge", className="badge bg-danger")
+        html.Span("🔴 Strong Unders Edge", className="badge bg-danger me-2"),
+        html.Span("🔵 Avoid", className="badge bg-primary")
     ], className="d-flex justify-content-center")
 ], className="border rounded p-2 mb-3",
 id="weather-legend",
-title="Weather impacts vary by stat type - Rain, wind, and humidity have different effects on each stat type. Rain and wind decrease disposals and marks but can increase tackles.")
+title="Weather impacts vary by stat type - Rain, wind, and humidity have different effects on each stat type. For tackles, rain is shown as 'Avoid' as it typically increases tackle counts.")
                 ], width=12),
                 
                 dbc.Col([
@@ -1408,7 +1497,10 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
              'backgroundColor': '#fff3cd', 'color': 'black'},
             {'if': {'column_id': 'Weather', 'filter_query': '{Weather} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
-            
+             # Add this new condition for blue dot Avoid
+            {'if': {'column_id': 'Weather', 'filter_query': '{Weather} contains "🔵 Avoid"'},
+             'backgroundColor': '#cce5ff', 'color': 'black'},  # Light blue for Avoid
+
             # DvP
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Neutral"'},
              'backgroundColor': '#d4edda', 'color': 'black'},
