@@ -132,93 +132,76 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         # Track which flags are hit for detailed display
         flags_hit = []
         
-        # Count the flags with adjustments based on stat type
+        # NEW WEATHER SCORING LOGIC
         flag_count = 0
         
-        # RAIN IMPACTS - Adjusted by stat type
+        # Determine overall weather severity (0 = Neutral, 1 = Medium, 2 = Strong)
+        weather_severity = 0
+        
+        # Calculate severity based on combined weather factors
+        severity_score = rain_value + wind_value + humid_value
+        
+        if severity_score >= 4:  # Strong conditions
+            weather_severity = 2
+        elif severity_score >= 2:  # Medium conditions  
+            weather_severity = 1
+        else:  # Neutral conditions
+            weather_severity = 0
+        
+        # Apply stat-specific scoring - REBALANCED TO 3 POINTS MAX
+        if stat_type == 'marks':
+            if weather_severity == 2:
+                flag_count = 3  # Strong
+                rating_text = "Strong"
+            elif weather_severity == 1:
+                flag_count = 2  # Medium
+                rating_text = "Medium"
+            else:
+                flag_count = 0  # Neutral
+                rating_text = "Neutral"
+        elif stat_type == 'disposals':
+            if weather_severity == 2:
+                flag_count = 3  # Strong
+                rating_text = "Strong"
+            elif weather_severity == 1:
+                flag_count = 1.5  # Medium
+                rating_text = "Medium"
+            else:
+                flag_count = 0  # Neutral
+                rating_text = "Neutral"
+        elif stat_type == 'tackles':
+            if weather_severity == 2:
+                flag_count = -3  # Strong (negative for tackles)
+                rating_text = "Strong"
+            elif weather_severity == 1:
+                flag_count = -1.5  # Medium (negative for tackles)
+                rating_text = "Medium"
+            else:
+                flag_count = 0  # Neutral
+                rating_text = "Neutral"
+        
+        # Build flags description
+        weather_factors = []
         if rain_value > 0:
-            if stat_type in ['disposals', 'marks']:
-                # Multiplier for marks (more impact)
-                multiplier = 0.75 if stat_type == 'marks' else 0.5
-                
-                rain_points = rain_value * multiplier
-                flag_count += rain_points
-                
-                # Description for the flag
-                rain_desc = ""
-                if rain_value == 1:
-                    rain_desc = "Light Rain"
-                elif rain_value == 2:
-                    rain_desc = "Moderate Rain"
-                else:
-                    rain_desc = "Heavy Rain"
-                
-                flags_hit.append(f"{rain_desc} (↓ {rain_points:.1f})")
-            elif stat_type == 'tackles':
-                # For tackles, rain increases tackles - negative impact for unders
-                rain_multiplier = -0.5
-                
-                rain_points = rain_value * rain_multiplier
-                flag_count += rain_points
-                
-                # Description for the flag
-                rain_desc = ""
-                if rain_value == 1:
-                    rain_desc = "Light Rain"
-                elif rain_value == 2:
-                    rain_desc = "Moderate Rain"
-                else:
-                    rain_desc = "Heavy Rain"
-                
-                flags_hit.append(f"{rain_desc} (↑ {abs(rain_points):.1f})")  # Up arrow for increase
-        
-        # WIND IMPACTS - Adjusted by stat type
+            weather_factors.append(f"Rain: {rain:.1f}mm")
         if wind_value > 0:
-            if stat_type == 'disposals':
-                # For disposals, moderate effect
-                wind_points = wind_value * 0.5
-                flag_count += wind_points
-                flags_hit.append(f"Wind {wind_cat} (↓ {wind_points:.1f})")
-            elif stat_type == 'marks':
-                # For marks, stronger effect
-                wind_points = wind_value * 0.75
-                flag_count += wind_points
-                flags_hit.append(f"Wind {wind_cat} (↓ {wind_points:.1f})")
-            # No impact for tackles
-        
-        # HUMIDITY IMPACTS - Adjusted by stat type
+            weather_factors.append(f"Wind: {wind:.1f}km/h")
         if humid_value > 0:
-            if stat_type in ['disposals', 'marks']:
-                humid_points = humid_value * 0.5
-                flag_count += humid_points
-                flags_hit.append(f"Humidity {humid_cat} (↓ {humid_points:.1f})")
-            elif stat_type == 'tackles':
-                # Less impact on tackles
-                humid_points = humid_value * 0.25
-                flag_count += humid_points
-                flags_hit.append(f"Humidity {humid_cat} (↓ {humid_points:.1f})")
+            weather_factors.append(f"Humidity: {int(humidity)}%")
         
-        # Create weather value string with actual measurements
-        weather_values = []
-        if rain_value > 0:
-            weather_values.append(f"Rain: {rain:.1f}mm")
-        if wind_value > 0:
-            weather_values.append(f"Wind: {wind:.1f}km/h")
-        if humid_value > 0:
-            weather_values.append(f"Humidity: {int(humidity)}%")
+        weather_values_str = ', '.join(weather_factors) if weather_factors else "Clear conditions"
         
-        weather_values_str = ', '.join(weather_values)
-        
-        # Special handling for tackles with rain
-        if stat_type == 'tackles' and rain_value > 0:
-            # Show blue dot and "Avoid" for tackles with any rain
-            rating = f"🔵 Avoid ({weather_values_str})"
-        elif flag_count <= 0:
+        # Create rating display
+        if stat_type == 'tackles' and flag_count < 0:
+            rating = f"🔵 {rating_text} Avoid ({weather_values_str})"
+        elif flag_count == 0:
             rating = "✅ Neutral"
-        elif flag_count <= 1.5:  # Medium threshold
+        elif rating_text == "Medium":
             rating = f"⚠️ Medium Unders Edge ({weather_values_str})"
-        else:  # Strong threshold
+        elif rating_text == "Strong":
             rating = f"🔴 Strong Unders Edge ({weather_values_str})"
+        else:
+            rating = "✅ Neutral"
             
         return {
             "Rain": rain_cat,
@@ -303,7 +286,7 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     score_value = 0
     score_factors = []
     
-    # 1. TRAVEL FATIGUE IMPACTS (0 to 3.5 points)
+    # 1. TRAVEL FATIGUE IMPACTS (0 to 2.5 points - UPDATED CAP)
     travel_fatigue = player_row.get('travel_fatigue', '')
     if '(' in travel_fatigue:
         flags_part = travel_fatigue.split('(')[1].split(')')[0]
@@ -320,48 +303,38 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
             elif "Short Break" in flag:
                 travel_points += 1.0
                 travel_details.append("Short Break: +1.0")
-            elif "Time Zone" in flag:
-                travel_points += 0.5
-                travel_details.append("Time Zone: +0.5")
+            # REMOVED: Time Zone scoring (was +0.5)
+            # elif "Time Zone" in flag:
+            #     travel_points += 0.5
+            #     travel_details.append("Time Zone: +0.5")
             else:
-                travel_points += 0.5
-                travel_details.append(f"{flag}: +0.5")
+                # Don't add points for other flags (including Time Zone)
+                travel_details.append(f"{flag}: +0.0")
+        
+        # Apply travel points cap at 2.5 instead of 3.5
+        travel_points = min(travel_points, 2.5)
         
         # Apply travel points if any
         if travel_points > 0:
             score_factors.append(f"Travel: +{travel_points:.1f} ({', '.join(travel_details)})")
             score_value += travel_points
     
-    # 2. WEATHER IMPACTS (0 to 4 for disposals/marks, -1 to 4 for tackles)
+    # 2. WEATHER IMPACTS - NEW SIMPLIFIED LOGIC
     team = player_row.get('team', '')
     weather_points = 0
-    weather_flags = []
     
     if team in team_weather:
         weather_data = team_weather[team]
         flag_count = weather_data.get('FlagCount', 0)
-        flags = weather_data.get('Flags', [])
         
-        # Scale the weather flag count to the appropriate range
-        if stat_type == 'tackles':
-            # For tackles: Scale -2 to 3 range to -1 to 4 range
-            if flag_count < 0:
-                # Negative values (rain increasing tackles): scale to -1 to 0 range
-                weather_points = max(-1, flag_count / 2)  # Divide by 2 to scale -2 to -1
-            else:
-                # Positive values: scale to 0 to 4 range
-                weather_points = min(4, flag_count * (4/3))  # Multiply by 4/3 to scale 3 to 4
-        else:
-            # For disposals and marks: Scale 0 to 3 range to 0 to 4 range
-            weather_points = min(4, flag_count * (4/3))  # Multiply by 4/3 to scale 3 to 4
-        
-        weather_flags = flags
+        # Use the flag_count directly (already calculated per stat type in categorize_weather_for_stat)
+        weather_points = flag_count
     
     if weather_points > 0:
-        score_factors.append(f"Weather: +{weather_points:.1f} ({', '.join(weather_flags)})")
+        score_factors.append(f"Weather: +{weather_points:.1f}")
         score_value += weather_points
     elif weather_points < 0:
-        score_factors.append(f"Weather: {weather_points:.1f} ({', '.join(weather_flags)})")
+        score_factors.append(f"Weather: {weather_points:.1f}")
         score_value += weather_points
     
     # 3. DVP IMPACTS (-1 to 4 points)
@@ -389,41 +362,13 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     
     score_value += dvp_points
     
-    # 4. TOG TREND (-1 to 2 points)
-    tog_trend = player_row.get('TOG_Trend', '')
-    tog_points = 0
+    # 4. TOG TREND - REMOVED FROM SCORING (keep for display only)
+    # tog_trend = player_row.get('TOG_Trend', '')
+    # No scoring logic here anymore
     
-    if 'Declining' in tog_trend:
-        tog_points = 2  # Increased from 1 to 2
-    elif 'Flat' in tog_trend:
-        tog_points = 1  # Increased from 0 to 1
-    elif 'Increasing' in tog_trend:
-        tog_points = -1  # New penalty
-    
-    if tog_points > 0:
-        score_factors.append(f"TOG Trend: +{tog_points} ({tog_trend.split(' ')[0]})")
-    elif tog_points < 0:
-        score_factors.append(f"TOG Trend: {tog_points} ({tog_trend.split(' ')[0]})")
-    
-    score_value += tog_points
-    
-    # 5. CBA TREND (-1 to 1 points)
-    cba_trend = player_row.get('CBA_Trend', '')
-    cba_points = 0
-    
-    if 'Declining' in cba_trend:
-        cba_points = 1  # Stays at 1
-    elif 'Flat' in cba_trend:
-        cba_points = 1  # Increased from 0 to 1
-    elif 'Increasing' in cba_trend:
-        cba_points = -1  # New penalty
-    
-    if cba_points > 0:
-        score_factors.append(f"CBA Trend: +{cba_points} ({cba_trend.split(' ')[0]})")
-    elif cba_points < 0:
-        score_factors.append(f"CBA Trend: {cba_points} ({cba_trend.split(' ')[0]})")
-    
-    score_value += cba_points
+    # 5. CBA TREND - REMOVED FROM SCORING (keep for display only)  
+    # cba_trend = player_row.get('CBA_Trend', '')
+    # No scoring logic here anymore
     
     # 6. ROLE STATUS (-1 to 2 points)
     role_status = player_row.get('Role_Status', '')
@@ -879,6 +824,7 @@ def process_data_for_dashboard(stat_type='disposals'):
                 # Extract all flag information from the entry
                 if entry.get('back_to_back', False):
                     travel_flags.append("Back to Back")
+                # REMOVED: Time Zone flag from scoring (still appears in display)
                 if entry.get('timezone_change', False) or entry.get('time_zone_change', False):
                     travel_flags.append("Time Zone")
                 if entry.get('short_break', False) or entry.get('days_break', 0) < 6:
@@ -1247,7 +1193,7 @@ app.layout = dbc.Container([
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3", 
                     id="travel-fatigue-legend",
-                    title="Travel fatigue impacts player performance; +1 point for each factor (Back to Back, Time Zone, Short Break, Long Travel)")
+                    title="Travel fatigue impacts player performance; +2 for Long Travel, +1 for Short Break (Time Zone removed from scoring but still displayed). Capped at +2.5 total.")
                 ], width=12),
                 
                 dbc.Col([
@@ -1261,7 +1207,7 @@ app.layout = dbc.Container([
     ], className="d-flex justify-content-center")
 ], className="border rounded p-2 mb-3",
 id="weather-legend",
-title="Weather impacts vary by stat type - Rain, wind, and humidity have different effects on each stat type. For tackles, rain is shown as 'Avoid' as it typically increases tackle counts.")
+title="Weather scoring: Marks +6/+4/0, Disposals +4/+2/0, Tackles -4/-2/0 (for Strong/Medium/Neutral). Tackles show negative scores as weather increases tackle counts.")
                 ], width=12),
                 
                 dbc.Col([
@@ -1275,7 +1221,7 @@ title="Weather impacts vary by stat type - Rain, wind, and humidity have differe
                         ], className="d-flex justify-content-center flex-wrap")
                     ], className="border rounded p-2 mb-3",
                     id="dvp-legend",
-                    title="Defenders vs Position shows historical matchup difficulty; +1 for Slight, +2 for Moderate, +3 for Strong unders")
+                    title="Defenders vs Position shows historical matchup difficulty; +1 for Slight, +2 for Moderate, +4 for Strong unders, -1 for Neutral")
                 ], width=12)
             ])
         ], width=3),
@@ -1294,7 +1240,7 @@ title="Weather impacts vary by stat type - Rain, wind, and humidity have differe
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3",
                     id="tog-cba-legend",
-                    title="TOG: Declining = 2, Flat = 1, Increasing = -1. CBA:Time on Ground and Center Bounce Attendance trends; TOG: +1 point for Declining only, CBA: +1 for Declining only")
+                    title="Time on Ground and Center Bounce Attendance trends - displayed for information only, no longer contribute to scoring")
                 ], width=12),
                 
                 dbc.Col([
@@ -1307,7 +1253,7 @@ title="Weather impacts vary by stat type - Rain, wind, and humidity have differe
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3",
                     id="role-legend",
-                    title="Player's role consistency and usage rate; +1 point for LOW USAGE, 0 points for STABLE or UNSTABLE")
+                    title="Player's role consistency and usage rate; +2 for UNSTABLE, +1 for LOW USAGE, -1 for STABLE")
                 ], width=12),
                 
                 dbc.Col([
@@ -1315,15 +1261,15 @@ title="Weather impacts vary by stat type - Rain, wind, and humidity have differe
                     html.Div([
     html.H4(id="score-legend-title", className="text-center"),
     html.Div([
-        html.Span("8.0+ - Strong Play", className="badge bg-danger me-2"),
-        html.Span("6.0-7.9 - Good Play", className="badge bg-warning me-2"),
-        html.Span("4.0-5.9 - Consider", className="badge bg-warning text-dark me-2"),
-        html.Span("2.0-3.9 - Weak", className="badge bg-success text-dark me-2"),
-        html.Span("0.0-1.9 - Avoid", className="badge bg-success me-2")
+        html.Span("12.0+ - Strong Play", className="badge bg-danger me-2"),
+        html.Span("8.0-11.9 - Good Play", className="badge bg-warning me-2"),
+        html.Span("4.0-7.9 - Consider", className="badge bg-warning text-dark me-2"),
+        html.Span("0.0-3.9 - Weak", className="badge bg-success text-dark me-2"),
+        html.Span("Below 0 - Avoid", className="badge bg-success me-2")
     ], className="d-flex justify-content-center flex-wrap gap-1")
 ], className="border rounded p-2 mb-3",
 id="score-legend",
-title="Combined score from all factors; higher scores indicate stronger unders play")
+title="Combined score from all factors; higher scores indicate stronger unders play. Updated scoring removes TOG/CBA contributions and revises weather scoring.")
                 ], width=12)
             ])
         ], width=3),
