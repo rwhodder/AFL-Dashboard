@@ -389,19 +389,6 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     
     score_value += role_points
     
-    # 7. BET TYPE FACTOR (0 to 2 points) - NEW
-    bet_type_points = 0
-    
-    if stat_type == 'tackles':
-        bet_type_points = 2
-    elif stat_type == 'marks':
-        bet_type_points = 1
-    # Disposals: 0 points (no adjustment)
-    
-    if bet_type_points > 0:
-        score_factors.append(f"Bet Type: +{bet_type_points} ({stat_type.capitalize()})")
-        score_value += bet_type_points
-    
     # Create a summary of all factors
     factors_summary = " | ".join(score_factors)
     
@@ -447,19 +434,21 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
         # print(f"DEBUG - Travel Fatigue: {travel_fatigue}")
         # print("---")
         
-        # AUTOMATIC AVOID - Never bet these
-        if position in ['InsM', 'GenD']:
-            return "🚫 SKIP - Position"
-        
+        # AUTOMATIC AVOID - Never bet these (CHECK FIRST!)    
         if score_value < 3.0:
             return "🚫 SKIP - Low Score"
         
-        # HIGH PRIORITY - Strong Bet criteria
+        # HIGH PRIORITY - Strong Bet criteria (AFTER position check)
         if (score_value >= 6.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing', 'KeyD']):
             return "🟢 STRONG BET"
         
-        if (stat_type == 'tackles' and score_value >= 4.0):
+        # Tackles special case - but still respect position filter (RAISED THRESHOLD)
+        if (stat_type == 'tackles' and score_value >= 5.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing', 'KeyD', 'InsM', 'GenD']):
             return "🟢 STRONG BET"
+        
+        # AUTOMATIC AVOID - Never bet these (CHECK after special tackles case)
+        if position in ['InsM', 'GenD']:
+            return "🚫 SKIP - Position"
         
         if ('Strong' in weather and 'Neutral' not in dvp and position not in ['InsM', 'GenD']):
             return "🟢 STRONG BET"
@@ -1330,7 +1319,7 @@ title="Weather scoring: Marks +6/+4/0, Disposals +4/+2/0, Tackles -4/-2/0 (for S
                         ], className="d-flex justify-content-center flex-wrap")
                     ], className="border rounded p-2 mb-3",
                     id="bet-flag-legend",
-                    title="Automated bet recommendations based on R11 analysis: STRONG BET (high confidence), CONSIDER (medium confidence), DISPOSALS SPECIAL (disposals only with very strong factors), SKIP (avoid betting)")
+                    title="Automated bet recommendations based on R11 analysis: 🟢 STRONG BET (Score ≥6.0 + Position ∈ [KeyF,GenF,Ruck,Wing,KeyD] OR Tackles + Score ≥5.5 + Position ∈ [KeyF,GenF,Ruck,Wing,KeyD] OR Weather=Strong + DvP≠Neutral + Position ∉ [InsM,GenD]), 🟡 CONSIDER (Score ≥4.0 + Position ∈ [KeyF,GenF,Ruck,Wing] OR Marks + KeyF/GenF + Score ≥3.0 OR Travel=High/Medium + Weather≠Neutral + Score ≥3.0), 🔵 DISPOSALS SPECIAL (Disposals + Score ≥6.0 + Position ∈ [KeyF,GenF,Wing] + Weather=Strong OR DvP=Strong), 🚫 SKIP (Position ∈ [InsM,GenD] OR Score <3.0 OR Disposals + Score <6.0 OR Role=STABLE + Score <5.0 OR No Edge)")
                 ], width=12),
                 
                 dbc.Col([
