@@ -118,11 +118,11 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
             wind_value = 2
             wind_cat = "High"
         
-        # HUMIDITY CATEGORIZATION
-        if humidity <= 65:
+        # HUMIDITY CATEGORIZATION - UPDATED TO REALISTIC THRESHOLDS
+        if humidity <= 75:
             humid_value = 0
             humid_cat = "Low"
-        elif humidity <= 75:
+        elif humidity <= 85:
             humid_value = 1
             humid_cat = "Moderate"
         else:
@@ -135,15 +135,15 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
         # NEW WEATHER SCORING LOGIC
         flag_count = 0
         
-        # Determine overall weather severity (0 = Neutral, 1 = Medium, 2 = Strong)
+        # Determine overall weather severity (0 = Neutral, 1 = Medium, 2 = Strong) - FIXED THRESHOLDS
         weather_severity = 0
         
-        # Calculate severity based on combined weather factors
+        # Calculate severity based on combined weather factors - ADJUSTED THRESHOLDS
         severity_score = rain_value + wind_value + humid_value
         
-        if severity_score >= 4:  # Strong conditions
+        if severity_score >= 3:  # Strong conditions (was 4)
             weather_severity = 2
-        elif severity_score >= 2:  # Medium conditions  
+        elif severity_score >= 1:  # Medium conditions (was 2)  
             weather_severity = 1
         else:  # Neutral conditions
             weather_severity = 0
@@ -180,7 +180,7 @@ def categorize_weather_for_stat(weather, stat_type='disposals'):
                 flag_count = 0  # Neutral
                 rating_text = "Neutral"
         
-        # Build flags description
+        # Build flags description - FIXED to show all non-zero values
         weather_factors = []
         if rain_value > 0:
             weather_factors.append(f"Rain: {rain:.1f}mm")
