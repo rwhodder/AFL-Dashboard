@@ -305,11 +305,8 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
                 travel_points += 1.0
                 travel_details.append("Short Break: +1.0")
             # REMOVED: Time Zone scoring (was +0.5)
-            # elif "Time Zone" in flag:
-            #     travel_points += 0.5
-            #     travel_details.append("Time Zone: +0.5")
             else:
-                # Don't add points for other flags (including Time Zone)
+                # Don't add points for other flags
                 travel_details.append(f"{flag}: +0.0")
         
         # Apply travel points cap at 2.5 instead of 3.5
@@ -417,8 +414,8 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
     """Calculate bet flag based on R11 analysis and filtering criteria"""
     try:
         # DEBUG: Print all available columns to understand data structure
-        print(f"DEBUG - Available columns: {list(player_row.keys())}")
-        print(f"DEBUG - Stat type: {stat_type}")
+        # print(f"DEBUG - Available columns: {list(player_row.keys())}")
+        # print(f"DEBUG - Stat type: {stat_type}")
         
         # Extract values from the row - try both original and display column names
         position = player_row.get('Position', player_row.get('position', ''))
@@ -440,15 +437,15 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
             score_value = 0
         
         # DEBUG: Print all extracted values
-        print(f"DEBUG - Player: {player_name}")
-        print(f"DEBUG - Position: {position}")
-        print(f"DEBUG - Score Text: {score_text}")
-        print(f"DEBUG - Score Value: {score_value}")
-        print(f"DEBUG - Weather: {weather}")
-        print(f"DEBUG - DvP: {dvp}")
-        print(f"DEBUG - Role Status: {role_status}")
-        print(f"DEBUG - Travel Fatigue: {travel_fatigue}")
-        print("---")
+        # print(f"DEBUG - Player: {player_name}")
+        # print(f"DEBUG - Position: {position}")
+        # print(f"DEBUG - Score Text: {score_text}")
+        # print(f"DEBUG - Score Value: {score_value}")
+        # print(f"DEBUG - Weather: {weather}")
+        # print(f"DEBUG - DvP: {dvp}")
+        # print(f"DEBUG - Role Status: {role_status}")
+        # print(f"DEBUG - Travel Fatigue: {travel_fatigue}")
+        # print("---")
         
         # AUTOMATIC AVOID - Never bet these
         if position in ['InsM', 'GenD']:
@@ -916,9 +913,6 @@ def process_data_for_dashboard(stat_type='disposals'):
                 # Extract all flag information from the entry
                 if entry.get('back_to_back', False):
                     travel_flags.append("Back to Back")
-                # REMOVED: Time Zone flag from scoring (still appears in display)
-                if entry.get('timezone_change', False) or entry.get('time_zone_change', False):
-                    travel_flags.append("Time Zone")
                 if entry.get('short_break', False) or entry.get('days_break', 0) < 6:
                     travel_flags.append("Short Break")
                 
@@ -931,11 +925,10 @@ def process_data_for_dashboard(stat_type='disposals'):
                 
                 # Method 2: Check for specific known long travel combinations
                 if not long_travel_detected:
-                    # STK to WCE case - traveling to Perth
+                    # Check for specific known long travel combinations based on distance
                     if (team == "STK" and team_opponents.get(TEAM_NAME_MAP.get("STK", ""), "") == TEAM_NAME_MAP.get("WCE", "")) or \
                        (team == "WCE" and team_opponents.get(TEAM_NAME_MAP.get("WCE", ""), "") == TEAM_NAME_MAP.get("STK", "")):
-                        if "Time Zone" in travel_flags:  # If time zone change is detected, it's almost certainly long travel
-                            long_travel_detected = True
+                        long_travel_detected = True
                     
                     # Other specific known long travel routes
                     long_distance_routes = [
@@ -1289,7 +1282,7 @@ app.layout = dbc.Container([
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3", 
                     id="travel-fatigue-legend",
-                    title="Travel fatigue impacts player performance; +2 for Long Travel, +1 for Short Break (Time Zone removed from scoring but still displayed). Capped at +2.5 total.")
+                    title="Travel fatigue impacts player performance; +2 for Long Travel, +1 for Short Break. Capped at +2.5 total.")
                 ], width=12),
                 
                 dbc.Col([
