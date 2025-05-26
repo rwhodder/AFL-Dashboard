@@ -426,12 +426,12 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
         score_data = calculate_score(row, team_weather, simplified_dvp, stat_type)
         score_value = score_data["ScoreValue"]
         
-        # Add a descriptive rating based on the new score thresholds
-        if score_value >= 12:
+        # Add a descriptive rating based on the UPDATED score thresholds
+        if score_value >= 9:
             rating = "Strong Play"
-        elif score_value >= 8:
+        elif score_value >= 6:
             rating = "Good Play"
-        elif score_value >= 4:
+        elif score_value >= 3:
             rating = "Consider"
         elif score_value >= 0:
             rating = "Weak"
@@ -1261,15 +1261,15 @@ title="Weather scoring: Marks +6/+4/0, Disposals +4/+2/0, Tackles -4/-2/0 (for S
                     html.Div([
     html.H4(id="score-legend-title", className="text-center"),
     html.Div([
-        html.Span("12.0+ - Strong Play", className="badge bg-danger me-2"),
-        html.Span("8.0-11.9 - Good Play", className="badge bg-warning me-2"),
-        html.Span("4.0-7.9 - Consider", className="badge bg-warning text-dark me-2"),
-        html.Span("0.0-3.9 - Weak", className="badge bg-success text-dark me-2"),
+        html.Span("9.0+ - Strong Play", className="badge bg-danger me-2"),
+        html.Span("6.0-8.9 - Good Play", className="badge bg-warning me-2"),
+        html.Span("3.0-5.9 - Consider", className="badge bg-warning text-dark me-2"),
+        html.Span("0.0-2.9 - Weak", className="badge bg-success text-dark me-2"),
         html.Span("Below 0 - Avoid", className="badge bg-success me-2")
     ], className="d-flex justify-content-center flex-wrap gap-1")
 ], className="border rounded p-2 mb-3",
 id="score-legend",
-title="Combined score from all factors; higher scores indicate stronger unders play. Updated scoring removes TOG/CBA contributions and revises weather scoring.")
+title="Combined score from all factors; higher scores indicate stronger unders play. Updated thresholds: Strong Play 9+, Good Play 6-8.9, Consider 3-5.9, Weak 0-2.9, Avoid <0.")
                 ], width=12)
             ])
         ], width=3),
