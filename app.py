@@ -1,3 +1,4 @@
+# Score column - gradient coloring based on score value
 import pandas as pd
 import numpy as np
 import dash
@@ -412,6 +413,92 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
         "Factors": factors_summary
     }
 
+def calculate_bet_flag(player_row, stat_type='disposals'):
+    """Calculate bet flag based on R11 analysis and filtering criteria"""
+    try:
+        # DEBUG: Print all available columns to understand data structure
+        print(f"DEBUG - Available columns: {list(player_row.keys())}")
+        print(f"DEBUG - Stat type: {stat_type}")
+        
+        # Extract values from the row - try both original and display column names
+        position = player_row.get('Position', player_row.get('position', ''))
+        
+        # Try to get the score column - it might have different names
+        score_column_name = f"{stat_type.capitalize()} Score"
+        score_text = player_row.get(score_column_name, player_row.get('Score', '0 - Avoid'))
+        
+        weather = player_row.get('Weather', player_row.get('weather', ''))
+        dvp = player_row.get('DvP', player_row.get('dvp', ''))
+        role_status = player_row.get('Role Status', player_row.get('Role_Status', ''))
+        travel_fatigue = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
+        player_name = player_row.get('Player', player_row.get('player', 'Unknown'))
+        
+        # Parse numeric score from score text
+        try:
+            score_value = float(score_text.split(' - ')[0]) if isinstance(score_text, str) and ' - ' in score_text else 0
+        except:
+            score_value = 0
+        
+        # DEBUG: Print all extracted values
+        print(f"DEBUG - Player: {player_name}")
+        print(f"DEBUG - Position: {position}")
+        print(f"DEBUG - Score Text: {score_text}")
+        print(f"DEBUG - Score Value: {score_value}")
+        print(f"DEBUG - Weather: {weather}")
+        print(f"DEBUG - DvP: {dvp}")
+        print(f"DEBUG - Role Status: {role_status}")
+        print(f"DEBUG - Travel Fatigue: {travel_fatigue}")
+        print("---")
+        
+        # AUTOMATIC AVOID - Never bet these
+        if position in ['InsM', 'GenD']:
+            return "🚫 SKIP - Position"
+        
+        if score_value < 3.0:
+            return "🚫 SKIP - Low Score"
+        
+        # HIGH PRIORITY - Strong Bet criteria
+        if (score_value >= 6.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing', 'KeyD']):
+            return "🟢 STRONG BET"
+        
+        if (stat_type == 'tackles' and score_value >= 4.0):
+            return "🟢 STRONG BET"
+        
+        if ('Strong' in weather and 'Neutral' not in dvp and position not in ['InsM', 'GenD']):
+            return "🟢 STRONG BET"
+        
+        # MEDIUM PRIORITY - Consider criteria
+        if (score_value >= 4.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing']):
+            return "🟡 CONSIDER"
+        
+        if (stat_type == 'marks' and position in ['KeyF', 'GenF'] and score_value >= 3.0):
+            return "🟡 CONSIDER"
+        
+        if (('High' in travel_fatigue or 'Medium' in travel_fatigue) and 
+            'Neutral' not in weather and score_value >= 3.0):
+            return "🟡 CONSIDER"
+        
+        # DISPOSALS SPECIAL - Only bet disposals with very strong factors
+        if (stat_type == 'disposals' and score_value >= 6.0 and position in ['KeyF', 'GenF', 'Wing'] and 
+            ('Strong' in weather or 'Strong' in dvp)):
+            return "🔵 DISPOSALS SPECIAL"
+        
+        # Additional skip criteria
+        if (stat_type == 'disposals' and score_value < 6.0):
+            return "🚫 SKIP - Disposals Weak"
+        
+        if ('STABLE' in role_status and score_value < 5.0):
+            return "🚫 SKIP - Stable Role"
+        
+        # Default skip for anything else
+        return "🚫 SKIP - No Edge"
+        
+    except Exception as e:
+        print(f"ERROR in calculate_bet_flag: {e}")
+        import traceback
+        traceback.print_exc()
+        return "❓ ERROR"
+
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
     """Add a score to the dataframe based on the specific stat type"""
     # Always calculating unders for all stat types now
@@ -442,6 +529,11 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
         df.at[idx, score_column] = f"{score_value:.1f} - {rating}"
         df.at[idx, 'ScoreFactors'] = score_data["Factors"]  # Keep for possible filtering but won't display
     
+    return df
+
+def add_bet_flag_to_dataframe(df, stat_type='disposals'):
+    """Add bet flag column to the dataframe"""
+    df['Bet_Flag'] = df.apply(lambda row: calculate_bet_flag(row, stat_type), axis=1)
     return df
 
 # Calculate TOG/CBA trends
@@ -1058,10 +1150,13 @@ def process_data_for_dashboard(stat_type='disposals'):
         # Calculate the Unders Score for each player
         result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
         
-        # Final columns for display - include only the Score column, not Score Factors
+        # Add bet flag based on filtering criteria
+        result_df = add_bet_flag_to_dataframe(result_df, stat_type)
+        
+        # Final columns for display - include the new Bet Flag column
         display_df = result_df[['player', 'team', 'opponent', 'position', 
                                 'travel_fatigue', 'weather', 'dvp', 'TOG_Trend', 'CBA_Trend', 
-                                'Role_Status', 'Score']]
+                                'Role_Status', 'Score', 'Bet_Flag']]
         
         # Rename columns for display
         score_column_name = f"{stat_type.capitalize()} Score"
@@ -1076,7 +1171,8 @@ def process_data_for_dashboard(stat_type='disposals'):
             'TOG_Trend': 'TOG Trend', 
             'CBA_Trend': 'CBA Trend',
             'Role_Status': 'Role Status', 
-            'Score': score_column_name
+            'Score': score_column_name,
+            'Bet_Flag': 'Bet Flag'
         }
         display_df.columns = list(column_mapping.values())
         
@@ -1228,8 +1324,22 @@ title="Weather scoring: Marks +6/+4/0, Disposals +4/+2/0, Tackles -4/-2/0 (for S
         
         # Second column of legend cards
         dbc.Col([
-            # Second column - TOG/CBA, Role Status, Edge Score
+            # Second column - Bet Flag, TOG/CBA, Role Status, Edge Score
             dbc.Row([
+                dbc.Col([
+                    html.Div([
+                        html.H4("Bet Flag", className="text-center"),
+                        html.Div([
+                            html.Span("🟢 STRONG BET", className="badge bg-success me-2"),
+                            html.Span("🟡 CONSIDER", className="badge bg-warning text-dark me-2"),
+                            html.Span("🔵 DISPOSALS SPECIAL", className="badge bg-primary me-2"),
+                            html.Span("🚫 SKIP", className="badge bg-danger")
+                        ], className="d-flex justify-content-center flex-wrap")
+                    ], className="border rounded p-2 mb-3",
+                    id="bet-flag-legend",
+                    title="Automated bet recommendations based on R11 analysis: STRONG BET (high confidence), CONSIDER (medium confidence), DISPOSALS SPECIAL (disposals only with very strong factors), SKIP (avoid betting)")
+                ], width=12),
+                
                 dbc.Col([
                     html.Div([
                         html.H4("TOG & CBA Trends", className="text-center"),
@@ -1344,7 +1454,8 @@ def load_data(data):
                         'TOG Trend': '⚠️ Flat',
                         'CBA Trend': '⚠️ Flat',
                         'Role Status': '🎯 STABLE',
-                        score_column: '0 - Avoid'
+                        score_column: '0 - Avoid',
+                        'Bet Flag': '🚫 SKIP - Low Score'
                     }])
                     print(f"Created test data row for {stat_type}.")
                 
@@ -1481,7 +1592,15 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             {'if': {'column_id': 'Role Status', 'filter_query': '{Role Status} contains "LOW USAGE"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
              
-            # Score column - gradient coloring based on score value
+            # Bet Flag colors
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "STRONG BET"'},
+             'backgroundColor': '#d4edda', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "CONSIDER"'},
+             'backgroundColor': '#fff3cd', 'color': 'black'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "DISPOSALS SPECIAL"'},
+             'backgroundColor': '#cce5ff', 'color': 'black'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "SKIP"'},
+             'backgroundColor': '#f8d7da', 'color': 'black'},
 {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Strong Play"'},
  'backgroundColor': '#f8d7da', 'color': 'black', 'fontWeight': 'bold'},
 {'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Good Play"'},
@@ -1514,7 +1633,8 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             'TOG Trend': 'N/A',
             'CBA Trend': 'N/A',
             'Role Status': 'N/A',
-            score_column: 'N/A'
+            score_column: 'N/A',
+            'Bet Flag': 'N/A'
         }])
         columns = [{"name": i, "id": i} for i in error_df.columns]
         return error_df.to_dict('records'), columns, [], [], f"Error filtering {stat_type} data: {str(e)}"
