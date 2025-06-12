@@ -10,7 +10,7 @@ STADIUM_COORDS = {
 "Barossa Park": (-34.6135, 138.9616),
 #WA
 "Optus Stadium": (-31.9505, 115.8890),
-"Hands Oval Stadium": (-33.2046, 115.3834),
+"Hands Oval": (-33.2046, 115.3834),
 #NSW
 "SCG": (-33.8914, 151.2245),
 "ENGIE Stadium": (-33.8430, 151.0677),

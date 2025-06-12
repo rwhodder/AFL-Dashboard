@@ -1,4 +1,541 @@
-# Score column - gradient coloring based on score value
+# Process dashboard data for a specific stat type
+def process_data_for_dashboard(stat_type='disposals'):
+    try:
+        force_print(f"\n{'='*60}")
+        force_print(f"🚀 STARTING DASHBOARD PROCESSING FOR {stat_type.upper()}")
+        force_print(f"{'='*60}")
+        
+        # Step 1: Get next round fixtures
+        try:
+            fixtures = scrape_next_round_fixture()
+            if not fixtures:
+                force_print("⚠️ No fixture data found. Using test data.")
+                fixtures = [
+                    {
+                        "match": "Team A vs Team B",
+                        "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
+                        "stadium": "MCG"
+                    }
+                ]
+        except Exception as e:
+            force_print(f"❌ Error fetching fixtures: {e}. Using test data.")
+            fixtures = [
+                {
+                    "match": "Team A vs Team B",
+                    "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
+                    "stadium": "MCG"
+                }
+            ]
+        
+        force_print(f"📅 Found {len(fixtures)} fixtures for next round")
+        
+        # Step 2: Get weather data for each match
+        weather_data = {}
+        force_print(f"\n🌤️ WEATHER ANALYSIS FOR {stat_type.upper()}:")
+        force_print("-" * 50)
+        
+        for match in fixtures:
+            stadium = match["stadium"]
+            latlon = STADIUM_COORDS.get(stadium)
+            
+            if not latlon:
+                for key in STADIUM_COORDS:
+                    if key.lower() in stadium.lower():
+                        latlon = STADIUM_COORDS[key]
+                        break
+                if not latlon:
+                    force_print(f"⚠️ Unknown venue: {stadium}. Using default coordinates (MCG).")
+                    latlon = (-37.8199, 144.9834)  # Default to MCG
+            
+            try:
+                forecast_list = get_forecast(*latlon)
+                weather = extract_weather_for_datetime(forecast_list, match["datetime"])
+                
+                match_key = match["match"]
+                if weather:
+                    weather_data[match_key] = weather
+                    
+                    # Show detailed weather analysis
+                    rain = weather.get('rain', 0)
+                    wind = weather.get('wind', 0)
+                    humidity = weather.get('humidity', 0)
+                    
+                    force_print(f"\n🏟️ {match_key}:")
+                    force_print(f"   📊 Raw Data: Rain={rain:.1f}mm, Wind={wind:.1f}km/h, Humidity={humidity:.1f}%")
+                    
+                    # Show categorization logic
+                    rain_level = "None" if rain < 1.2 else "Light" if rain < 3.0 else "Medium" if rain <= 6.0 else "Heavy"
+                    wind_level = "Calm" if wind < 15 else "Moderate" if wind <= 25 else "Strong"
+                    force_print(f"   🔍 Categories: Rain={rain_level}, Wind={wind_level}")
+                    
+                    # Show final weather rating
+                    weather_rating = categorize_weather_for_stat(weather, stat_type)
+                    rating = weather_rating.get('Rating', '✅ Neutral')
+                    flag_count = weather_rating.get('FlagCount', 0)
+                    
+                    force_print(f"   🎯 Final Rating: {rating}")
+                    force_print(f"   ⚡ Impact Score: {flag_count:.1f}")
+                    
+                    if flag_count > 0:
+                        force_print(f"   📈 Effect: Favors UNDERS for {stat_type}")
+                    elif flag_count < 0:
+                        force_print(f"   📉 Effect: AVOID UNDERS for {stat_type}")
+                    else:
+                        force_print(f"   ➖ Effect: Neutral for {stat_type}")
+                    
+                else:
+                    force_print(f"⚠️ No forecast found for {match['match']} at {stadium}. Using default values.")
+                    weather_data[match_key] = {"rain": 0, "wind": 0, "humidity": 50}
+            except Exception as e:
+                force_print(f"❌ Error fetching weather for {match['match']}: {e}. Using default values.")
+                weather_data[match["match"]] = {"rain": 0, "wind": 0, "humidity": 50}
+
+        # Step 3: Process travel fatigue data
+        try:
+            travel_log = build_travel_log()
+            force_print(f"\n✈️ TRAVEL FATIGUE ANALYSIS:")
+            force_print("-" * 50)
+            force_print(f"📋 Built travel log with {len(travel_log)} entries")
+        except Exception as e:
+            force_print(f"❌ Error building travel log: {e}. Using empty log.")
+            travel_log = []
+        
+        # Step 4: Load player stats
+        try:
+            df = pd.read_csv("afl_player_stats.csv", skiprows=3)
+            df = df.fillna(0)
+            force_print(f"\n📈 DATA LOADING:")
+            force_print("-" * 50)
+            force_print(f"✅ Loaded player stats with {len(df)} rows")
+        except Exception as e:
+            force_print(f"❌ Error loading player stats: {e}. Creating test data.")
+            df = pd.DataFrame([
+                {
+                    "player": "Test Player 1", 
+                    "team": "Team A",
+                    "opponent": "Team B", 
+                    "round": 10,
+                    "namedPosition": "CHF",
+                    "disposals": 20,
+                    "marks": 5,
+                    "tackles": 4
+                },
+                {
+                    "player": "Test Player 2", 
+                    "team": "Team B",
+                    "opponent": "Team A", 
+                    "round": 10,
+                    "namedPosition": "RK",
+                    "disposals": 15,
+                    "marks": 3,
+                    "tackles": 6
+                }
+            ])
+        
+        # Step 5: Generate DvP data for the specific stat type
+        try:
+            processed_df = load_and_prepare_data("afl_player_stats.csv")
+            
+            if stat_type not in processed_df.columns:
+                if stat_type == 'disposals' and 'kicks' in processed_df.columns and 'handballs' in processed_df.columns:
+                    processed_df[stat_type] = processed_df['kicks'] + processed_df['handballs']
+                    force_print(f"✅ Created {stat_type} column from kicks + handballs")
+                else:
+                    if 'disposals' in processed_df.columns:
+                        if stat_type == 'marks':
+                            processed_df[stat_type] = processed_df['disposals'] * 0.2
+                        elif stat_type == 'tackles':
+                            processed_df[stat_type] = processed_df['disposals'] * 0.15
+                    else:
+                        processed_df[stat_type] = 0
+                    force_print(f"⚠️ {stat_type} column created with fallback values")
+            
+            simplified_dvp = calculate_dvp_for_stat(processed_df, stat_type)
+            force_print(f"🎯 Created {stat_type}-specific DvP data for {len(simplified_dvp)} teams")
+            
+            # Show some DvP examples
+            dvp_count = 0
+            for team, roles in simplified_dvp.items():
+                for role, data in roles.items():
+                    if dvp_count < 3:  # Show first 3 examples
+                        strength = data['strength']
+                        dvp_val = data['dvp']
+                        force_print(f"   📊 {team} vs {role}: {strength} ({dvp_val:.1f})")
+                        dvp_count += 1
+            
+        except Exception as e:
+            force_print(f"⚠️ Warning in {stat_type} DvP calculation: {e}")
+            simplified_dvp = {}
+        
+        # Step 6: Extract team matchups for next round
+        team_weather = {}
+        team_opponents = {}
+        
+        force_print(f"\n🏟️ NEXT ROUND FIXTURES:")
+        force_print("-" * 50)
+        for match in fixtures:
+            match_str = match["match"]
+            force_print(f"📅 {match_str}")
+            try:
+                home_team, away_team = match_str.split(" vs ")
+                
+                weather = weather_data.get(match_str)
+                if weather:
+                    weather_rating = categorize_weather_for_stat(weather, stat_type)
+                    team_weather[home_team] = weather_rating
+                    team_weather[away_team] = weather_rating
+                    
+                    # Also store by abbreviation for each team
+                    for abbr, name in TEAM_NAME_MAP.items():
+                        if name == home_team:
+                            team_weather[abbr] = weather_rating
+                        if name == away_team:
+                            team_weather[abbr] = weather_rating
+                
+                team_opponents[home_team] = away_team
+                team_opponents[away_team] = home_team
+            except Exception as e:
+                force_print(f"❌ Error processing match {match_str}: {e}")
+        
+        # Step 7: Filter for players - include teams with byes
+        try:
+            latest_round = df['round'].max()
+            force_print(f"\n👥 PLAYER FILTERING:")
+            force_print("-" * 50)
+            force_print(f"📊 Latest round in data: {latest_round}")
+            
+            # Get players from the last 2 rounds to catch teams that had byes
+            recent_rounds = [latest_round, latest_round - 1]
+            recent_data = df[df['round'].isin(recent_rounds)].copy()
+            force_print(f"📋 Players from rounds {recent_rounds}: {len(recent_data)}")
+            
+            # Get the most recent game for each player (handles byes)
+            player_teams = recent_data.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
+            force_print(f"✅ Unique players after including bye teams: {len(player_teams)}")
+            
+            if len(player_teams) == 0:
+                force_print("⚠️ No players found in recent rounds. Using all players.")
+                player_teams = df.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
+            
+            next_round_players = player_teams.copy()
+            force_print(f"🎯 Using {len(next_round_players)} players for the dashboard")
+        except Exception as e:
+            force_print(f"❌ Error filtering players: {e}. Using full dataset.")
+            next_round_players = df.sort_values('round', ascending=False).groupby('player').first().reset_index()
+        
+        # Step 8: Add travel fatigue data with DETAILED LOGGING
+        travel_dict = {}
+        
+        force_print(f"\n✈️ TRAVEL FATIGUE PROCESSING:")
+        force_print("-" * 50)
+        
+        travel_entries_processed = 0
+        for entry in travel_log:
+            round_num = entry.get('round')
+            team_name = entry.get('team')
+            
+            # Find the abbreviation for the team
+            team_abbr = None
+            for abbr, name in TEAM_NAME_MAP.items():
+                if name == team_name:
+                    team_abbr = abbr
+                    break
+            
+            team = team_abbr if team_abbr else team_name
+            
+            # Process only if this is for the next round
+            if team and round_num == latest_round + 1:
+                travel_entries_processed += 1
+                fatigue_value = entry.get('fatigue_score')
+                distance_km = entry.get('distance_km', 0)
+                short_rest = entry.get('short_rest', False)
+                
+                if fatigue_value is None:
+                    fatigue = 0
+                else:
+                    try:
+                        fatigue = float(fatigue_value)
+                    except (ValueError, TypeError):
+                        fatigue = 0
+                
+                force_print(f"\n🔍 {team_name} ({team}) - Round {round_num}:")
+                force_print(f"   📊 Distance: {distance_km}km, Fatigue Score: {fatigue}")
+                force_print(f"   ⏰ Short Rest: {short_rest}")
+                
+                travel_flags = []
+                
+                if short_rest:
+                    travel_flags.append("Short Break")
+                    force_print(f"   🔴 SHORT BREAK detected!")
+                
+                # Enhanced long travel detection
+                long_travel_detected = False
+                
+                if distance_km > 1000:
+                    long_travel_detected = True
+                    force_print(f"   🟠 LONG TRAVEL detected via distance ({distance_km}km > 1000km)")
+                
+                if not long_travel_detected:
+                    # Check route-based long travel
+                    opponent_abbr = ""
+                    for abbr, name in TEAM_NAME_MAP.items():
+                        if name == team_opponents.get(TEAM_NAME_MAP.get(team, ""), ""):
+                            opponent_abbr = abbr
+                            break
+                    
+                    if opponent_abbr:
+                        long_distance_routes = [
+                            # Victoria to WA and vice versa
+                            ("MEL", "WCE"), ("GEE", "WCE"), ("COL", "WCE"), ("HAW", "WCE"), 
+                            ("CAR", "WCE"), ("ESS", "WCE"), ("NTH", "WCE"), ("RIC", "WCE"), 
+                            ("STK", "WCE"), ("WBD", "WCE"), ("WCE", "MEL"), ("WCE", "GEE"), 
+                            ("WCE", "COL"), ("WCE", "HAW"), ("WCE", "CAR"), ("WCE", "ESS"), 
+                            ("WCE", "NTH"), ("WCE", "RIC"), ("WCE", "STK"), ("WCE", "WBD"),
+                            # Similar for Fremantle
+                            ("MEL", "FRE"), ("GEE", "FRE"), ("COL", "FRE"), ("HAW", "FRE"), 
+                            ("CAR", "FRE"), ("ESS", "FRE"), ("NTH", "FRE"), ("RIC", "FRE"), 
+                            ("STK", "FRE"), ("WBD", "FRE"), ("FRE", "MEL"), ("FRE", "GEE"), 
+                            ("FRE", "COL"), ("FRE", "HAW"), ("FRE", "CAR"), ("FRE", "ESS"), 
+                            ("FRE", "NTH"), ("FRE", "RIC"), ("FRE", "STK"), ("FRE", "WBD"),
+                            # East coast to west coast
+                            ("SYD", "WCE"), ("SYD", "FRE"), ("GWS", "WCE"), ("GWS", "FRE"),
+                            ("BRL", "WCE"), ("BRL", "FRE"), ("GCS", "WCE"), ("GCS", "FRE"),
+                            ("WCE", "SYD"), ("WCE", "GWS"), ("WCE", "BRL"), ("WCE", "GCS"),
+                            ("FRE", "SYD"), ("FRE", "GWS"), ("FRE", "BRL"), ("FRE", "GCS"),
+                        ]
+                        
+                        if (team, opponent_abbr) in long_distance_routes:
+                            long_travel_detected = True
+                            force_print(f"   🟠 LONG TRAVEL detected via route ({team} → {opponent_abbr})")
+                
+                if long_travel_detected:
+                    travel_flags.append("Long Travel")
+                
+                # Determine final rating with detailed explanation
+                if not travel_flags:
+                    emoji = "✅ Neutral"
+                    force_print(f"   ✅ No travel issues detected")
+                elif "Short Break" in travel_flags and "Long Travel" in travel_flags:
+                    emoji = "🔴 Strong (Short Break + Long Travel)"
+                    force_print(f"   🔴 STRONG impact: Both Short Break AND Long Travel!")
+                elif "Long Travel" in travel_flags:
+                    emoji = "🟠 Moderate (Long Travel)"
+                    force_print(f"   🟠 MODERATE impact: Long Travel only")
+                elif "Short Break" in travel_flags:
+                    emoji = "🟡 Slight (Short Break)"
+                    force_print(f"   🟡 SLIGHT impact: Short Break only")
+                else:
+                    emoji = f"⚠️ Unknown ({', '.join(travel_flags)})"
+                    force_print(f"   ⚠️ Unknown travel flags: {travel_flags}")
+                
+                travel_dict[team] = emoji
+                force_print(f"   🎯 Final Rating: {emoji}")
+        
+        force_print(f"\n📊 Travel Summary: Processed {travel_entries_processed} teams for next round")
+        
+        # For any teams not in the travel log, use a default value
+        teams_without_travel = 0
+        for team_abbr in next_round_players['team'].unique():
+            if team_abbr not in travel_dict:
+                full_name = TEAM_NAME_MAP.get(team_abbr, team_abbr)
+                if full_name in team_opponents:
+                    travel_dict[team_abbr] = "✅ Neutral"
+                    teams_without_travel += 1
+                    
+        if teams_without_travel > 0:
+            force_print(f"ℹ️ Added default 'Neutral' travel rating for {teams_without_travel} teams without travel data")
+        
+        # Add travel fatigue with fallback for missing teams
+        next_round_players['travel_fatigue'] = next_round_players['team'].map(
+            lambda x: travel_dict.get(x, "✅ Neutral")
+        )
+        
+        # Step 9: Add weather data with fallback for all teams
+        next_round_players['weather'] = next_round_players['team'].map(
+            lambda x: team_weather.get(x, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
+        )
+
+        force_print(f"\n🌤️ TEAM WEATHER MAPPING:")
+        force_print("-" * 50)
+        for team_abbr in sorted(next_round_players['team'].unique()):
+            team_full = TEAM_NAME_MAP.get(team_abbr, team_abbr)
+            weather_rating = team_weather.get(team_abbr, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
+            force_print(f"🏟️ {team_abbr} ({team_full}): {weather_rating}")
+        
+        # Step 10: Add opponent for DvP with fallback
+        def get_team_full_name(team_abbr):
+            return TEAM_NAME_MAP.get(team_abbr, team_abbr)
+        
+        def get_team_opponent(team_abbr):
+            full_name = get_team_full_name(team_abbr)
+            opponent_full_name = team_opponents.get(full_name, "Unknown")
+            
+            # Find the abbreviation for the opponent if possible
+            for abbr, name in TEAM_NAME_MAP.items():
+                if name == opponent_full_name:
+                    return abbr
+            
+            return opponent_full_name
+        
+        # Apply the mapping
+        next_round_players['opponent'] = next_round_players['team'].apply(get_team_opponent)
+        
+        # If we still have "Unknown" opponents, log them
+        unknown_opponents = next_round_players[next_round_players['opponent'] == "Unknown"]['team'].unique()
+        if len(unknown_opponents) > 0:
+            force_print(f"\n⚠️ WARNING: {len(unknown_opponents)} teams have unknown opponents:")
+            for team in unknown_opponents:
+                force_print(f"   - {team}: No opponent found in fixture (full name: {get_team_full_name(team)})")
+        
+        # Step 11: Add role positions with default for unknown
+        def map_position(pos):
+            if pd.isna(pos) or pos == "":
+                return "Unknown"
+            for role, tags in POSITION_MAP.items():
+                if pos in tags:
+                    return role
+            return "Unknown"
+        
+        if 'namedPosition' in next_round_players.columns:
+            next_round_players["position"] = next_round_players["namedPosition"].apply(map_position)
+            force_print(f"\n📍 POSITION MAPPING:")
+            force_print("-" * 50)
+            position_counts = next_round_players["position"].value_counts()
+            for pos, count in position_counts.items():
+                force_print(f"   {pos}: {count} players")
+        else:
+            force_print("⚠️ Warning: namedPosition column missing. Using default positions.")
+            next_round_players["position"] = "Unknown"
+        
+        # Step 12: Add DvP indicators with better error handling
+        def get_dvp_rating(row):
+            try:
+                team = row['opponent'] if 'opponent' in row else "Unknown"
+                pos = row['position'] if 'position' in row else "Unknown"
+                
+                # Handle missing or None values
+                if team is None or pos is None or team == "Unknown" or pos == "Unknown":
+                    return "⚠️ Unknown"
+                    
+                # Use the simplified_dvp dictionary instead of dataframe lookups
+                if team in simplified_dvp and pos in simplified_dvp[team]:
+                    dvp_info = simplified_dvp[team][pos]
+                    strength = dvp_info["strength"]
+                    dvp_value = dvp_info["dvp"]
+                    
+                    # Format the DvP value to show in the rating
+                    formatted_dvp = f"{dvp_value:.1f}"
+                    
+                    if strength == "Strong":
+                        return f"🔴 Strong Unders ({formatted_dvp})"
+                    elif strength == "Moderate":
+                        return f"🟠 Moderate Unders ({formatted_dvp})"
+                    elif strength == "Slight":
+                        return f"🟡 Slight Unders ({formatted_dvp})"
+                
+                return "✅ Neutral"
+            except Exception as e:
+                force_print(f"❌ Error in DvP rating: {e}")
+                return "⚠️ Unknown"
+        
+        next_round_players['dvp'] = next_round_players.apply(get_dvp_rating, axis=1)
+        
+        force_print(f"\n🎯 DVP ANALYSIS:")
+        force_print("-" * 50)
+        dvp_counts = next_round_players['dvp'].value_counts()
+        for dvp_type, count in dvp_counts.items():
+            force_print(f"   {dvp_type}: {count} players")
+        
+        # Step 13: Clean up and select final columns for display
+        result_df = next_round_players[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
+                                        'weather', 'dvp']].copy()
+        
+        # Calculate the Unders Score for each player (for bet flag calculation only)
+        result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
+        
+        # Reset the logging counter for bet flag analysis
+        if hasattr(calculate_bet_flag, 'logged_count'):
+            calculate_bet_flag.logged_count = 0
+        
+        # Add bet flag based on filtering criteria
+        force_print(f"\n🎯 BET FLAG ANALYSIS:")
+        force_print("-" * 50)
+        result_df = add_bet_flag_to_dataframe(result_df, stat_type)
+        
+        # Final columns for display
+        display_df = result_df[['player', 'team', 'opponent', 'position', 
+                                'travel_fatigue', 'weather', 'dvp', 'Bet_Flag']]
+        
+        # Rename columns for display
+        column_mapping = {
+            'player': 'Player', 
+            'team': 'Team', 
+            'opponent': 'Opponent', 
+            'position': 'Position',
+            'travel_fatigue': 'Travel Fatigue', 
+            'weather': 'Weather', 
+            'dvp': 'DvP',
+            'Bet_Flag': 'Bet Flag'
+        }
+        display_df.columns = list(column_mapping.values())
+        
+        # Sort by team and player
+        display_df = display_df.sort_values(['Team', 'Player'], ascending=[True, True])
+        
+        # Final summary with bet flag distribution
+        force_print(f"\n📊 FINAL SUMMARY FOR {stat_type.upper()}:")
+        force_print("-" * 50)
+        force_print(f"✅ Total players processed: {len(display_df)}")
+        
+        # Show bet flag distribution
+        bet_flag_counts = display_df['Bet Flag'].value_counts()
+        force_print(f"\n🎯 BET FLAG DISTRIBUTION:")
+        for flag, count in bet_flag_counts.items():
+            if "AUTO-BET" in flag:
+                force_print(f"   🟢 {flag}: {count} players")
+            elif "CONSIDER" in flag:
+                force_print(f"   🟡 {flag}: {count} players")
+            else:
+                force_print(f"   🚫 {flag}: {count} players")
+        
+        # Show key opportunities
+        auto_bet_players = display_df[display_df['Bet Flag'].str.contains('AUTO-BET', na=False)]
+        consider_players = display_df[display_df['Bet Flag'].str.contains('CONSIDER', na=False)]
+        
+        if len(auto_bet_players) > 0:
+            force_print(f"\n🟢 AUTO-BET OPPORTUNITIES ({len(auto_bet_players)} players):")
+            for idx, player in auto_bet_players.head(5).iterrows():
+                force_print(f"   - {player['Player']} ({player['Team']}) - {player['Bet Flag']}")
+            if len(auto_bet_players) > 5:
+                force_print(f"   ... and {len(auto_bet_players) - 5} more")
+        
+        if len(consider_players) > 0:
+            force_print(f"\n🟡 CONSIDER OPPORTUNITIES ({len(consider_players)} players):")
+            for idx, player in consider_players.head(3).iterrows():
+                force_print(f"   - {player['Player']} ({player['Team']}) - {player['Bet Flag']}")
+        
+        force_print(f"\n{'='*60}")
+        force_print(f"🎉 DASHBOARD PROCESSING COMPLETE FOR {stat_type.upper()}")
+        force_print(f"{'='*60}\n")
+        
+        return display_df
+        
+    except Exception as e:
+        force_print(f"\n💥 CRITICAL ERROR in process_data_for_dashboard for {stat_type}: {e}")
+        import traceback
+        force_print(traceback.format_exc())
+        
+        # Return a minimal valid dataframe
+        return pd.DataFrame([{
+            'Player': f'Error: {str(e)}',
+            'Team': 'Error',
+            'Opponent': 'Error',
+            'Position': 'Error',
+            'Travel Fatigue': 'Error',
+            'Weather': 'Error', 
+            'DvP': 'Error',
+            'Bet Flag': 'Error'
+        }])# Score column - gradient coloring based on score value
 import pandas as pd
 import numpy as np
 import dash
@@ -11,6 +548,29 @@ from travel_fatigue import build_travel_log
 from stadium_locations import STADIUM_COORDS
 from stat_rules import apply_sensitivity
 from data_processor import load_and_prepare_data, calculate_dvp
+
+# Add enhanced logging configuration
+import sys
+import logging
+
+# Configure logging to force output to terminal
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
+logger = logging.getLogger(__name__)
+
+# Disable Flask's default logging to reduce noise
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
+def force_print(message):
+    """Force print to terminal even in Dash debug mode"""
+    print(message, flush=True)
+    logger.info(message)
+    sys.stdout.flush()
 
 # ===== CONSTANTS =====s
 OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # From main.py
@@ -82,148 +642,83 @@ def extract_weather_for_datetime(forecast_list, target_datetime):
     return {"rain": rain, "wind": wind, "humidity": humid}
 
 def categorize_weather_for_stat(weather, stat_type='disposals'):
-    """Categorize weather considering its effect on different stats (disposals, marks, tackles)"""
-    try:
-        # Handle potential None values
-        rain = weather.get('rain', 0) if weather else 0
-        wind = weather.get('wind', 0) if weather else 0
-        humidity = weather.get('humidity', 0) if weather else 0
+    # Get rain and wind values (no humidity)
+    rain = float(weather.get('rain', 0)) if weather else 0
+    wind = float(weather.get('wind', 0)) if weather else 0
+    
+    # Categorize rain
+    if rain < 1.2:
+        rain_value = 0
+    elif rain < 3.0:
+        rain_value = 1
+    elif rain <= 6.0:
+        rain_value = 2
+    else:
+        rain_value = 3
         
-        # Ensure numeric values
-        rain = float(rain) if rain is not None else 0
-        wind = float(wind) if wind is not None else 0
-        humidity = float(humidity) if humidity is not None else 0
-        
-        # RAIN CATEGORIZATION LOGIC
-        if rain < 0.3:
-            rain_value = 0
-            rain_cat = "Low"
-        elif rain < 1:
-            rain_value = 1
-            rain_cat = "Light"
-        elif rain <= 3:
-            rain_value = 2
-            rain_cat = "Moderate"
+    # Categorize wind
+    if wind < 15:
+        wind_value = 0
+    elif wind <= 25:
+        wind_value = 1
+    else:
+        wind_value = 2
+    
+    # Calculate weather severity (rain + wind, no humidity)
+    severity_score = rain_value + wind_value
+    
+    if severity_score >= 3:
+        weather_severity = 2  # Strong
+    elif severity_score >= 1:
+        weather_severity = 1  # Medium
+    else:
+        weather_severity = 0  # Neutral
+    
+    # Apply stat-specific scoring
+    if stat_type in ['disposals', 'marks']:
+        if weather_severity == 2:
+            flag_count = 3.0  # Strong
+            rating_text = "Strong"
+        elif weather_severity == 1:
+            flag_count = 2.0 if stat_type == 'marks' else 1.5  # Medium
+            rating_text = "Medium"
         else:
-            rain_value = 3
-            rain_cat = "Heavy"
-        
-        # WIND CATEGORIZATION
-        if wind < 15:
-            wind_value = 0
-            wind_cat = "Low"
-        elif wind <= 25:
-            wind_value = 1
-            wind_cat = "Moderate"
-        else:
-            wind_value = 2
-            wind_cat = "High"
-        
-        # HUMIDITY CATEGORIZATION - UPDATED TO REALISTIC THRESHOLDS
-        if humidity <= 75:
-            humid_value = 0
-            humid_cat = "Low"
-        elif humidity <= 85:
-            humid_value = 1
-            humid_cat = "Moderate"
-        else:
-            humid_value = 2
-            humid_cat = "High"
-        
-        # Track which flags are hit for detailed display
-        flags_hit = []
-        
-        # NEW WEATHER SCORING LOGIC
-        flag_count = 0
-        
-        # Determine overall weather severity (0 = Neutral, 1 = Medium, 2 = Strong) - FIXED THRESHOLDS
-        weather_severity = 0
-        
-        # Calculate severity based on combined weather factors - ADJUSTED THRESHOLDS
-        severity_score = rain_value + wind_value + humid_value
-        
-        if severity_score >= 3:  # Strong conditions (was 4)
-            weather_severity = 2
-        elif severity_score >= 1:  # Medium conditions (was 2)  
-            weather_severity = 1
-        else:  # Neutral conditions
-            weather_severity = 0
-        
-        # Apply stat-specific scoring - REBALANCED TO 3 POINTS MAX
-        if stat_type == 'marks':
-            if weather_severity == 2:
-                flag_count = 3  # Strong
-                rating_text = "Strong"
-            elif weather_severity == 1:
-                flag_count = 2  # Medium
-                rating_text = "Medium"
-            else:
-                flag_count = 0  # Neutral
-                rating_text = "Neutral"
-        elif stat_type == 'disposals':
-            if weather_severity == 2:
-                flag_count = 3  # Strong
-                rating_text = "Strong"
-            elif weather_severity == 1:
-                flag_count = 1.5  # Medium
-                rating_text = "Medium"
-            else:
-                flag_count = 0  # Neutral
-                rating_text = "Neutral"
-        elif stat_type == 'tackles':
-            if weather_severity == 2:
-                flag_count = -3  # Strong (negative for tackles)
-                rating_text = "Strong"
-            elif weather_severity == 1:
-                flag_count = -1.5  # Medium (negative for tackles)
-                rating_text = "Medium"
-            else:
-                flag_count = 0  # Neutral
-                rating_text = "Neutral"
-        
-        # Build flags description - FIXED to show all non-zero values
-        weather_factors = []
-        if rain_value > 0:
-            weather_factors.append(f"Rain: {rain:.1f}mm")
-        if wind_value > 0:
-            weather_factors.append(f"Wind: {wind:.1f}km/h")
-        if humid_value > 0:
-            weather_factors.append(f"Humidity: {int(humidity)}%")
-        
-        weather_values_str = ', '.join(weather_factors) if weather_factors else "Clear conditions"
-        
-        # Create rating display
-        if stat_type == 'tackles' and flag_count < 0:
-            rating = f"🔵 {rating_text} Avoid ({weather_values_str})"
-        elif flag_count == 0:
-            rating = "✅ Neutral"
-        elif rating_text == "Medium":
-            rating = f"⚠️ Medium Unders Edge ({weather_values_str})"
-        elif rating_text == "Strong":
-            rating = f"🔴 Strong Unders Edge ({weather_values_str})"
-        else:
-            rating = "✅ Neutral"
+            flag_count = 0  # Neutral
+            rating_text = "Neutral"
             
-        return {
-            "Rain": rain_cat,
-            "Wind": wind_cat,
-            "Humidity": humid_cat,
-            "Rating": rating,
-            "FlagCount": flag_count,
-            "Flags": flags_hit,
-            "RawValues": f"Rain: {rain:.1f}mm, Wind: {wind:.1f}km/h, Humidity: {int(humidity)}%"
-        }
-    except Exception as e:
-        print(f"Error in categorize_weather: {e}")
-        return {
-            "Rain": "Low",
-            "Wind": "Low",
-            "Humidity": "Low",
-            "Rating": "✅ Neutral",
-            "FlagCount": 0,
-            "Flags": [],
-            "RawValues": "No data available"
-        }
+    elif stat_type == 'tackles':
+        # Only rain matters for tackles
+        if rain_value > 0:  # Any rain ≥1.2mm
+            flag_count = -999  # Avoid
+            rating_text = "Avoid"
+        else:
+            flag_count = 0  # Neutral
+            rating_text = "Neutral"
+    
+    # Build display with both rain and wind
+    weather_factors = []
+    if rain_value > 0:
+        weather_factors.append("Rain")
+    if wind_value > 0:
+        weather_factors.append("Wind")
+    
+    weather_values_str = ', '.join(weather_factors) if weather_factors else "Clear conditions"
+    
+    # Create rating display
+    if stat_type == 'tackles' and rain_value > 0:
+        rating = f"🔵 AVOID RAIN ({weather_values_str})"
+    elif flag_count == 0:
+        rating = "✅ Neutral"
+    elif rating_text == "Medium":
+        rating = f"⚠️ Medium Unders Edge ({weather_values_str})"
+    elif rating_text == "Strong":
+        rating = f"🔴 Strong Unders Edge ({weather_values_str})"
+    
+    return {
+        "Rating": rating,
+        "FlagCount": flag_count,
+        "RawValues": f"Rain: {rain:.1f}mm, Wind: {wind:.1f}km/h"
+    }
 
 
 # Function to calculate DvP for different stat types
@@ -287,16 +782,16 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     score_value = 0
     score_factors = []
     
-    # 1. TRAVEL FATIGUE IMPACTS (0 to 2.5 points - UPDATED CAP)
+    # 1. TRAVEL FATIGUE IMPACTS (0 to 3.0 points)
     travel_fatigue = player_row.get('travel_fatigue', '')
+    travel_points = 0
+    travel_details = []
+
     if '(' in travel_fatigue:
         flags_part = travel_fatigue.split('(')[1].split(')')[0]
         flags = [flag.strip() for flag in flags_part.split(',')]
         
-        travel_points = 0
-        travel_details = []
-        
-        # Assign points based on specific travel flags
+        # Calculate points based ONLY on flags, ignore fatigue_score
         for flag in flags:
             if "Long Travel" in flag:
                 travel_points += 2.0
@@ -304,20 +799,19 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
             elif "Short Break" in flag:
                 travel_points += 1.0
                 travel_details.append("Short Break: +1.0")
-            # REMOVED: Time Zone scoring (was +0.5)
             else:
                 # Don't add points for other flags
                 travel_details.append(f"{flag}: +0.0")
-        
-        # Apply travel points cap at 2.5 instead of 3.5
-        travel_points = min(travel_points, 2.5)
-        
+
+        # Cap at 3.0 (Long Travel + Short Break = 2.0 + 1.0 = 3.0)
+        travel_points = min(travel_points, 3.0)
+
         # Apply travel points if any
         if travel_points > 0:
             score_factors.append(f"Travel: +{travel_points:.1f} ({', '.join(travel_details)})")
             score_value += travel_points
     
-    # 2. WEATHER IMPACTS - NEW SIMPLIFIED LOGIC
+    # 2. WEATHER IMPACTS
     team = player_row.get('team', '')
     weather_points = 0
     
@@ -340,13 +834,13 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     dvp_points = 0
     
     if 'Strong' in dvp_text:
-        dvp_points = 4  # Increased from 3 to 4
+        dvp_points = 4
     elif 'Moderate' in dvp_text:
-        dvp_points = 2  # Stays at 2
+        dvp_points = 2
     elif 'Slight' in dvp_text:
-        dvp_points = 1  # Stays at 1
+        dvp_points = 1
     else:
-        dvp_points = -1  # New penalty for Neutral
+        dvp_points = -1  # Penalty for Neutral
     
     # Extract the numeric value if available for display
     dvp_value = ""
@@ -360,35 +854,6 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     
     score_value += dvp_points
     
-    # 4. TOG TREND - REMOVED FROM SCORING (keep for display only)
-    # tog_trend = player_row.get('TOG_Trend', '')
-    # No scoring logic here anymore
-    
-    # 5. CBA TREND - REMOVED FROM SCORING (keep for display only)  
-    # cba_trend = player_row.get('CBA_Trend', '')
-    # No scoring logic here anymore
-    
-    # 6. ROLE STATUS (-1 to 2 points)
-    role_status = player_row.get('Role_Status', '')
-    role_points = 0
-    
-    if 'UNSTABLE' in role_status:
-        role_points = 2  # Major change from -1 to 2
-        factor = "Unstable"
-    elif 'LOW USAGE' in role_status:
-        role_points = 1  # Stays at 1
-        factor = "Low Usage"
-    elif 'STABLE' in role_status:
-        role_points = -1  # New penalty from 0 to -1
-        factor = "Stable"
-    
-    if role_points > 0:
-        score_factors.append(f"Role: +{role_points} ({factor})")
-    elif role_points < 0:
-        score_factors.append(f"Role: {role_points} ({factor})")
-    
-    score_value += role_points
-    
     # Create a summary of all factors
     factors_summary = " | ".join(score_factors)
     
@@ -398,96 +863,116 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     }
 
 def calculate_bet_flag(player_row, stat_type='disposals'):
-    """Calculate bet flag based on R11 analysis and filtering criteria"""
+    """Calculate bet flag with detailed logging"""
     try:
-        # DEBUG: Print all available columns to understand data structure
-        # print(f"DEBUG - Available columns: {list(player_row.keys())}")
-        # print(f"DEBUG - Stat type: {stat_type}")
-        
-        # Extract values from the row - try both original and display column names
+        player_name = player_row.get('Player', player_row.get('player', 'Unknown'))
         position = player_row.get('Position', player_row.get('position', ''))
-        
-        # Try to get the score column - it might have different names
-        score_column_name = f"{stat_type.capitalize()} Score"
-        score_text = player_row.get(score_column_name, player_row.get('Score', '0 - Avoid'))
-        
         weather = player_row.get('Weather', player_row.get('weather', ''))
         dvp = player_row.get('DvP', player_row.get('dvp', ''))
-        role_status = player_row.get('Role Status', player_row.get('Role_Status', ''))
         travel_fatigue = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
-        player_name = player_row.get('Player', player_row.get('player', 'Unknown'))
         
-        # Parse numeric score from score text
-        try:
-            score_value = float(score_text.split(' - ')[0]) if isinstance(score_text, str) and ' - ' in score_text else 0
-        except:
-            score_value = 0
+        # Only log for first few players to avoid spam
+        if hasattr(calculate_bet_flag, 'logged_count'):
+            calculate_bet_flag.logged_count += 1
+        else:
+            calculate_bet_flag.logged_count = 1
+            
+        if calculate_bet_flag.logged_count <= 3:  # Only log first 3 players
+            force_print(f"\n🎯 BET FLAG ANALYSIS #{calculate_bet_flag.logged_count}: {player_name} ({stat_type})")
+            force_print(f"   Position: {position}")
+            force_print(f"   Weather: {weather}")
+            force_print(f"   DvP: {dvp}")
+            force_print(f"   Travel: {travel_fatigue}")
         
-        # DEBUG: Print all extracted values
-        # print(f"DEBUG - Player: {player_name}")
-        # print(f"DEBUG - Position: {position}")
-        # print(f"DEBUG - Score Text: {score_text}")
-        # print(f"DEBUG - Score Value: {score_value}")
-        # print(f"DEBUG - Weather: {weather}")
-        # print(f"DEBUG - DvP: {dvp}")
-        # print(f"DEBUG - Role Status: {role_status}")
-        # print(f"DEBUG - Travel Fatigue: {travel_fatigue}")
-        # print("---")
+        # Parse travel and weather conditions
+        has_long_travel = 'Long Travel' in travel_fatigue
+        has_short_break = 'Short Break' in travel_fatigue
+        has_any_rain = 'Rain' in weather and 'Neutral' not in weather
+        has_medium_rain = 'Medium' in weather and 'Rain' in weather
+        has_moderate_dvp = 'Moderate' in dvp
+        has_strong_dvp = 'Strong' in dvp
         
-        # AUTOMATIC AVOID - Never bet these (CHECK FIRST!)    
-        if score_value < 3.0:
-            return "🚫 SKIP - Low Score"
+        if calculate_bet_flag.logged_count <= 3:
+            force_print(f"   Conditions: Long Travel={has_long_travel}, Short Break={has_short_break}")
+            force_print(f"   Weather: Any Rain={has_any_rain}, Medium Rain={has_medium_rain}")
+            force_print(f"   DvP: Moderate={has_moderate_dvp}, Strong={has_strong_dvp}")
         
-        # HIGH PRIORITY - Strong Bet criteria (AFTER position check)
-        if (score_value >= 6.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing', 'KeyD']):
-            return "🟢 STRONG BET"
+        # 🚫 AUTO-SKIP RULES (CHECK FIRST)
+        if has_short_break:
+            result = "🚫 SKIP - Short Break"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: Short Break detected → {result}")
+            return result
         
-        # Tackles special case - but still respect position filter (RAISED THRESHOLD)
-        if (stat_type == 'tackles' and score_value >= 5.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing', 'KeyD', 'InsM', 'GenD']):
-            return "🟢 STRONG BET"
+        if has_any_rain and stat_type == 'tackles':
+            result = "🚫 SKIP - Rain (Tackles)"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: Rain + Tackles → {result}")
+            return result
         
-        # AUTOMATIC AVOID - Never bet these (CHECK after special tackles case)
-        if position in ['InsM', 'GenD']:
-            return "🚫 SKIP - Position"
+        if position == 'KeyD':
+            result = "🚫 SKIP - KeyD Position"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: KeyD Position → {result}")
+            return result
         
-        if ('Strong' in weather and 'Neutral' not in dvp and position not in ['InsM', 'GenD']):
-            return "🟢 STRONG BET"
+        if position == 'Ruck':
+            result = "🚫 SKIP - Ruck Position"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: Ruck Position → {result}")
+            return result
         
-        # MEDIUM PRIORITY - Consider criteria
-        if (score_value >= 4.0 and position in ['KeyF', 'GenF', 'Ruck', 'Wing']):
-            return "🟡 CONSIDER"
+        # 🟢 AUTO-BET RULES (4 Strategies)
+        # 1. IF Position = GenF AND Weather = Medium Rain AND Type = Disposal → AUTO-BET
+        if position == 'GenF' and has_medium_rain and stat_type == 'disposals':
+            result = "🟢 AUTO-BET - GenF Medium Rain Disposals"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: GenF + Medium Rain + Disposals → {result}")
+            return result
         
-        if (stat_type == 'marks' and position in ['KeyF', 'GenF'] and score_value >= 3.0):
-            return "🟡 CONSIDER"
+        # 2. IF DvP = Strong Unders AND Type = Tackle → AUTO-BET
+        if has_strong_dvp and stat_type == 'tackles':
+            result = "🟢 AUTO-BET - Strong DvP Tackles"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: Strong DvP + Tackles → {result}")
+            return result
         
-        if (('High' in travel_fatigue or 'Medium' in travel_fatigue) and 
-            'Neutral' not in weather and score_value >= 3.0):
-            return "🟡 CONSIDER"
+        # 3. IF Position = KeyF AND Type = Mark → AUTO-BET
+        if position == 'KeyF' and stat_type == 'marks':
+            result = "🟢 AUTO-BET - KeyF Marks"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: KeyF + Marks → {result}")
+            return result
         
-        # DISPOSALS SPECIAL - Only bet disposals with very strong factors
-        if (stat_type == 'disposals' and score_value >= 6.0 and position in ['KeyF', 'GenF', 'Wing'] and 
-            ('Strong' in weather or 'Strong' in dvp)):
-            return "🔵 DISPOSALS SPECIAL"
+        # 4. IF DvP = Moderate Unders AND Travel = Long Travel → AUTO-BET
+        if has_moderate_dvp and has_long_travel:
+            result = "🟢 AUTO-BET - Moderate DvP Long Travel"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: Moderate DvP + Long Travel → {result}")
+            return result
         
-        # Additional skip criteria
-        if (stat_type == 'disposals' and score_value < 6.0):
-            return "🚫 SKIP - Disposals Weak"
-        
-        if ('STABLE' in role_status and score_value < 5.0):
-            return "🚫 SKIP - Stable Role"
+        # 🟡 CONSIDER RULES (1 Strategy)
+        # 1. IF Position = GenF AND Travel = Long Travel AND Type = Disposal → CONSIDER
+        if position == 'GenF' and has_long_travel and stat_type == 'disposals':
+            result = "🟡 CONSIDER - GenF Long Travel Disposals"
+            if calculate_bet_flag.logged_count <= 3:
+                force_print(f"   → RULE: GenF + Long Travel + Disposals → {result}")
+            return result
         
         # Default skip for anything else
-        return "🚫 SKIP - No Edge"
+        result = "🚫 SKIP - No Clear Edge"
+        if calculate_bet_flag.logged_count <= 3:
+            force_print(f"   → NO RULES TRIGGERED → {result}")
+        return result
         
     except Exception as e:
-        print(f"ERROR in calculate_bet_flag: {e}")
+        force_print(f"ERROR in calculate_bet_flag for {player_name}: {e}")
         import traceback
-        traceback.print_exc()
+        force_print(traceback.format_exc())
         return "❓ ERROR"
 
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
     """Add a score to the dataframe based on the specific stat type"""
-    # Always calculating unders for all stat types now
     score_column = 'Score'
     
     # Create new columns for the score
@@ -499,7 +984,7 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
         score_data = calculate_score(row, team_weather, simplified_dvp, stat_type)
         score_value = score_data["ScoreValue"]
         
-        # Add a descriptive rating based on the UPDATED score thresholds
+        # Add a descriptive rating based on score thresholds
         if score_value >= 9:
             rating = "Strong Play"
         elif score_value >= 6:
@@ -513,7 +998,7 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
             
         # Set the Score column to include both numeric score and rating
         df.at[idx, score_column] = f"{score_value:.1f} - {rating}"
-        df.at[idx, 'ScoreFactors'] = score_data["Factors"]  # Keep for possible filtering but won't display
+        df.at[idx, 'ScoreFactors'] = score_data["Factors"]
     
     return df
 
@@ -521,101 +1006,6 @@ def add_bet_flag_to_dataframe(df, stat_type='disposals'):
     """Add bet flag column to the dataframe"""
     df['Bet_Flag'] = df.apply(lambda row: calculate_bet_flag(row, stat_type), axis=1)
     return df
-
-# Calculate TOG/CBA trends
-def calculate_tog_cba_trends(df):
-    # Ensure tog and cbas columns exist and are numeric
-    required_columns = ['round', 'tog', 'cbas']
-    for col in required_columns:
-        if col not in df.columns:
-            print(f"WARNING: Missing required column '{col}' in TOG/CBA calculation")
-            # Create a minimal dataframe with required columns
-            return pd.DataFrame(columns=['player', 'team', 'TOG_slope', 'CBA_slope', 
-                                         'TOG_Trend', 'CBA_Trend', 'TOG_avg', 'TOG_std', 
-                                         'CBA_avg', 'CBA_std', 'Role_Status'])
-    
-    # Convert to numeric and handle errors
-    for col in ['tog', 'cbas']:
-        df[col] = pd.to_numeric(df[col], errors='coerce').fillna(0)
-    
-    # Filter for last 5 rounds
-    try:
-        latest_round = df['round'].max()
-        recent_df = df[df['round'] >= latest_round - 4]
-        
-        # Handle case with too few rounds
-        if recent_df['round'].nunique() < 2:
-            print("WARNING: Not enough unique rounds for trend calculation")
-            recent_df = df.copy()  # Use all available data
-    except Exception as e:
-        print(f"WARNING: Error filtering rounds: {e}")
-        recent_df = df.copy()  # Fallback to using all data
-    
-    # Calculate TOG/CBA trend slopes with error handling
-    def calc_trend_slope(group):
-        try:
-            rounds = group['round']
-            # Only calculate slope if we have enough data points
-            if len(rounds) >= 2:
-                tog_slope = np.polyfit(rounds, group['tog'], 1)[0]
-                cba_slope = np.polyfit(rounds, group['cbas'], 1)[0]
-            else:
-                tog_slope = None
-                cba_slope = None
-                
-            return pd.Series({'TOG_slope': tog_slope, 'CBA_slope': cba_slope})
-        except Exception as e:
-            print(f"WARNING: Error calculating slope: {e}")
-            return pd.Series({'TOG_slope': None, 'CBA_slope': None})
-    
-    try:
-        slopes = recent_df.groupby(['player', 'team']).apply(calc_trend_slope, include_groups=False).reset_index()
-    except Exception as e:
-        print(f"ERROR in groupby.apply: {e}")
-        # Create a minimal dataframe if groupby fails
-        player_teams = recent_df[['player', 'team']].drop_duplicates()
-        slopes = player_teams.copy()
-        slopes['TOG_slope'] = None
-        slopes['CBA_slope'] = None
-    
-    # Convert slopes to emoji indicators
-    def slope_to_icon(slope):
-        if slope is None:
-            return '⚠️ Unknown'
-        if slope > 1:
-            return '📈 Increasing'
-        elif slope < -1:
-            return '📉 Declining'
-        else:
-            return '⚠️ Flat'
-    
-    slopes['TOG_Trend'] = slopes['TOG_slope'].apply(slope_to_icon)
-    slopes['CBA_Trend'] = slopes['CBA_slope'].apply(slope_to_icon)
-    
-    # Aggregate stability stats
-    trend = recent_df.groupby(['player', 'team']).agg({
-        'tog': ['mean', 'std'],
-        'cbas': ['mean', 'std']
-    }).reset_index()
-    
-    trend.columns = ['player', 'team', 'TOG_avg', 'TOG_std', 'CBA_avg', 'CBA_std']
-    
-    # Merge in slope trend indicators
-    trend = trend.merge(slopes[['player', 'team', 'TOG_Trend', 'CBA_Trend']],
-                        on=['player', 'team'], how='left')
-    
-    # Role stability classification
-    def flag_risk(row):
-        if row['CBA_std'] > 5 or row['TOG_std'] > 6:
-            return "⚠️ UNSTABLE"
-        elif row['CBA_avg'] < 5:
-            return "📉 LOW USAGE"
-        else:
-            return "🎯 STABLE"
-    
-    trend['Role_Status'] = trend.apply(flag_risk, axis=1)
-    
-    return trend
 
 # Process dashboard data for a specific stat type
 def process_data_for_dashboard(stat_type='disposals'):
@@ -627,7 +1017,6 @@ def process_data_for_dashboard(stat_type='disposals'):
             fixtures = scrape_next_round_fixture()
             if not fixtures:
                 print("⚠️ No fixture data found. Using test data.")
-                # Create test fixture data
                 fixtures = [
                     {
                         "match": "Team A vs Team B",
@@ -679,32 +1068,20 @@ def process_data_for_dashboard(stat_type='disposals'):
         print(f"Processed weather data for {len(weather_data)} matches")
         print("Weather information for each match:")
         for match_key, weather in weather_data.items():
-            # Get the weather categorization for this match
             weather_rating = categorize_weather_for_stat(weather, stat_type)
             
-            # Extract teams from the match key
             try:
                 home_team, away_team = match_key.split(" vs ")
             except:
                 home_team = "Unknown"
                 away_team = "Unknown"
             
-            # Print detailed weather info
             rating = weather_rating.get('Rating', '✅ Neutral')
             raw_values = weather_rating.get('RawValues', 'No data')
-            flags = weather_rating.get('Flags', [])
             flag_count = weather_rating.get('FlagCount', 0)
             
-            # Format the flags for display
-            flags_text = ", ".join(flags) if flags else "None"
-            
-            # Print the formatted weather information
             print(f" - {match_key}: {raw_values}")
             print(f"   Rating: {rating} (Impact Score: {flag_count:.1f})")
-            if flags:
-                print(f"   Flags: {flags_text}")
-            
-            # Add a separator between matches for readability
             print("   ---")
 
         # Step 3: Process travel fatigue data
@@ -718,11 +1095,10 @@ def process_data_for_dashboard(stat_type='disposals'):
         # Step 4: Load player stats
         try:
             df = pd.read_csv("afl_player_stats.csv", skiprows=3)
-            df = df.fillna(0)  # Fill NA values with 0 for numerical calculations
+            df = df.fillna(0)
             print(f"Loaded player stats with {len(df)} rows")
         except Exception as e:
             print(f"Error loading player stats: {e}. Creating test data.")
-            # Create test data with minimum required columns
             df = pd.DataFrame([
                 {
                     "player": "Test Player 1", 
@@ -730,8 +1106,6 @@ def process_data_for_dashboard(stat_type='disposals'):
                     "opponent": "Team B", 
                     "round": 10,
                     "namedPosition": "CHF",
-                    "tog": 80,
-                    "cbas": 10,
                     "disposals": 20,
                     "marks": 5,
                     "tackles": 4
@@ -742,80 +1116,49 @@ def process_data_for_dashboard(stat_type='disposals'):
                     "opponent": "Team A", 
                     "round": 10,
                     "namedPosition": "RK",
-                    "tog": 75,
-                    "cbas": 5,
                     "disposals": 15,
                     "marks": 3,
                     "tackles": 6
                 }
             ])
         
-        # Step 5: Process the data for TOG/CBA trends - add explicit fallback columns
-        for col in ['tog', 'cbas']:
-            if col in df.columns:
-                df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0)
-            else:
-                df[col] = 0
-                print(f"Warning: '{col}' column missing, added with default values")
-                
+        # Step 5: Generate DvP data for the specific stat type
         try:
-            trend_data = calculate_tog_cba_trends(df)
-            print(f"Calculated TOG/CBA trends for {len(trend_data)} players")
-        except Exception as e:
-            print(f"Warning in TOG/CBA calculation: {e}")
-            # Create dummy trend data with necessary columns
-            trend_data = pd.DataFrame([
-                {"player": "Test Player 1", "team": "Team A", "TOG_Trend": "⚠️ Flat", "CBA_Trend": "⚠️ Flat", "Role_Status": "🎯 STABLE"},
-                {"player": "Test Player 2", "team": "Team B", "TOG_Trend": "⚠️ Flat", "CBA_Trend": "⚠️ Flat", "Role_Status": "🎯 STABLE"}
-            ])
-        
-        # Step 6: Generate DvP data using for the specific stat type
-        try:
-            # Get the processed data
             processed_df = load_and_prepare_data("afl_player_stats.csv")
             
-            # Ensure we have the stat columns
             if stat_type not in processed_df.columns:
                 if stat_type == 'disposals' and 'kicks' in processed_df.columns and 'handballs' in processed_df.columns:
                     processed_df[stat_type] = processed_df['kicks'] + processed_df['handballs']
                 else:
-                    # For testing, add a dummy column if needed
                     if 'disposals' in processed_df.columns:
-                        # Create placeholder values based on disposals
                         if stat_type == 'marks':
-                            processed_df[stat_type] = processed_df['disposals'] * 0.2  # Rough estimate
+                            processed_df[stat_type] = processed_df['disposals'] * 0.2
                         elif stat_type == 'tackles':
-                            processed_df[stat_type] = processed_df['disposals'] * 0.15  # Rough estimate
+                            processed_df[stat_type] = processed_df['disposals'] * 0.15
                     else:
                         processed_df[stat_type] = 0
                     print(f"Warning: {stat_type} column created with fallback values")
             
-            # Calculate DvP for the specific stat type
             simplified_dvp = calculate_dvp_for_stat(processed_df, stat_type)
             print(f"Created {stat_type}-specific DvP data with {len(simplified_dvp)} teams")
         except Exception as e:
             print(f"Warning in {stat_type} DvP calculation: {e}")
             simplified_dvp = {}
         
-        # Step 7: Extract team matchups for next round
-        teams_playing = []
+        # Step 6: Extract team matchups for next round
         team_weather = {}
         team_opponents = {}
         
-        # Print the fixtures to help with debugging
         print("Next round fixtures:")
         for match in fixtures:
             match_str = match["match"]
             print(f" - {match_str}")
             try:
                 home_team, away_team = match_str.split(" vs ")
-                teams_playing.extend([home_team, away_team])
                 
-# Map teams to weather with stat-specific categorization
                 weather = weather_data.get(match_str)
                 if weather:
                     weather_rating = categorize_weather_for_stat(weather, stat_type)
-                    # Store by full name
                     team_weather[home_team] = weather_rating
                     team_weather[away_team] = weather_rating
                     
@@ -826,52 +1169,40 @@ def process_data_for_dashboard(stat_type='disposals'):
                         if name == away_team:
                             team_weather[abbr] = weather_rating
                 
-                # Map teams to opponents
                 team_opponents[home_team] = away_team
                 team_opponents[away_team] = home_team
             except Exception as e:
                 print(f"Error processing match {match_str}: {e}")
         
-        # Print the team matchups for debugging
-        print("Team opponents for next round:")
-        for team, opponent in team_opponents.items():
-            print(f" - {team} vs {opponent}")
-        
-        # Step 8: Filter for players in the upcoming round only
+        # Step 7: Filter for players - include teams with byes
         try:
-            # Instead of filtering for next round (which doesn't exist in the data yet)
-            # Use the most recent round data and assume these players will play next round
             latest_round = df['round'].max()
             print(f"Latest round in data: {latest_round}")
             
-            # Get all players from the latest round
-            latest_data = df[df['round'] == latest_round].copy()
-            print(f"Players in latest round: {len(latest_data)}")
+            # Get players from the last 2 rounds to catch teams that had byes
+            recent_rounds = [latest_round, latest_round - 1]
+            recent_data = df[df['round'].isin(recent_rounds)].copy()
+            print(f"Players from rounds {recent_rounds}: {len(recent_data)}")
             
-            # Check if we have any data
-            if len(latest_data) == 0:
-                print("No players found in latest round. Using all players.")
-                latest_data = df.copy()
-                
-            # Get unique player-team combinations (one row per player)
-            player_teams = latest_data.groupby(['player', 'team']).first().reset_index()
-            print(f"Unique player-team combinations: {len(player_teams)}")
+            # Get the most recent game for each player (handles byes)
+            player_teams = recent_data.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
+            print(f"Unique players after including bye teams: {len(player_teams)}")
             
-            # Instead of filtering by teams_playing, keep all players since we can't predict
-            # who's playing in the next round with certainty
+            if len(player_teams) == 0:
+                print("No players found in recent rounds. Using all players.")
+                player_teams = df.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
+            
             next_round_players = player_teams.copy()
             print(f"Using {len(next_round_players)} players for the dashboard")
         except Exception as e:
             print(f"Error filtering players: {e}. Using full dataset.")
-            # Use the entire dataset, but take only the latest record for each player
             next_round_players = df.sort_values('round', ascending=False).groupby('player').first().reset_index()
         
-        # Step 9: Add travel fatigue data with improved long travel detection
+        # Step 8: Add travel fatigue data with UPDATED DISPLAY LOGIC
         travel_dict = {}
         
         print("Travel fatigue information:")
         for entry in travel_log:
-            # We want entries for the NEXT round (latest_round + 1)
             round_num = entry.get('round')
             team_name = entry.get('team')
             
@@ -886,7 +1217,6 @@ def process_data_for_dashboard(stat_type='disposals'):
             
             # Process only if this is for the next round
             if team and round_num == latest_round + 1:
-                # Make sure fatigue is a number, not None
                 fatigue_value = entry.get('fatigue_score')
                 if fatigue_value is None:
                     fatigue = 0
@@ -896,30 +1226,18 @@ def process_data_for_dashboard(stat_type='disposals'):
                     except (ValueError, TypeError):
                         fatigue = 0
                 
-                # Track specific travel flags
                 travel_flags = []
                 
-                # Extract all flag information from the entry
-                if entry.get('back_to_back', False):
-                    travel_flags.append("Back to Back")
-                if entry.get('short_break', False) or entry.get('days_break', 0) < 6:
+                if entry.get('short_rest', False):
                     travel_flags.append("Short Break")
                 
-                # Enhanced long travel detection - check travel_distance or directly detect known long trips
+                # Enhanced long travel detection
                 long_travel_detected = False
                 
-                # Method 1: Check if travel_distance is directly available
-                if entry.get('travel_distance', 0) > 1000 or entry.get('long_travel', False):
+                if entry.get('distance_km', 0) > 1000:
                     long_travel_detected = True
                 
-                # Method 2: Check for specific known long travel combinations
                 if not long_travel_detected:
-                    # Check for specific known long travel combinations based on distance
-                    if (team == "STK" and team_opponents.get(TEAM_NAME_MAP.get("STK", ""), "") == TEAM_NAME_MAP.get("WCE", "")) or \
-                       (team == "WCE" and team_opponents.get(TEAM_NAME_MAP.get("WCE", ""), "") == TEAM_NAME_MAP.get("STK", "")):
-                        long_travel_detected = True
-                    
-                    # Other specific known long travel routes
                     long_distance_routes = [
                         # Victoria to WA
                         ("MEL", "WCE"), ("GEE", "WCE"), ("COL", "WCE"), ("HAW", "WCE"), 
@@ -929,17 +1247,26 @@ def process_data_for_dashboard(stat_type='disposals'):
                         ("MEL", "FRE"), ("GEE", "FRE"), ("COL", "FRE"), ("HAW", "FRE"), 
                         ("CAR", "FRE"), ("ESS", "FRE"), ("NTH", "FRE"), ("RIC", "FRE"), 
                         ("STK", "FRE"), ("WBD", "FRE"),
+                        # WA to Victoria
+                        ("WCE", "MEL"), ("WCE", "GEE"), ("WCE", "COL"), ("WCE", "HAW"), 
+                        ("WCE", "CAR"), ("WCE", "ESS"), ("WCE", "NTH"), ("WCE", "RIC"), 
+                        ("WCE", "STK"), ("WCE", "WBD"),
+                        # FRE to Victoria
+                        ("FRE", "MEL"), ("FRE", "GEE"), ("FRE", "COL"), ("FRE", "HAW"), 
+                        ("FRE", "CAR"), ("FRE", "ESS"), ("FRE", "NTH"), ("FRE", "RIC"), 
+                        ("FRE", "STK"), ("FRE", "WBD"),
                         # East coast to west coast
                         ("SYD", "WCE"), ("SYD", "FRE"), ("GWS", "WCE"), ("GWS", "FRE"),
                         ("BRL", "WCE"), ("BRL", "FRE"), ("GCS", "WCE"), ("GCS", "FRE"),
                         # West coast to east coast
                         ("WCE", "SYD"), ("WCE", "GWS"), ("WCE", "BRL"), ("WCE", "GCS"),
                         ("FRE", "SYD"), ("FRE", "GWS"), ("FRE", "BRL"), ("FRE", "GCS"),
-                        # Perth to Adelaide (smaller but still significant)
+                        # Perth to Adelaide
                         ("WCE", "ADE"), ("WCE", "PTA"), ("FRE", "ADE"), ("FRE", "PTA"),
+                        # Adelaide to Perth 
+                        ("ADE", "WCE"), ("PTA", "WCE"), ("ADE", "FRE"), ("PTA", "FRE")
                     ]
                     
-                    # Check if the team and opponent combination matches any long distance route
                     opponent_abbr = ""
                     for abbr, name in TEAM_NAME_MAP.items():
                         if name == team_opponents.get(TEAM_NAME_MAP.get(team, ""), ""):
@@ -949,31 +1276,22 @@ def process_data_for_dashboard(stat_type='disposals'):
                     if (team, opponent_abbr) in long_distance_routes:
                         long_travel_detected = True
                 
-                # Add long travel flag if detected by any method
                 if long_travel_detected:
                     travel_flags.append("Long Travel")
-                    
-                # If no specific flags but fatigue score is significant, add generic flag
-                if not travel_flags and fatigue >= 1:
-                    travel_flags.append(f"Fatigue Score: {fatigue:.1f}")
-                    
-                # Now use the fatigue information for rating with improved consistency
-                if fatigue < 1 and not travel_flags:
-                    emoji = "✅ Low"
-                elif len(travel_flags) >= 2:
-                    # Any combination of 2+ flags should be High
-                    emoji = f"🔴 High ({', '.join(travel_flags)})"
-                elif len(travel_flags) == 1:
-                    # Single flag is Medium
-                    emoji = f"⚠️ Medium ({', '.join(travel_flags)})"
-                elif fatigue >= 1:
-                    # No flags but significant fatigue score
-                    emoji = f"⚠️ Medium (Fatigue Score: {fatigue:.1f})"
-                else:
-                    # Fallback
-                    emoji = "✅ Low"
                 
-                # Store the value and print debug info
+                # UPDATED DISPLAY LOGIC - as requested
+                if not travel_flags:
+                    emoji = "✅ Neutral"
+                elif "Short Break" in travel_flags and "Long Travel" in travel_flags:
+                    emoji = "🔴 Strong (Short Break + Long Travel)"
+                elif "Long Travel" in travel_flags:
+                    emoji = "🟠 Moderate (Long Travel)"
+                elif "Short Break" in travel_flags:
+                    emoji = "🟡 Slight (Short Break)"
+                else:
+                    # Fallback for other flags
+                    emoji = f"⚠️ Unknown ({', '.join(travel_flags)})"
+                
                 travel_dict[team] = emoji
                 print(f" - {team_name} ({team}): Round {round_num}, Fatigue {fatigue} → {emoji}")
         
@@ -981,33 +1299,29 @@ def process_data_for_dashboard(stat_type='disposals'):
         for team_abbr in next_round_players['team'].unique():
             if team_abbr not in travel_dict:
                 full_name = TEAM_NAME_MAP.get(team_abbr, team_abbr)
-                if full_name in team_opponents:  # Only add if team is actually playing
-                    travel_dict[team_abbr] = "⚠️ Unknown"
+                if full_name in team_opponents:
+                    travel_dict[team_abbr] = "✅ Neutral"
                     print(f" - {full_name} ({team_abbr}): No travel data found, using default")
                     
         print(f"Added travel fatigue data for {len(travel_dict)} teams")
         
         # Add travel fatigue with fallback for missing teams
         next_round_players['travel_fatigue'] = next_round_players['team'].map(
-            lambda x: travel_dict.get(x, "⚠️ Unknown")
+            lambda x: travel_dict.get(x, "✅ Neutral")
         )
         
-        # Step 10: Add weather data with fallback for all teams
-# For teams not playing next round, just use neutral weather
+        # Step 9: Add weather data with fallback for all teams
         next_round_players['weather'] = next_round_players['team'].map(
             lambda x: team_weather.get(x, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
-)
+        )
 
-# Debug: Print the team name mappings for weather data
         print("\nTeam weather mapping check:")
         for team_abbr in next_round_players['team'].unique():
-            # Use TEAM_NAME_MAP directly instead of calling get_team_full_name
             team_full = TEAM_NAME_MAP.get(team_abbr, team_abbr)
             weather_rating = team_weather.get(team_abbr, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
             print(f" - {team_abbr} ({team_full}): {weather_rating}")
         
-        # Step 11: Add opponent for DvP with fallback
-        # Map team abbreviations to full names for lookup
+        # Step 10: Add opponent for DvP with fallback
         def get_team_full_name(team_abbr):
             return TEAM_NAME_MAP.get(team_abbr, team_abbr)
         
@@ -1020,7 +1334,7 @@ def process_data_for_dashboard(stat_type='disposals'):
                 if name == opponent_full_name:
                     return abbr
             
-            return opponent_full_name  # Return full name if no abbreviation found
+            return opponent_full_name
         
         # Apply the mapping
         next_round_players['opponent'] = next_round_players['team'].apply(get_team_opponent)
@@ -1032,7 +1346,7 @@ def process_data_for_dashboard(stat_type='disposals'):
             for team in unknown_opponents:
                 print(f" - {team}: No opponent found in fixture (full name: {get_team_full_name(team)})")
         
-        # Step 12: Add role positions with default for unknown
+        # Step 11: Add role positions with default for unknown
         def map_position(pos):
             if pd.isna(pos) or pos == "":
                 return "Unknown"
@@ -1049,7 +1363,7 @@ def process_data_for_dashboard(stat_type='disposals'):
             
         print("Added position mapping")
         
-        # Step 13: Add DvP indicators with better error handling
+        # Step 12: Add DvP indicators with better error handling
         def get_dvp_rating(row):
             try:
                 team = row['opponent'] if 'opponent' in row else "Unknown"
@@ -1082,66 +1396,21 @@ def process_data_for_dashboard(stat_type='disposals'):
         
         next_round_players['dvp'] = next_round_players.apply(get_dvp_rating, axis=1)
         
-        # Step 14: Add TOG/CBA trends - handle potential missing columns in trend_data
-        if 'TOG_Trend' not in trend_data.columns or 'CBA_Trend' not in trend_data.columns or 'Role_Status' not in trend_data.columns:
-            print("Missing columns in trend_data. Adding defaults.")
-            for col in ['TOG_Trend', 'CBA_Trend', 'Role_Status']:
-                if col not in trend_data.columns:
-                    trend_data[col] = '⚠️ Unknown'
-                    
-        try:
-            # Check if we need to convert column names to lowercase
-            player_col = 'player' if 'player' in trend_data.columns else 'Player'
-            team_col = 'team' if 'team' in trend_data.columns else 'Team'
-            
-            # For merge to work, ensure column names match in both dataframes
-            trend_columns = [player_col, team_col, 'TOG_Trend', 'CBA_Trend', 'Role_Status']
-            
-            # Rename columns in trend_data if needed
-            if player_col != 'player' or team_col != 'team':
-                trend_data = trend_data.rename(columns={player_col: 'player', team_col: 'team'})
-            
-            # Get only the columns we need
-            trend_subset = trend_data[['player', 'team', 'TOG_Trend', 'CBA_Trend', 'Role_Status']]
-            
-            # Now do the merge
-            next_round_players = next_round_players.merge(
-                trend_subset,
-                on=['player', 'team'],
-                how='left'
-            )
-            print("Added TOG/CBA trends data")
-        except Exception as e:
-            print(f"Error adding TOG/CBA trends: {e}")
-            # Add placeholder columns
-            next_round_players['TOG_Trend'] = '⚠️ Unknown'
-            next_round_players['CBA_Trend'] = '⚠️ Unknown'
-            next_round_players['Role_Status'] = '⚠️ Unknown'
-            
-        # Step 15: Fill any missing values with placeholders
-        for col in ['TOG_Trend', 'CBA_Trend', 'Role_Status']:
-            if col in next_round_players.columns:
-                next_round_players[col] = next_round_players[col].fillna('⚠️ Unknown')
-            else:
-                next_round_players[col] = '⚠️ Unknown'
-        
-        # Step 16: Clean up and select final columns for display
+        # Step 13: Clean up and select final columns for display (REMOVED Score column)
         result_df = next_round_players[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
-                                        'weather', 'dvp', 'TOG_Trend', 'CBA_Trend', 'Role_Status']].copy()
+                                        'weather', 'dvp']].copy()
         
-        # Calculate the Unders Score for each player
+        # Calculate the Unders Score for each player (for bet flag calculation only)
         result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
         
         # Add bet flag based on filtering criteria
         result_df = add_bet_flag_to_dataframe(result_df, stat_type)
         
-        # Final columns for display - include the new Bet Flag column
+        # Final columns for display (REMOVED Score column)
         display_df = result_df[['player', 'team', 'opponent', 'position', 
-                                'travel_fatigue', 'weather', 'dvp', 'TOG_Trend', 'CBA_Trend', 
-                                'Role_Status', 'Score', 'Bet_Flag']]
+                                'travel_fatigue', 'weather', 'dvp', 'Bet_Flag']]
         
-        # Rename columns for display
-        score_column_name = f"{stat_type.capitalize()} Score"
+        # Rename columns for display (REMOVED Score column)
         column_mapping = {
             'player': 'Player', 
             'team': 'Team', 
@@ -1149,23 +1418,13 @@ def process_data_for_dashboard(stat_type='disposals'):
             'position': 'Position',
             'travel_fatigue': 'Travel Fatigue', 
             'weather': 'Weather', 
-            'dvp': 'DvP', 
-            'TOG_Trend': 'TOG Trend', 
-            'CBA_Trend': 'CBA Trend',
-            'Role_Status': 'Role Status', 
-            'Score': score_column_name,
+            'dvp': 'DvP',
             'Bet_Flag': 'Bet Flag'
         }
         display_df.columns = list(column_mapping.values())
         
-        # Create a numeric-only version of the Score for sorting
-        display_df['SortScore'] = display_df[score_column_name].apply(lambda x: float(x.split(' - ')[0]) if isinstance(x, str) else 0)
-        
-        # Sort by the numeric Score (descending) and then by team and player
-        display_df = display_df.sort_values(['SortScore', 'Team', 'Player'], ascending=[False, True, True])
-        
-        # Remove the sorting column as it's not needed for display
-        display_df = display_df.drop(columns=['SortScore'])
+        # Sort by team and player (no score-based sorting)
+        display_df = display_df.sort_values(['Team', 'Player'], ascending=[True, True])
         
         print(f"Final dashboard data for {stat_type} has {len(display_df)} rows")
         return display_df
@@ -1176,7 +1435,6 @@ def process_data_for_dashboard(stat_type='disposals'):
         traceback.print_exc()
         
         # Return a minimal valid dataframe
-        score_column_name = f"{stat_type.capitalize()} Score"
         return pd.DataFrame([{
             'Player': f'Error: {str(e)}',
             'Team': 'Error',
@@ -1185,10 +1443,7 @@ def process_data_for_dashboard(stat_type='disposals'):
             'Travel Fatigue': 'Error',
             'Weather': 'Error', 
             'DvP': 'Error',
-            'TOG Trend': 'Error',
-            'CBA Trend': 'Error',
-            'Role Status': 'Error',
-            score_column_name: 'Error'
+            'Bet Flag': 'Error'
         }])
 
 # ===== DASH APP =====
@@ -1202,7 +1457,7 @@ processed_data_by_stat = {
     'tackles': None
 }
 
-# Define the layout with Export to CSV feature
+# Define the layout with Export to CSV feature (UPDATED TRAVEL FATIGUE LEGEND)
 app.layout = dbc.Container([
     html.H1("AFL Player Dashboard - Next Round", className="text-center my-4"),
     
@@ -1229,7 +1484,7 @@ app.layout = dbc.Container([
                     id="team-filter",
                     placeholder="Select team(s)...",
                     clearable=True,
-                    multi=True  # Enable multi-select
+                    multi=True
                 ),
                 html.Button(
                     "Clear Team Filter", 
@@ -1257,37 +1512,39 @@ app.layout = dbc.Container([
             ], className="mb-4")
         ], width=3),
         
-        # First column of legend cards
+        # Legend cards - simplified layout
         dbc.Col([
-            # First column - Travel Fatigue, Weather, DvP
             dbc.Row([
                 dbc.Col([
                     html.Div([
                         html.H4("Travel Fatigue", className="text-center"),
                         html.Div([
-                            html.Span("✅ Low", className="badge bg-success me-2"),
-                            html.Span("⚠️ Medium", className="badge bg-warning me-2"),
-                            html.Span("🔴 High", className="badge bg-danger")
+                            html.Span("✅ Neutral", className="badge bg-success me-2"),
+                            html.Span("🟡 Slight", className="badge bg-warning text-dark me-2"),
+                            html.Span("🟠 Moderate", className="badge bg-warning me-2"),
+                            html.Span("🔴 Strong", className="badge bg-danger")
                         ], className="d-flex justify-content-center")
                     ], className="border rounded p-2 mb-3", 
                     id="travel-fatigue-legend",
-                    title="Travel fatigue impacts player performance; +2 for Long Travel, +1 for Short Break. Capped at +2.5 total.")
-                ], width=12),
+                    title="Travel fatigue impacts: ✅ Neutral (no flags), 🟡 Slight (Short Break), 🟠 Moderate (Long Travel), 🔴 Strong (Short Break + Long Travel)")
+                ], width=6),
                 
                 dbc.Col([
                     html.Div([
-    html.H4("Weather", className="text-center"),
-    html.Div([
-        html.Span("✅ Neutral", className="badge bg-success me-2"),
-        html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
-        html.Span("🔴 Strong Unders Edge", className="badge bg-danger me-2"),
-        html.Span("🔵 Avoid", className="badge bg-primary")
-    ], className="d-flex justify-content-center")
-], className="border rounded p-2 mb-3",
-id="weather-legend",
-title="Weather scoring: Marks +6/+4/0, Disposals +4/+2/0, Tackles -4/-2/0 (for Strong/Medium/Neutral). Tackles show negative scores as weather increases tackle counts.")
-                ], width=12),
-                
+                        html.H4("Weather", className="text-center"),
+                        html.Div([
+                            html.Span("✅ Neutral", className="badge bg-success me-2"),
+                            html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
+                            html.Span("🔴 Strong Unders Edge", className="badge bg-danger me-2"),
+                            html.Span("🔵 Avoid", className="badge bg-primary")
+                        ], className="d-flex justify-content-center")
+                    ], className="border rounded p-2 mb-3",
+                    id="weather-legend",
+                    title="Weather impacts: Rain + Wind affect disposals/marks negatively, but rain increases tackles (avoid tackles unders in rain).")
+                ], width=6),
+            ]),
+            
+            dbc.Row([
                 dbc.Col([
                     html.Div([
                         html.H4("DvP", className="text-center"),
@@ -1300,79 +1557,27 @@ title="Weather scoring: Marks +6/+4/0, Disposals +4/+2/0, Tackles -4/-2/0 (for S
                     ], className="border rounded p-2 mb-3",
                     id="dvp-legend",
                     title="Defenders vs Position shows historical matchup difficulty; +1 for Slight, +2 for Moderate, +4 for Strong unders, -1 for Neutral")
-                ], width=12)
-            ])
-        ], width=3),
-        
-        # Second column of legend cards
-        dbc.Col([
-            # Second column - Bet Flag, TOG/CBA, Role Status, Edge Score
-            dbc.Row([
+                ], width=6),
+                
                 dbc.Col([
                     html.Div([
                         html.H4("Bet Flag", className="text-center"),
                         html.Div([
-                            html.Span("🟢 STRONG BET", className="badge bg-success me-2"),
+                            html.Span("🟢 AUTO-BET", className="badge bg-success me-2"),
                             html.Span("🟡 CONSIDER", className="badge bg-warning text-dark me-2"),
-                            html.Span("🔵 DISPOSALS SPECIAL", className="badge bg-primary me-2"),
                             html.Span("🚫 SKIP", className="badge bg-danger")
                         ], className="d-flex justify-content-center flex-wrap")
                     ], className="border rounded p-2 mb-3",
                     id="bet-flag-legend",
-                    title="Automated bet recommendations based on R11 analysis: 🟢 STRONG BET (Score ≥6.0 + Position ∈ [KeyF,GenF,Ruck,Wing,KeyD] OR Tackles + Score ≥5.5 + Position ∈ [KeyF,GenF,Ruck,Wing,KeyD] OR Weather=Strong + DvP≠Neutral + Position ∉ [InsM,GenD]), 🟡 CONSIDER (Score ≥4.0 + Position ∈ [KeyF,GenF,Ruck,Wing] OR Marks + KeyF/GenF + Score ≥3.0 OR Travel=High/Medium + Weather≠Neutral + Score ≥3.0), 🔵 DISPOSALS SPECIAL (Disposals + Score ≥6.0 + Position ∈ [KeyF,GenF,Wing] + Weather=Strong OR DvP=Strong), 🚫 SKIP (Position ∈ [InsM,GenD] OR Score <3.0 OR Disposals + Score <6.0 OR Role=STABLE + Score <5.0 OR No Edge)")
-                ], width=12),
-                
-                dbc.Col([
-                    html.Div([
-                        html.H4("TOG & CBA Trends", className="text-center"),
-                        html.Div([
-                            html.Span("📈 Increasing", className="badge bg-success me-2"),
-                            html.Span("⚠️ Flat", className="badge bg-warning text-dark me-2"),
-                            html.Span("📉 Declining", className="badge bg-danger")
-                        ], className="d-flex justify-content-center")
-                    ], className="border rounded p-2 mb-3",
-                    id="tog-cba-legend",
-                    title="Time on Ground and Center Bounce Attendance trends - displayed for information only, no longer contribute to scoring")
-                ], width=12),
-                
-                dbc.Col([
-                    html.Div([
-                        html.H4("Role Status", className="text-center"),
-                        html.Div([
-                            html.Span("🎯 STABLE", className="badge bg-success me-2"),
-                            html.Span("⚠️ UNSTABLE", className="badge bg-warning text-dark me-2"),
-                            html.Span("📉 LOW USAGE", className="badge bg-danger")
-                        ], className="d-flex justify-content-center")
-                    ], className="border rounded p-2 mb-3",
-                    id="role-legend",
-                    title="Player's role consistency and usage rate; +2 for UNSTABLE, +1 for LOW USAGE, -1 for STABLE")
-                ], width=12),
-                
-                dbc.Col([
-                    # This will be dynamically updated based on selected stat
-                    html.Div([
-    html.H4(id="score-legend-title", className="text-center"),
-    html.Div([
-        html.Span("9.0+ - Strong Play", className="badge bg-danger me-2"),
-        html.Span("6.0-8.9 - Good Play", className="badge bg-warning me-2"),
-        html.Span("3.0-5.9 - Consider", className="badge bg-warning text-dark me-2"),
-        html.Span("0.0-2.9 - Weak", className="badge bg-success text-dark me-2"),
-        html.Span("Below 0 - Avoid", className="badge bg-success me-2")
-    ], className="d-flex justify-content-center flex-wrap gap-1")
-], className="border rounded p-2 mb-3",
-id="score-legend",
-title="Combined score from all factors; higher scores indicate stronger unders play. Updated thresholds: Strong Play 9+, Good Play 6-8.9, Consider 3-5.9, Weak 0-2.9, Avoid <0.")
-                ], width=12)
+                    title="Updated bet logic: 🟢 AUTO-BET for GenF+Medium Rain+Disposals, Strong DvP+Tackles, KeyF+Marks, Moderate DvP+Long Travel. 🟡 CONSIDER for GenF+Long Travel+Disposals. 🚫 SKIP for Short Break, Rain+Tackles, KeyD/Ruck positions.")
+                ], width=6),
             ])
-        ], width=3),
-        
-        # Add a smaller spacer column to maintain layout
-        dbc.Col([], width=3)
+        ], width=9)
     ], className="mb-4"),
     
     html.Hr(),
     
-    # Add Export to CSV button row
+    # Export to CSV button row
     dbc.Row([
         dbc.Col([
             html.Div(id="loading-message", children="Loading player data...", className="text-center fs-4")
@@ -1419,24 +1624,17 @@ def load_data(data):
             for stat_type in ['disposals', 'marks', 'tackles']:
                 df = process_data_for_dashboard(stat_type)
                 
-                # Add debug information
                 print(f"Processed data for {stat_type} shape: {df.shape}")
                 if df.empty:
                     print(f"WARNING: Processed {stat_type} dataframe is empty!")
-                    # Create sample data for testing
-                    score_column = f"{stat_type.capitalize()} Score"
                     df = pd.DataFrame([{
                         'Player': 'Test Player',
                         'Team': 'Test Team',
                         'Opponent': 'Test Opponent',
                         'Position': 'KeyF',
-                        'Travel Fatigue': '✅ Low',
+                        'Travel Fatigue': '✅ Neutral',
                         'Weather': '✅ Neutral',
                         'DvP': '✅ Neutral',
-                        'TOG Trend': '⚠️ Flat',
-                        'CBA Trend': '⚠️ Flat',
-                        'Role Status': '🎯 STABLE',
-                        score_column: '0 - Avoid',
                         'Bet Flag': '🚫 SKIP - Low Score'
                     }])
                     print(f"Created test data row for {stat_type}.")
@@ -1444,28 +1642,13 @@ def load_data(data):
                 # Cache the data globally
                 processed_data_by_stat[stat_type] = df
             
-            # Store that data has been loaded
             return "Data loaded"
         except Exception as e:
             print(f"Error loading data: {str(e)}")
             import traceback
             traceback.print_exc()
             return "Error loading data"
-    return data  # Return unchanged if data already loaded
-
-# Callback to update the score legend title when tab changes
-@app.callback(
-    Output('score-legend-title', 'children'),
-    Input('stat-tabs', 'active_tab')
-)
-def update_score_legend_title(active_tab):
-    if active_tab == "tab-disposals":
-        return "Disposals Unders Score"
-    elif active_tab == "tab-marks":
-        return "Marks Unders Score"
-    elif active_tab == "tab-tackles":
-        return "Tackles Unders Score"
-    return "Unders Score"
+    return data
 
 # Callback to filter and display data based on stat type
 @app.callback(
@@ -1478,7 +1661,7 @@ def update_score_legend_title(active_tab):
      Input('team-filter', 'value'),
      Input('position-filter', 'value'),
      Input('clear-team-filter', 'n_clicks'),
-     Input('loaded-data', 'children')]  # Ensure this runs after data is loaded
+     Input('loaded-data', 'children')]
 )
 def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
     # Check if data is loaded
@@ -1486,7 +1669,7 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         return [], [], [], [], "Loading data..."
     
     # Determine which stat type is selected
-    stat_type = 'disposals'  # default
+    stat_type = 'disposals'
     if active_tab == "tab-marks":
         stat_type = 'marks'
     elif active_tab == "tab-tackles":
@@ -1501,7 +1684,7 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         # Check if the clear button was clicked
         ctx = dash.callback_context
         if ctx.triggered and 'clear-team-filter' in ctx.triggered[0]['prop_id']:
-            team_filter = None  # Clear the team filter
+            team_filter = None
         
         # Work with a copy of the processed data
         df = processed_data.copy()
@@ -1512,21 +1695,22 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         if position:
             df = df[df['Position'] == position]
         
-        # Create team options for dropdown (from the FULL dataset, not filtered)
+        # Create team options for dropdown
         team_options = [{'label': t, 'value': t} for t in sorted(processed_data['Team'].unique())]
         
         # Define columns
         columns = [{"name": i, "id": i} for i in df.columns]
         
-        # Create the conditional styling based on stat type
-        score_column = f"{stat_type.capitalize()} Score"
+        # Create the conditional styling (UPDATED TRAVEL FATIGUE STYLING)
         style_data_conditional = [
-            # Travel Fatigue
-            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Low"'},
+            # Travel Fatigue - UPDATED
+            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Neutral"'},
              'backgroundColor': '#d4edda', 'color': 'black'},
-            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Medium"'},
-             'backgroundColor': '#fff3cd', 'color': 'black'},
-            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "High"'},
+            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Slight"'},
+             'backgroundColor': '#fff9c4', 'color': 'black'},
+            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Moderate"'},
+             'backgroundColor': '#ffecb3', 'color': 'black'},
+            {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
             
             # Weather
@@ -1536,9 +1720,8 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
              'backgroundColor': '#fff3cd', 'color': 'black'},
             {'if': {'column_id': 'Weather', 'filter_query': '{Weather} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
-             # Add this new condition for blue dot Avoid
             {'if': {'column_id': 'Weather', 'filter_query': '{Weather} contains "🔵 Avoid"'},
-             'backgroundColor': '#cce5ff', 'color': 'black'},  # Light blue for Avoid
+             'backgroundColor': '#cce5ff', 'color': 'black'},
 
             # DvP
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Neutral"'},
@@ -1550,49 +1733,13 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
              
-            # TOG Trend
-            {'if': {'column_id': 'TOG Trend', 'filter_query': '{TOG Trend} contains "Increasing"'},
-             'backgroundColor': '#d4edda', 'color': 'black'},
-            {'if': {'column_id': 'TOG Trend', 'filter_query': '{TOG Trend} contains "Flat"'},
-             'backgroundColor': '#fff3cd', 'color': 'black'},
-            {'if': {'column_id': 'TOG Trend', 'filter_query': '{TOG Trend} contains "Declining"'},
-             'backgroundColor': '#f8d7da', 'color': 'black'},
-             
-            # CBA Trend
-            {'if': {'column_id': 'CBA Trend', 'filter_query': '{CBA Trend} contains "Increasing"'},
-             'backgroundColor': '#d4edda', 'color': 'black'},
-            {'if': {'column_id': 'CBA Trend', 'filter_query': '{CBA Trend} contains "Flat"'},
-             'backgroundColor': '#fff3cd', 'color': 'black'},
-            {'if': {'column_id': 'CBA Trend', 'filter_query': '{CBA Trend} contains "Declining"'},
-             'backgroundColor': '#f8d7da', 'color': 'black'},
-            
-            # Role Status
-            {'if': {'column_id': 'Role Status', 'filter_query': '{Role Status} contains "STABLE"'},
-             'backgroundColor': '#d4edda', 'color': 'black'},
-            {'if': {'column_id': 'Role Status', 'filter_query': '{Role Status} contains "UNSTABLE"'},
-             'backgroundColor': '#fff3cd', 'color': 'black'},
-            {'if': {'column_id': 'Role Status', 'filter_query': '{Role Status} contains "LOW USAGE"'},
-             'backgroundColor': '#f8d7da', 'color': 'black'},
-             
             # Bet Flag colors
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "STRONG BET"'},
-             'backgroundColor': '#d4edda', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "AUTO-BET"'},
+             'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
             {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "CONSIDER"'},
-             'backgroundColor': '#fff3cd', 'color': 'black'},
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "DISPOSALS SPECIAL"'},
-             'backgroundColor': '#cce5ff', 'color': 'black'},
+             'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
             {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "SKIP"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
-{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Strong Play"'},
- 'backgroundColor': '#f8d7da', 'color': 'black', 'fontWeight': 'bold'},
-{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Good Play"'},
- 'backgroundColor': '#ffecb3', 'color': 'black', 'fontWeight': 'bold'},
-{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Consider"'},
- 'backgroundColor': '#fff9c4', 'color': 'black'},
-{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Weak"'},
- 'backgroundColor': '#e8f5e9', 'color': 'black'},
-{'if': {'column_id': score_column, 'filter_query': '{' + score_column + '} contains "Avoid"'},
- 'backgroundColor': '#d4edda', 'color': 'black'},
         ]
         
         return df.to_dict('records'), columns, style_data_conditional, team_options, ""
@@ -1603,7 +1750,6 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         traceback.print_exc()
         
         # Return error data
-        score_column = f"{stat_type.capitalize()} Score"
         error_df = pd.DataFrame([{
             'Player': f'Error: {str(e)}',
             'Team': 'N/A',
@@ -1612,16 +1758,12 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             'Travel Fatigue': 'N/A',
             'Weather': 'N/A', 
             'DvP': 'N/A',
-            'TOG Trend': 'N/A',
-            'CBA Trend': 'N/A',
-            'Role Status': 'N/A',
-            score_column: 'N/A',
             'Bet Flag': 'N/A'
         }])
         columns = [{"name": i, "id": i} for i in error_df.columns]
         return error_df.to_dict('records'), columns, [], [], f"Error filtering {stat_type} data: {str(e)}"
 
-# Update the export_data callback
+# Export data callback
 @app.callback(
     Output("download-csv", "data"),
     Input("export-button", "n_clicks"),
@@ -1633,7 +1775,7 @@ def export_data(n_clicks, active_tab):
         return dash.no_update
     
     # Get the current stat type
-    stat_type = 'disposals'  # default
+    stat_type = 'disposals'
     if active_tab == "tab-marks":
         stat_type = 'marks'
     elif active_tab == "tab-tackles":
@@ -1644,11 +1786,9 @@ def export_data(n_clicks, active_tab):
     
     # If we have data, export it
     if full_data is not None and not full_data.empty:
-        # Create a filename with the stat type and current datetime
         current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"afl_{stat_type}_dashboard_{current_time}.csv"
         
-        # Return the data as a CSV download
         return dcc.send_data_frame(full_data.to_csv, filename, index=False)
     
     return dash.no_update
