@@ -1,541 +1,4 @@
-# Process dashboard data for a specific stat type
-def process_data_for_dashboard(stat_type='disposals'):
-    try:
-        force_print(f"\n{'='*60}")
-        force_print(f"🚀 STARTING DASHBOARD PROCESSING FOR {stat_type.upper()}")
-        force_print(f"{'='*60}")
-        
-        # Step 1: Get next round fixtures
-        try:
-            fixtures = scrape_next_round_fixture()
-            if not fixtures:
-                force_print("⚠️ No fixture data found. Using test data.")
-                fixtures = [
-                    {
-                        "match": "Team A vs Team B",
-                        "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
-                        "stadium": "MCG"
-                    }
-                ]
-        except Exception as e:
-            force_print(f"❌ Error fetching fixtures: {e}. Using test data.")
-            fixtures = [
-                {
-                    "match": "Team A vs Team B",
-                    "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
-                    "stadium": "MCG"
-                }
-            ]
-        
-        force_print(f"📅 Found {len(fixtures)} fixtures for next round")
-        
-        # Step 2: Get weather data for each match
-        weather_data = {}
-        force_print(f"\n🌤️ WEATHER ANALYSIS FOR {stat_type.upper()}:")
-        force_print("-" * 50)
-        
-        for match in fixtures:
-            stadium = match["stadium"]
-            latlon = STADIUM_COORDS.get(stadium)
-            
-            if not latlon:
-                for key in STADIUM_COORDS:
-                    if key.lower() in stadium.lower():
-                        latlon = STADIUM_COORDS[key]
-                        break
-                if not latlon:
-                    force_print(f"⚠️ Unknown venue: {stadium}. Using default coordinates (MCG).")
-                    latlon = (-37.8199, 144.9834)  # Default to MCG
-            
-            try:
-                forecast_list = get_forecast(*latlon)
-                weather = extract_weather_for_datetime(forecast_list, match["datetime"])
-                
-                match_key = match["match"]
-                if weather:
-                    weather_data[match_key] = weather
-                    
-                    # Show detailed weather analysis
-                    rain = weather.get('rain', 0)
-                    wind = weather.get('wind', 0)
-                    humidity = weather.get('humidity', 0)
-                    
-                    force_print(f"\n🏟️ {match_key}:")
-                    force_print(f"   📊 Raw Data: Rain={rain:.1f}mm, Wind={wind:.1f}km/h, Humidity={humidity:.1f}%")
-                    
-                    # Show categorization logic
-                    rain_level = "None" if rain < 1.2 else "Light" if rain < 3.0 else "Medium" if rain <= 6.0 else "Heavy"
-                    wind_level = "Calm" if wind < 15 else "Moderate" if wind <= 25 else "Strong"
-                    force_print(f"   🔍 Categories: Rain={rain_level}, Wind={wind_level}")
-                    
-                    # Show final weather rating
-                    weather_rating = categorize_weather_for_stat(weather, stat_type)
-                    rating = weather_rating.get('Rating', '✅ Neutral')
-                    flag_count = weather_rating.get('FlagCount', 0)
-                    
-                    force_print(f"   🎯 Final Rating: {rating}")
-                    force_print(f"   ⚡ Impact Score: {flag_count:.1f}")
-                    
-                    if flag_count > 0:
-                        force_print(f"   📈 Effect: Favors UNDERS for {stat_type}")
-                    elif flag_count < 0:
-                        force_print(f"   📉 Effect: AVOID UNDERS for {stat_type}")
-                    else:
-                        force_print(f"   ➖ Effect: Neutral for {stat_type}")
-                    
-                else:
-                    force_print(f"⚠️ No forecast found for {match['match']} at {stadium}. Using default values.")
-                    weather_data[match_key] = {"rain": 0, "wind": 0, "humidity": 50}
-            except Exception as e:
-                force_print(f"❌ Error fetching weather for {match['match']}: {e}. Using default values.")
-                weather_data[match["match"]] = {"rain": 0, "wind": 0, "humidity": 50}
-
-        # Step 3: Process travel fatigue data
-        try:
-            travel_log = build_travel_log()
-            force_print(f"\n✈️ TRAVEL FATIGUE ANALYSIS:")
-            force_print("-" * 50)
-            force_print(f"📋 Built travel log with {len(travel_log)} entries")
-        except Exception as e:
-            force_print(f"❌ Error building travel log: {e}. Using empty log.")
-            travel_log = []
-        
-        # Step 4: Load player stats
-        try:
-            df = pd.read_csv("afl_player_stats.csv", skiprows=3)
-            df = df.fillna(0)
-            force_print(f"\n📈 DATA LOADING:")
-            force_print("-" * 50)
-            force_print(f"✅ Loaded player stats with {len(df)} rows")
-        except Exception as e:
-            force_print(f"❌ Error loading player stats: {e}. Creating test data.")
-            df = pd.DataFrame([
-                {
-                    "player": "Test Player 1", 
-                    "team": "Team A",
-                    "opponent": "Team B", 
-                    "round": 10,
-                    "namedPosition": "CHF",
-                    "disposals": 20,
-                    "marks": 5,
-                    "tackles": 4
-                },
-                {
-                    "player": "Test Player 2", 
-                    "team": "Team B",
-                    "opponent": "Team A", 
-                    "round": 10,
-                    "namedPosition": "RK",
-                    "disposals": 15,
-                    "marks": 3,
-                    "tackles": 6
-                }
-            ])
-        
-        # Step 5: Generate DvP data for the specific stat type
-        try:
-            processed_df = load_and_prepare_data("afl_player_stats.csv")
-            
-            if stat_type not in processed_df.columns:
-                if stat_type == 'disposals' and 'kicks' in processed_df.columns and 'handballs' in processed_df.columns:
-                    processed_df[stat_type] = processed_df['kicks'] + processed_df['handballs']
-                    force_print(f"✅ Created {stat_type} column from kicks + handballs")
-                else:
-                    if 'disposals' in processed_df.columns:
-                        if stat_type == 'marks':
-                            processed_df[stat_type] = processed_df['disposals'] * 0.2
-                        elif stat_type == 'tackles':
-                            processed_df[stat_type] = processed_df['disposals'] * 0.15
-                    else:
-                        processed_df[stat_type] = 0
-                    force_print(f"⚠️ {stat_type} column created with fallback values")
-            
-            simplified_dvp = calculate_dvp_for_stat(processed_df, stat_type)
-            force_print(f"🎯 Created {stat_type}-specific DvP data for {len(simplified_dvp)} teams")
-            
-            # Show some DvP examples
-            dvp_count = 0
-            for team, roles in simplified_dvp.items():
-                for role, data in roles.items():
-                    if dvp_count < 3:  # Show first 3 examples
-                        strength = data['strength']
-                        dvp_val = data['dvp']
-                        force_print(f"   📊 {team} vs {role}: {strength} ({dvp_val:.1f})")
-                        dvp_count += 1
-            
-        except Exception as e:
-            force_print(f"⚠️ Warning in {stat_type} DvP calculation: {e}")
-            simplified_dvp = {}
-        
-        # Step 6: Extract team matchups for next round
-        team_weather = {}
-        team_opponents = {}
-        
-        force_print(f"\n🏟️ NEXT ROUND FIXTURES:")
-        force_print("-" * 50)
-        for match in fixtures:
-            match_str = match["match"]
-            force_print(f"📅 {match_str}")
-            try:
-                home_team, away_team = match_str.split(" vs ")
-                
-                weather = weather_data.get(match_str)
-                if weather:
-                    weather_rating = categorize_weather_for_stat(weather, stat_type)
-                    team_weather[home_team] = weather_rating
-                    team_weather[away_team] = weather_rating
-                    
-                    # Also store by abbreviation for each team
-                    for abbr, name in TEAM_NAME_MAP.items():
-                        if name == home_team:
-                            team_weather[abbr] = weather_rating
-                        if name == away_team:
-                            team_weather[abbr] = weather_rating
-                
-                team_opponents[home_team] = away_team
-                team_opponents[away_team] = home_team
-            except Exception as e:
-                force_print(f"❌ Error processing match {match_str}: {e}")
-        
-        # Step 7: Filter for players - include teams with byes
-        try:
-            latest_round = df['round'].max()
-            force_print(f"\n👥 PLAYER FILTERING:")
-            force_print("-" * 50)
-            force_print(f"📊 Latest round in data: {latest_round}")
-            
-            # Get players from the last 2 rounds to catch teams that had byes
-            recent_rounds = [latest_round, latest_round - 1]
-            recent_data = df[df['round'].isin(recent_rounds)].copy()
-            force_print(f"📋 Players from rounds {recent_rounds}: {len(recent_data)}")
-            
-            # Get the most recent game for each player (handles byes)
-            player_teams = recent_data.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
-            force_print(f"✅ Unique players after including bye teams: {len(player_teams)}")
-            
-            if len(player_teams) == 0:
-                force_print("⚠️ No players found in recent rounds. Using all players.")
-                player_teams = df.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
-            
-            next_round_players = player_teams.copy()
-            force_print(f"🎯 Using {len(next_round_players)} players for the dashboard")
-        except Exception as e:
-            force_print(f"❌ Error filtering players: {e}. Using full dataset.")
-            next_round_players = df.sort_values('round', ascending=False).groupby('player').first().reset_index()
-        
-        # Step 8: Add travel fatigue data with DETAILED LOGGING
-        travel_dict = {}
-        
-        force_print(f"\n✈️ TRAVEL FATIGUE PROCESSING:")
-        force_print("-" * 50)
-        
-        travel_entries_processed = 0
-        for entry in travel_log:
-            round_num = entry.get('round')
-            team_name = entry.get('team')
-            
-            # Find the abbreviation for the team
-            team_abbr = None
-            for abbr, name in TEAM_NAME_MAP.items():
-                if name == team_name:
-                    team_abbr = abbr
-                    break
-            
-            team = team_abbr if team_abbr else team_name
-            
-            # Process only if this is for the next round
-            if team and round_num == latest_round + 1:
-                travel_entries_processed += 1
-                fatigue_value = entry.get('fatigue_score')
-                distance_km = entry.get('distance_km', 0)
-                short_rest = entry.get('short_rest', False)
-                
-                if fatigue_value is None:
-                    fatigue = 0
-                else:
-                    try:
-                        fatigue = float(fatigue_value)
-                    except (ValueError, TypeError):
-                        fatigue = 0
-                
-                force_print(f"\n🔍 {team_name} ({team}) - Round {round_num}:")
-                force_print(f"   📊 Distance: {distance_km}km, Fatigue Score: {fatigue}")
-                force_print(f"   ⏰ Short Rest: {short_rest}")
-                
-                travel_flags = []
-                
-                if short_rest:
-                    travel_flags.append("Short Break")
-                    force_print(f"   🔴 SHORT BREAK detected!")
-                
-                # Enhanced long travel detection
-                long_travel_detected = False
-                
-                if distance_km > 1000:
-                    long_travel_detected = True
-                    force_print(f"   🟠 LONG TRAVEL detected via distance ({distance_km}km > 1000km)")
-                
-                if not long_travel_detected:
-                    # Check route-based long travel
-                    opponent_abbr = ""
-                    for abbr, name in TEAM_NAME_MAP.items():
-                        if name == team_opponents.get(TEAM_NAME_MAP.get(team, ""), ""):
-                            opponent_abbr = abbr
-                            break
-                    
-                    if opponent_abbr:
-                        long_distance_routes = [
-                            # Victoria to WA and vice versa
-                            ("MEL", "WCE"), ("GEE", "WCE"), ("COL", "WCE"), ("HAW", "WCE"), 
-                            ("CAR", "WCE"), ("ESS", "WCE"), ("NTH", "WCE"), ("RIC", "WCE"), 
-                            ("STK", "WCE"), ("WBD", "WCE"), ("WCE", "MEL"), ("WCE", "GEE"), 
-                            ("WCE", "COL"), ("WCE", "HAW"), ("WCE", "CAR"), ("WCE", "ESS"), 
-                            ("WCE", "NTH"), ("WCE", "RIC"), ("WCE", "STK"), ("WCE", "WBD"),
-                            # Similar for Fremantle
-                            ("MEL", "FRE"), ("GEE", "FRE"), ("COL", "FRE"), ("HAW", "FRE"), 
-                            ("CAR", "FRE"), ("ESS", "FRE"), ("NTH", "FRE"), ("RIC", "FRE"), 
-                            ("STK", "FRE"), ("WBD", "FRE"), ("FRE", "MEL"), ("FRE", "GEE"), 
-                            ("FRE", "COL"), ("FRE", "HAW"), ("FRE", "CAR"), ("FRE", "ESS"), 
-                            ("FRE", "NTH"), ("FRE", "RIC"), ("FRE", "STK"), ("FRE", "WBD"),
-                            # East coast to west coast
-                            ("SYD", "WCE"), ("SYD", "FRE"), ("GWS", "WCE"), ("GWS", "FRE"),
-                            ("BRL", "WCE"), ("BRL", "FRE"), ("GCS", "WCE"), ("GCS", "FRE"),
-                            ("WCE", "SYD"), ("WCE", "GWS"), ("WCE", "BRL"), ("WCE", "GCS"),
-                            ("FRE", "SYD"), ("FRE", "GWS"), ("FRE", "BRL"), ("FRE", "GCS"),
-                        ]
-                        
-                        if (team, opponent_abbr) in long_distance_routes:
-                            long_travel_detected = True
-                            force_print(f"   🟠 LONG TRAVEL detected via route ({team} → {opponent_abbr})")
-                
-                if long_travel_detected:
-                    travel_flags.append("Long Travel")
-                
-                # Determine final rating with detailed explanation
-                if not travel_flags:
-                    emoji = "✅ Neutral"
-                    force_print(f"   ✅ No travel issues detected")
-                elif "Short Break" in travel_flags and "Long Travel" in travel_flags:
-                    emoji = "🔴 Strong (Short Break + Long Travel)"
-                    force_print(f"   🔴 STRONG impact: Both Short Break AND Long Travel!")
-                elif "Long Travel" in travel_flags:
-                    emoji = "🟠 Moderate (Long Travel)"
-                    force_print(f"   🟠 MODERATE impact: Long Travel only")
-                elif "Short Break" in travel_flags:
-                    emoji = "🟡 Slight (Short Break)"
-                    force_print(f"   🟡 SLIGHT impact: Short Break only")
-                else:
-                    emoji = f"⚠️ Unknown ({', '.join(travel_flags)})"
-                    force_print(f"   ⚠️ Unknown travel flags: {travel_flags}")
-                
-                travel_dict[team] = emoji
-                force_print(f"   🎯 Final Rating: {emoji}")
-        
-        force_print(f"\n📊 Travel Summary: Processed {travel_entries_processed} teams for next round")
-        
-        # For any teams not in the travel log, use a default value
-        teams_without_travel = 0
-        for team_abbr in next_round_players['team'].unique():
-            if team_abbr not in travel_dict:
-                full_name = TEAM_NAME_MAP.get(team_abbr, team_abbr)
-                if full_name in team_opponents:
-                    travel_dict[team_abbr] = "✅ Neutral"
-                    teams_without_travel += 1
-                    
-        if teams_without_travel > 0:
-            force_print(f"ℹ️ Added default 'Neutral' travel rating for {teams_without_travel} teams without travel data")
-        
-        # Add travel fatigue with fallback for missing teams
-        next_round_players['travel_fatigue'] = next_round_players['team'].map(
-            lambda x: travel_dict.get(x, "✅ Neutral")
-        )
-        
-        # Step 9: Add weather data with fallback for all teams
-        next_round_players['weather'] = next_round_players['team'].map(
-            lambda x: team_weather.get(x, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
-        )
-
-        force_print(f"\n🌤️ TEAM WEATHER MAPPING:")
-        force_print("-" * 50)
-        for team_abbr in sorted(next_round_players['team'].unique()):
-            team_full = TEAM_NAME_MAP.get(team_abbr, team_abbr)
-            weather_rating = team_weather.get(team_abbr, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
-            force_print(f"🏟️ {team_abbr} ({team_full}): {weather_rating}")
-        
-        # Step 10: Add opponent for DvP with fallback
-        def get_team_full_name(team_abbr):
-            return TEAM_NAME_MAP.get(team_abbr, team_abbr)
-        
-        def get_team_opponent(team_abbr):
-            full_name = get_team_full_name(team_abbr)
-            opponent_full_name = team_opponents.get(full_name, "Unknown")
-            
-            # Find the abbreviation for the opponent if possible
-            for abbr, name in TEAM_NAME_MAP.items():
-                if name == opponent_full_name:
-                    return abbr
-            
-            return opponent_full_name
-        
-        # Apply the mapping
-        next_round_players['opponent'] = next_round_players['team'].apply(get_team_opponent)
-        
-        # If we still have "Unknown" opponents, log them
-        unknown_opponents = next_round_players[next_round_players['opponent'] == "Unknown"]['team'].unique()
-        if len(unknown_opponents) > 0:
-            force_print(f"\n⚠️ WARNING: {len(unknown_opponents)} teams have unknown opponents:")
-            for team in unknown_opponents:
-                force_print(f"   - {team}: No opponent found in fixture (full name: {get_team_full_name(team)})")
-        
-        # Step 11: Add role positions with default for unknown
-        def map_position(pos):
-            if pd.isna(pos) or pos == "":
-                return "Unknown"
-            for role, tags in POSITION_MAP.items():
-                if pos in tags:
-                    return role
-            return "Unknown"
-        
-        if 'namedPosition' in next_round_players.columns:
-            next_round_players["position"] = next_round_players["namedPosition"].apply(map_position)
-            force_print(f"\n📍 POSITION MAPPING:")
-            force_print("-" * 50)
-            position_counts = next_round_players["position"].value_counts()
-            for pos, count in position_counts.items():
-                force_print(f"   {pos}: {count} players")
-        else:
-            force_print("⚠️ Warning: namedPosition column missing. Using default positions.")
-            next_round_players["position"] = "Unknown"
-        
-        # Step 12: Add DvP indicators with better error handling
-        def get_dvp_rating(row):
-            try:
-                team = row['opponent'] if 'opponent' in row else "Unknown"
-                pos = row['position'] if 'position' in row else "Unknown"
-                
-                # Handle missing or None values
-                if team is None or pos is None or team == "Unknown" or pos == "Unknown":
-                    return "⚠️ Unknown"
-                    
-                # Use the simplified_dvp dictionary instead of dataframe lookups
-                if team in simplified_dvp and pos in simplified_dvp[team]:
-                    dvp_info = simplified_dvp[team][pos]
-                    strength = dvp_info["strength"]
-                    dvp_value = dvp_info["dvp"]
-                    
-                    # Format the DvP value to show in the rating
-                    formatted_dvp = f"{dvp_value:.1f}"
-                    
-                    if strength == "Strong":
-                        return f"🔴 Strong Unders ({formatted_dvp})"
-                    elif strength == "Moderate":
-                        return f"🟠 Moderate Unders ({formatted_dvp})"
-                    elif strength == "Slight":
-                        return f"🟡 Slight Unders ({formatted_dvp})"
-                
-                return "✅ Neutral"
-            except Exception as e:
-                force_print(f"❌ Error in DvP rating: {e}")
-                return "⚠️ Unknown"
-        
-        next_round_players['dvp'] = next_round_players.apply(get_dvp_rating, axis=1)
-        
-        force_print(f"\n🎯 DVP ANALYSIS:")
-        force_print("-" * 50)
-        dvp_counts = next_round_players['dvp'].value_counts()
-        for dvp_type, count in dvp_counts.items():
-            force_print(f"   {dvp_type}: {count} players")
-        
-        # Step 13: Clean up and select final columns for display
-        result_df = next_round_players[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
-                                        'weather', 'dvp']].copy()
-        
-        # Calculate the Unders Score for each player (for bet flag calculation only)
-        result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
-        
-        # Reset the logging counter for bet flag analysis
-        if hasattr(calculate_bet_flag, 'logged_count'):
-            calculate_bet_flag.logged_count = 0
-        
-        # Add bet flag based on filtering criteria
-        force_print(f"\n🎯 BET FLAG ANALYSIS:")
-        force_print("-" * 50)
-        result_df = add_bet_flag_to_dataframe(result_df, stat_type)
-        
-        # Final columns for display
-        display_df = result_df[['player', 'team', 'opponent', 'position', 
-                                'travel_fatigue', 'weather', 'dvp', 'Bet_Flag']]
-        
-        # Rename columns for display
-        column_mapping = {
-            'player': 'Player', 
-            'team': 'Team', 
-            'opponent': 'Opponent', 
-            'position': 'Position',
-            'travel_fatigue': 'Travel Fatigue', 
-            'weather': 'Weather', 
-            'dvp': 'DvP',
-            'Bet_Flag': 'Bet Flag'
-        }
-        display_df.columns = list(column_mapping.values())
-        
-        # Sort by team and player
-        display_df = display_df.sort_values(['Team', 'Player'], ascending=[True, True])
-        
-        # Final summary with bet flag distribution
-        force_print(f"\n📊 FINAL SUMMARY FOR {stat_type.upper()}:")
-        force_print("-" * 50)
-        force_print(f"✅ Total players processed: {len(display_df)}")
-        
-        # Show bet flag distribution
-        bet_flag_counts = display_df['Bet Flag'].value_counts()
-        force_print(f"\n🎯 BET FLAG DISTRIBUTION:")
-        for flag, count in bet_flag_counts.items():
-            if "AUTO-BET" in flag:
-                force_print(f"   🟢 {flag}: {count} players")
-            elif "CONSIDER" in flag:
-                force_print(f"   🟡 {flag}: {count} players")
-            else:
-                force_print(f"   🚫 {flag}: {count} players")
-        
-        # Show key opportunities
-        auto_bet_players = display_df[display_df['Bet Flag'].str.contains('AUTO-BET', na=False)]
-        consider_players = display_df[display_df['Bet Flag'].str.contains('CONSIDER', na=False)]
-        
-        if len(auto_bet_players) > 0:
-            force_print(f"\n🟢 AUTO-BET OPPORTUNITIES ({len(auto_bet_players)} players):")
-            for idx, player in auto_bet_players.head(5).iterrows():
-                force_print(f"   - {player['Player']} ({player['Team']}) - {player['Bet Flag']}")
-            if len(auto_bet_players) > 5:
-                force_print(f"   ... and {len(auto_bet_players) - 5} more")
-        
-        if len(consider_players) > 0:
-            force_print(f"\n🟡 CONSIDER OPPORTUNITIES ({len(consider_players)} players):")
-            for idx, player in consider_players.head(3).iterrows():
-                force_print(f"   - {player['Player']} ({player['Team']}) - {player['Bet Flag']}")
-        
-        force_print(f"\n{'='*60}")
-        force_print(f"🎉 DASHBOARD PROCESSING COMPLETE FOR {stat_type.upper()}")
-        force_print(f"{'='*60}\n")
-        
-        return display_df
-        
-    except Exception as e:
-        force_print(f"\n💥 CRITICAL ERROR in process_data_for_dashboard for {stat_type}: {e}")
-        import traceback
-        force_print(traceback.format_exc())
-        
-        # Return a minimal valid dataframe
-        return pd.DataFrame([{
-            'Player': f'Error: {str(e)}',
-            'Team': 'Error',
-            'Opponent': 'Error',
-            'Position': 'Error',
-            'Travel Fatigue': 'Error',
-            'Weather': 'Error', 
-            'DvP': 'Error',
-            'Bet Flag': 'Error'
-        }])# Score column - gradient coloring based on score value
+# Score column - gradient coloring based on score value
 import pandas as pd
 import numpy as np
 import dash
@@ -548,29 +11,6 @@ from travel_fatigue import build_travel_log
 from stadium_locations import STADIUM_COORDS
 from stat_rules import apply_sensitivity
 from data_processor import load_and_prepare_data, calculate_dvp
-
-# Add enhanced logging configuration
-import sys
-import logging
-
-# Configure logging to force output to terminal
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Disable Flask's default logging to reduce noise
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
-
-def force_print(message):
-    """Force print to terminal even in Dash debug mode"""
-    print(message, flush=True)
-    logger.info(message)
-    sys.stdout.flush()
 
 # ===== CONSTANTS =====s
 OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # From main.py
@@ -863,112 +303,85 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     }
 
 def calculate_bet_flag(player_row, stat_type='disposals'):
-    """Calculate bet flag with detailed logging"""
+    """Calculate bet flag based on updated analysis and filtering criteria"""
     try:
-        player_name = player_row.get('Player', player_row.get('player', 'Unknown'))
+        # Extract values from the row
         position = player_row.get('Position', player_row.get('position', ''))
         weather = player_row.get('Weather', player_row.get('weather', ''))
         dvp = player_row.get('DvP', player_row.get('dvp', ''))
         travel_fatigue = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
         
-        # Only log for first few players to avoid spam
-        if hasattr(calculate_bet_flag, 'logged_count'):
-            calculate_bet_flag.logged_count += 1
-        else:
-            calculate_bet_flag.logged_count = 1
-            
-        if calculate_bet_flag.logged_count <= 3:  # Only log first 3 players
-            force_print(f"\n🎯 BET FLAG ANALYSIS #{calculate_bet_flag.logged_count}: {player_name} ({stat_type})")
-            force_print(f"   Position: {position}")
-            force_print(f"   Weather: {weather}")
-            force_print(f"   DvP: {dvp}")
-            force_print(f"   Travel: {travel_fatigue}")
-        
         # Parse travel and weather conditions
         has_long_travel = 'Long Travel' in travel_fatigue
         has_short_break = 'Short Break' in travel_fatigue
+        has_moderate_travel = 'Moderate' in travel_fatigue
+        
+        # Check rain levels
         has_any_rain = 'Rain' in weather and 'Neutral' not in weather
-        has_medium_rain = 'Medium' in weather and 'Rain' in weather
+        has_medium_weather = 'Medium' in weather
+        
+        # Check DvP levels
         has_moderate_dvp = 'Moderate' in dvp
         has_strong_dvp = 'Strong' in dvp
         
-        if calculate_bet_flag.logged_count <= 3:
-            force_print(f"   Conditions: Long Travel={has_long_travel}, Short Break={has_short_break}")
-            force_print(f"   Weather: Any Rain={has_any_rain}, Medium Rain={has_medium_rain}")
-            force_print(f"   DvP: Moderate={has_moderate_dvp}, Strong={has_strong_dvp}")
-        
         # 🚫 AUTO-SKIP RULES (CHECK FIRST)
         if has_short_break:
-            result = "🚫 SKIP - Short Break"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: Short Break detected → {result}")
-            return result
+            return "🚫 SKIP - Short Break"
         
         if has_any_rain and stat_type == 'tackles':
-            result = "🚫 SKIP - Rain (Tackles)"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: Rain + Tackles → {result}")
-            return result
+            return "🚫 SKIP - Rain (Tackles)"
         
         if position == 'KeyD':
-            result = "🚫 SKIP - KeyD Position"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: KeyD Position → {result}")
-            return result
+            return "🚫 SKIP - KeyD Position"
         
         if position == 'Ruck':
-            result = "🚫 SKIP - Ruck Position"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: Ruck Position → {result}")
-            return result
+            return "🚫 SKIP - Ruck Position"
         
-        # 🟢 AUTO-BET RULES (4 Strategies)
-        # 1. IF Position = GenF AND Weather = Medium Rain AND Type = Disposal → AUTO-BET
-        if position == 'GenF' and has_medium_rain and stat_type == 'disposals':
-            result = "🟢 AUTO-BET - GenF Medium Rain Disposals"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: GenF + Medium Rain + Disposals → {result}")
-            return result
-        
-        # 2. IF DvP = Strong Unders AND Type = Tackle → AUTO-BET
-        if has_strong_dvp and stat_type == 'tackles':
-            result = "🟢 AUTO-BET - Strong DvP Tackles"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: Strong DvP + Tackles → {result}")
-            return result
-        
-        # 3. IF Position = KeyF AND Type = Mark → AUTO-BET
+        # 🟢 AUTO-BET RULES (5 New Priority Strategies)
+        # #1: KeyF + Mark + Lines >5.0
         if position == 'KeyF' and stat_type == 'marks':
-            result = "🟢 AUTO-BET - KeyF Marks"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: KeyF + Marks → {result}")
-            return result
+            return "🟢 AUTO-BET - KeyF Mark (Priority #1)"
         
-        # 4. IF DvP = Moderate Unders AND Travel = Long Travel → AUTO-BET
+        # #2: GenF + Disposal + Medium Weather
+        if position == 'GenF' and stat_type == 'disposals' and has_medium_weather:
+            return "🟢 AUTO-BET - GenF Disposal Medium Weather (Priority #2)"
+        
+        # #3: GenD + Mark + Lines >6.0
+        if position == 'GenD' and stat_type == 'marks':
+            return "🟢 AUTO-BET - GenD Mark (Priority #3)"
+        
+        # #4: Wing + Mark
+        if position == 'Wing' and stat_type == 'marks':
+            return "🟢 AUTO-BET - Wing Mark (Priority #4)"
+        
+        # #5: GenF + Disposal + Moderate Travel
+        if position == 'GenF' and stat_type == 'disposals' and has_moderate_travel:
+            return "🟢 AUTO-BET - GenF Disposal Moderate Travel (Priority #5)"
+        
+        # 🟡 CONSIDER RULES (Former Auto-Bet Rules + Original Consider)
+        # Former Auto-Bet #1: GenF + Medium Rain + Disposals
+        if position == 'GenF' and has_any_rain and stat_type == 'disposals':
+            return "🟡 CONSIDER - GenF Medium Rain Disposals"
+        
+        # Former Auto-Bet #2: Strong DvP + Tackles
+        if has_strong_dvp and stat_type == 'tackles':
+            return "🟡 CONSIDER - Strong DvP Tackles"
+        
+        # Former Auto-Bet #3: Moderate DvP + Long Travel
         if has_moderate_dvp and has_long_travel:
-            result = "🟢 AUTO-BET - Moderate DvP Long Travel"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: Moderate DvP + Long Travel → {result}")
-            return result
+            return "🟡 CONSIDER - Moderate DvP Long Travel"
         
-        # 🟡 CONSIDER RULES (1 Strategy)
-        # 1. IF Position = GenF AND Travel = Long Travel AND Type = Disposal → CONSIDER
+        # Original Consider: GenF + Long Travel + Disposals
         if position == 'GenF' and has_long_travel and stat_type == 'disposals':
-            result = "🟡 CONSIDER - GenF Long Travel Disposals"
-            if calculate_bet_flag.logged_count <= 3:
-                force_print(f"   → RULE: GenF + Long Travel + Disposals → {result}")
-            return result
+            return "🟡 CONSIDER - GenF Long Travel Disposals"
         
         # Default skip for anything else
-        result = "🚫 SKIP - No Clear Edge"
-        if calculate_bet_flag.logged_count <= 3:
-            force_print(f"   → NO RULES TRIGGERED → {result}")
-        return result
+        return "🚫 SKIP - No Clear Edge"
         
     except Exception as e:
-        force_print(f"ERROR in calculate_bet_flag for {player_name}: {e}")
+        print(f"ERROR in calculate_bet_flag: {e}")
         import traceback
-        force_print(traceback.format_exc())
+        traceback.print_exc()
         return "❓ ERROR"
 
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
@@ -1265,6 +678,7 @@ def process_data_for_dashboard(stat_type='disposals'):
                         ("WCE", "ADE"), ("WCE", "PTA"), ("FRE", "ADE"), ("FRE", "PTA"),
                         # Adelaide to Perth 
                         ("ADE", "WCE"), ("PTA", "WCE"), ("ADE", "FRE"), ("PTA", "FRE")
+                        
                     ]
                     
                     opponent_abbr = ""
@@ -1569,7 +983,7 @@ app.layout = dbc.Container([
                         ], className="d-flex justify-content-center flex-wrap")
                     ], className="border rounded p-2 mb-3",
                     id="bet-flag-legend",
-                    title="Updated bet logic: 🟢 AUTO-BET for GenF+Medium Rain+Disposals, Strong DvP+Tackles, KeyF+Marks, Moderate DvP+Long Travel. 🟡 CONSIDER for GenF+Long Travel+Disposals. 🚫 SKIP for Short Break, Rain+Tackles, KeyD/Ruck positions.")
+                    title="Updated bet logic: 🟢 AUTO-BET for KeyF+Marks, GenF+Disposal+Medium Weather, GenD+Marks, Wing+Marks, GenF+Disposal+Moderate Travel. 🟡 CONSIDER for former auto-bets (GenF+Rain+Disposals, Strong DvP+Tackles, Moderate DvP+Long Travel, GenF+Long Travel+Disposals). 🚫 SKIP for Short Break, Rain+Tackles, KeyD/Ruck positions.")
                 ], width=6),
             ])
         ], width=9)
