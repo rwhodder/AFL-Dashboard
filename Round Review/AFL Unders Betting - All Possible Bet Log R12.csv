@@ -1,0 +1,355 @@
+Type,Round,Player,Team,Opponent,Position,Travel Fatigue,Weather,DvP,TOG Trend,CBA Trend,Role Status,Score,Bet Flag,Avg vs Line,Line Consistency,Overall Score,Bet Confidence,Line,Actual,W/L,Uncertain Role,Notes,Avg v Line CALC,Line Consistency CALC
+Disposal,11,Joe Richards,PTA,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-2%,50%,6,AVOID,14.5,13,1,,,0,0
+Disposal,12,Braeden Campbell,SYD,ADE,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,📈 Increasing,📉 LOW USAGE,4.5 - Consider,🟡 CONSIDER,0%,36%,4.5,,13.5,8,1,1,,0,0
+Disposal,12,James Jordon,SYD,ADE,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Hybrid Position,9,36%,5.5,,14.5,11,1,1,,0,0
+Disposal,10,Alex Neal-Bullen,ADE,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,1%,33%,4,Weak,17,9,1,,,0,0
+Disposal,10,Ben Keays,ADE,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,5%,33%,4.5,Consider,17,7,1,,,0,0
+Disposal,10,Josh Rachele,ADE,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📈 Increasing,📉 LOW USAGE,4 - Consider,,-1%,56%,4.5,Consider,12.5,14,-1,1,,0,0.5
+Disposal,10,Tom Atkins,GEE,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,🎯 STABLE,4 - Consider,,3%,44%,3,Weak,18,23,-1,,,0,0
+Disposal,11,Harvey Langford,MEL,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Consider,,4%,44%,6,AVOID,19.5,21,-1,,,0,0
+Disposal,11,Tom Powell,NTH,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Consider,,16%,30%,6,AVOID,19.5,28,-1,,,0,0
+Disposal,12,Dylan Moore,HAW,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,-5%,60%,5.5,,17,18,-1,,,1,0.5
+Disposal,12,Jaspa Fletcher,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,7.0 - Good Play,🟢 STRONG BET,-3%,46%,7,,20.5,21,-1,,,0,0
+Disposal,12,Zac Bailey,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟢 STRONG BET,5%,55%,4.5,,16.5,20,-1,,,0,0.5
+Disposal,11,Jase Burgoyne,PTA,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,7.0 - Consider,,2%,40%,7,Consider,20.5,18,1,,,0,0
+Disposal,11,Jackson Mead,PTA,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,📉 LOW USAGE,7.0 - Consider,,8%,50%,7,Consider,14.5,5,1,,,0,0
+Disposal,10,Mitchell Hinge,ADE,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,1%,44%,5,Consider,18,21,-1,,,0,0
+Disposal,10,Wayne Milera,ADE,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-1%,56%,4.5,Consider,17,17,0,,,0,0.5
+Disposal,10,Rory Laird,ADE,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,5%,33%,3.5,Weak,22.5,27,-1,,,0,0
+Disposal,12,Jake Soligo,ADE,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,3%,46%,5.5,,21.5,15,1,1,,0,0
+Mark,12,Xavier Duursma,ESS,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟢 STRONG BET,14%,70%,5,,5,4,1,,,0,1
+Disposal,12,Sam Durham,ESS,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📉 Declining,⚠️ UNSTABLE,7.0 - Good Play,🚫 SKIP - Position,6%,40%,7,,22,8,1,1,,0,0
+Disposal,12,Jye Caldwell,ESS,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📈 Increasing,🎯 STABLE,4.0 - Consider,🚫 SKIP - Position,9%,50%,4,,23.5,30,-1,,,0,0
+Disposal,12,Zach Merrett,ESS,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,🎯 STABLE,4.0 - Consider,🚫 SKIP - Position,5%,50%,4,,28,28,0,,,0,0
+Disposal,12,Patrick Voss,FRE,GCS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,16%,29%,6,,9,7,1,,,0,0
+Disposal,12,Jye Amiss,FRE,GCS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,7.0 - Good Play,🟢 STRONG BET,-3%,79%,8,,8,9,-1,,,0,1
+Disposal,12,Josh Treacy,FRE,GCS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,-4%,55%,6.5,,11.5,15,-1,,,0,0.5
+Disposal,12,Bailey Humphrey,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,6.0 - Good Play,🚫 SKIP - Hybrid Position,-9%,50%,7,,18.5,12,1,1,,1,0
+Disposal,12,Sam Flanders,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📈 Increasing,📉 Declining,📉 LOW USAGE,5.0 - Good Play,🚫 SKIP - Hybrid Position,2%,33%,5,,18.5,16,1,,,0,0
+Disposal,12,Ben Long,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5.0 - Good Play,🟡 CONSIDER,4%,44%,5,,11.5,11,1,,,0,0
+Disposal,12,Ben Ainsworth,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5.0 - Good Play,🟡 CONSIDER,5%,33%,5,,14.5,13,1,,,0,0
+Disposal,11,Nick Vlastuin,RIC,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.3 - Consider,,-3%,50%,6.3,AVOID,19,24,-1,,,0,0
+Disposal,10,Jesse Hogan,GWS,FRE,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,3%,75%,6,Consider,12.5,11,1,,,0,1
+Disposal,10,Caleb Windsor,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,1%,57%,4.5,Consider,17.5,6,1,,,0,0.5
+Disposal,10,Judd McVee,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,0%,44%,4,Weak,16,13,1,,,0,0
+Disposal,10,Tom McDonald,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,6%,33%,4.5,Consider,15,16,-1,,,0,0
+Disposal,12,Reuben Ginbey,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🚫 SKIP - Position,8%,73%,5.5,,11.5,16,-1,,,0,1
+Disposal,12,Liam Duggan,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🚫 SKIP - Position,-2%,55%,5,,19,23,-1,,,0,0.5
+Disposal,12,Ryan Maric,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🚫 SKIP - Position,-1%,55%,5,,22.5,15,1,,,0,0.5
+Disposal,12,Liam Baker,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🚫 SKIP - Position,3%,27%,4.5,,21.5,29,-1,1,,0,0
+Mark,10,Jeremy Cameron,GEE,PTA,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,4%,56%,6,Consider,5,8,-1,,,0,0.5
+Mark,11,Josh Battle,HAW,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,7.0 - Consider,,4%,50%,7,Consider,5.5,6,-1,,,0,0
+Disposal,12,Nathan Broad,RIC,GWS,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🟡 CONSIDER,-2%,56%,5,,15,17,-1,,,0,0.5
+Disposal,12,Brady Hough,WCE,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📉 Declining,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,-2%,73%,6.5,,15,9,1,,,0,1
+Disposal,12,Harley Reid,WCE,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,📈 Increasing,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,-3%,73%,6.5,,17,19,-1,,,0,1
+Disposal,12,Tim Kelly,WCE,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,📉 Declining,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,6%,56%,6,,16,19,-1,,,0,0.5
+Disposal,12,Noah Answerth,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🚫 SKIP - Position,1%,46%,6,,13.5,20,-1,,,0,0
+Disposal,12,Ryan Lester,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,2%,55%,5.5,,14,15,-1,,,0,0.5
+Mark,12,Darcy Wilmot,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟢 STRONG BET,-9%,55%,5.5,,6,6,0,,,1,0.5
+Disposal,12,Dayne Zorko,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,-2%,55%,5.5,,27.5,23,1,,,0,0.5
+Disposal,12,Darcy Wilmot,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🟢 STRONG BET,0%,46%,4.5,,19.5,14,1,,,0,0
+Mark,12,Archie Roberts,ESS,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,6.0 - Good Play,🚫 SKIP - Position,-8%,80%,8,,6,8,-1,,,1,1
+Mark,12,Jaxon Prior,ESS,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,12%,60%,5.5,,5,2,1,,,0,0.5
+Mark,12,Andrew McGrath,ESS,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,20%,60%,5.5,,4,1,1,,,0,0.5
+Mark,12,Jayden Laverde,ESS,BRL,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,-9%,50%,5,,5.5,7,-1,,,1,0
+Disposal,11,Josh Battle,HAW,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Consider,,8%,50%,6,AVOID,17.5,23,-1,,,0,0
+Disposal,11,Jake Waterman,WCE,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-4%,57%,6.5,AVOID,11,7,1,,,0,0.5
+Disposal,12,James Sicily,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,-4%,60%,4.5,,21,6,1,,,0,0.5
+Disposal,12,Josh Battle,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,11%,40%,4,,18,15,1,,,0,0
+Disposal,12,Karl Amon,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,3%,50%,4,,23.5,22,1,,,0,0
+Mark,11,Jaspa Fletcher,BRL,HAW,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,6.5 - Consider,,4%,40%,6.5,AVOID,5.5,5,1,,,0,0
+Mark,10,Mason Redman,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-33%,100%,8,Good Play,6,4,1,,,2,1
+Disposal,12,Jeremy Howe,COL,HAW,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Disposals Weak,-7%,44%,5,,15.5,10,1,,,1,0
+Disposal,12,Heath Chapman,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,7.0 - Good Play,🚫 SKIP - Position,-4%,50%,7,,14.5,13,1,,,0,0
+Disposal,12,Brennan Cox,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🚫 SKIP - Position,-7%,46%,7,,12.5,10,1,,,1,0
+Disposal,12,Luke Ryan,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🚫 SKIP - Position,-2%,46%,6,,21.5,18,1,,,0,0
+Disposal,12,Jordan Clark,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🚫 SKIP - Position,0%,64%,6.5,,23,30,-1,,,0,0.5
+Disposal,12,Corey Wagner,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,6.0 - Good Play,🟢 STRONG BET,6%,44%,6,,15,18,-1,,,0,0
+Disposal,11,Mitch McGovern,CAR,GWS,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Consider,,-7%,60%,7.5,Consider,16.5,15,1,,,1,0.5
+Mark,11,Lawson Humphries,GEE,WBD,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.3 - Consider,,7%,55%,6.8,AVOID,5.5,6,-1,,,0,0.5
+Mark,11,Jack Henry,GEE,WBD,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.3 - Consider,,33%,60%,6.8,AVOID,6,8,-1,,,0,0.5
+Mark,11,Nick Vlastuin,RIC,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,7.3 - Consider,,3%,60%,7.8,Consider,6.5,4,1,,,0,0.5
+Mark,11,Nathan Broad,RIC,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5.3 - Consider,,2%,70%,6.3,AVOID,6,8,-1,,,0,1
+Mark,11,Nasiah Wanganeen-Milera,STK,GCS,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,7.0 - Consider,,-13%,70%,9,Consider,6,3,1,,,1,1
+Mark,11,Nick Blakey,SYD,MEL,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.5 - Consider,,-5%,78%,8.5,Consider,5.5,6,-1,,,1,1
+DIsposal,11,Ryley Sanders,WBD,GEE,GenF,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.3 - Consider,,5%,60%,6.8,AVOID,20,13,1,1,,0,0.5
+Mark,11,Lachlan Bramble,WBD,GEE,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.3 - Consider,,20%,50%,6.3,AVOID,3.5,0,1,,,0,0
+Disposal,11,Laitham Vandermeer,WBD,GEE,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,7.3 - Consider,,8%,38%,7.3,Consider,10.5,13,-1,,,0,0
+Disposal,10,Sam Powell-Pepper,PTA,GEE,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,1%,33%,4,Weak,13.5,23,-1,,,0,0
+Disposal,12,Chad Warner,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,-8%,73%,7.5,,25,19,1,1,,1,1
+Disposal,12,James Rowbottom,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,-4%,46%,5.5,,19,20,-1,,,0,0
+Mark,12,Dayne Zorko,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5.5 - Consider,🚫 SKIP - Position,-7%,73%,7.5,,8,6,1,,,1,1
+Disposal,12,Xavier Duursma,ESS,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟢 STRONG BET,9%,50%,4,,19.5,12,1,,,0,0
+Disposal,12,Todd Goldstein,ESS,BRL,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,🎯 STABLE,3.0 - Consider,🟢 STRONG BET,3%,60%,3.5,,12,8,1,,,0,0.5
+Mark,11,Jye Amiss,FRE,PTA,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,10.3 - Good Play,,-15%,80%,11,Good Play,4,3,1,,,1,1
+Disposal,12,Christian Petracca,MEL,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,3%,36%,4,,25.5,22,1,,,0,0
+Disposal,12,Harvey Langford,MEL,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📉 Declining,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,-5%,40%,4,,20,10,1,,,0,0
+Disposal,12,Max Gawn,MEL,STK,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,3%,46%,4,,21,22,-1,,,0,0
+Mark,12,Nick Blakey,SYD,ADE,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🟡 CONSIDER,2%,73%,6,,5,0,1,,,0,1
+Mark,12,Matt Roberts,SYD,ADE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,2%,64%,5.5,,6,8,-1,,,0,0.5
+Mark,12,Riley Bice,SYD,ADE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,12%,60%,5.5,,5,0,1,,,0,0.5
+Mark,12,Ryan Maric,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,-7%,82%,7,,4,6,-1,,,1,1
+Mark,12,Liam Duggan,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🚫 SKIP - Position,18%,46%,5,,4,7,-1,,,0,0
+Mark,11,Peter Wright,ESS,RIC,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.3 - Consider,,9%,40%,6.3,AVOID,5.5,5,1,,,0,0
+Mark,10,Callum Wilkie,STK,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,8%,44%,5.5,Consider,8,6,1,,,0,0
+Mark,11,Max Holmes,GEE,WBD,InsM,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,8.3 - Good Play,,16%,40%,8.3,Consider,4.5,5,-1,,,0,0
+Mark,11,Jase Burgoyne,PTA,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,8.3 - Good Play,,4%,70%,9.3,Consider,5,4,1,,,0,1
+Disposal,11,Sam Powell-Pepper,PTA,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-6%,60%,7.5,Consider,15.5,9,1,,,1,0.5
+Mark,12,Jesse Hogan,GWS,RIC,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.0 - Consider,🟡 CONSIDER,-15%,75%,8,,6.5,4,1,,,2,1
+Mark,12,James Sicily,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,3%,70%,5,,6,3,1,,,0,1
+Mark,12,Josh Battle,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,-5%,80%,5,,6,8,-1,,,0,1
+Tackle,10,Sam Powell-Pepper,PTA,GEE,GenF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-11%,56%,8,Good Play,3.5,2,1,,,1,0.5
+Tackle,12,Rhyan Mansell,RIC,GWS,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,0%,75%,5,,3,4,-1,,,0,1
+Tackle,12,Marcus Windhager,STK,MEL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,-16%,82%,7,,4,4,0,1,,2,1
+Tackle,11,Andrew Brayshaw,FRE,PTA,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,8.2 - Good Play,,10%,50%,6.2,AVOID,6,8,-1,,,0,0
+Tackle,10,Marcus Windhager,STK,WCE,InsM/Def,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,4 - Consider,,-8%,78%,9,Good Play,4,0,1,1,,1,1
+Tackle,11,Liam Baker,WCE,ADE,InsM/Def,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,8.0 - Good Play,,-9%,60%,9.5,Consider,3.5,2,1,1,Negative - Role Change,1,0.5
+Tackle,10,Tom Atkins,GEE,PTA,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,⚠️ Flat,📉 Declining,🎯 STABLE,4 - Consider,,28%,33%,4.5,Consider,8,5,1,,,0,0
+Tackle,10,Ryley Sanders,WBD,ESS,GenF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-8%,89%,8.5,Good Play,4,1,1,1,,1,1
+Tackle,11,Nick Watson,HAW,BRL,GenF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,4%,60%,6.5,AVOID,2.5,0,1,,,0,0.5
+Tackle,12,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,📉 Declining,📈 Increasing,⚠️ UNSTABLE,5.5 - Consider,🟢 STRONG BET,4%,64%,6,,3.5,3,1,,,0,0.5
+Tackle,12,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,5.5 - Consider,🟢 STRONG BET,-2%,50%,5.5,,6,4,1,,,0,0
+Tackle,11,Max Holmes,GEE,WBD,InsM,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,6.7 - Good Play,,23%,60%,7.2,Consider,3,3,0,,,0,0.5
+Tackle,12,Tom Atkins,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.5 - Consider,🟢 STRONG BET,17%,36%,5.5,,8.5,10,-1,,,0,0
+Tackle,10,Cam Rayner,BRL,MEL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,2%,67%,7,Consider,2.5,1,1,,,0,0.5
+Tackle,10,Kade Chandler,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,5%,67%,6,Consider,3.5,0,1,1,,0,0.5
+Tackle,11,James Rowbottom,SYD,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,8.5 - Good Play,,6%,56%,9,Consider,6.5,9,-1,,,0,0.5
+Tackle,11,Braeden Campbell,SYD,MEL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,📉 Declining,📉 LOW USAGE,7.5 - Good Play,,7%,78%,8.5,Consider,3,7,-1,1,,0,1
+Tackle,12,Jack Higgins,STK,MEL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,6%,55%,4.5,,2.5,1,-1,,,0,0.5
+Tackle,11,Charlie Spargo,MEL,SYD,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-5%,50%,6,AVOID,2.5,4,-1,,,0,0
+Tackle,11,Kysaiah Pickett,MEL,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,7.0 - Consider,,6%,70%,8,Consider,3.5,4,-1,1,,0,1
+Tackle,11,Tom Sparrow,MEL,SYD,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,7.0 - Consider,,17%,40%,7,Consider,3.5,5,-1,1,,0,0
+Tackle,11,Harley Reid,WCE,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,📉 Declining,📈 Increasing,⚠️ UNSTABLE,9.0 - Good Play,,-20%,70%,12,Good Play,3.5,2,1,,Negative - Role Change,2,1
+Disposal,11,Caleb Daniel,NTH,COL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,9%,30%,6,AVOID,23.5,30,-1,,,0,0
+Disposal,10,Shai Bolton,FRE,GWS,InsM/Fwd,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,📈 Increasing,🎯 STABLE,4 - Consider,,-1%,38%,3.5,Weak,18.5,24,-1,1,,0,0
+Disposal,12,Tim Membrey,COL,HAW,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,9%,56%,4.5,,10,9,1,,,0,0.5
+Disposal,12,Brody Mihocek,COL,HAW,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,11%,33%,4,,8.5,12,-1,,,0,0
+Disposal,10,Caleb Serong,FRE,GWS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,4 - Consider,,6%,33%,3,Weak,26,36,-1,,,0,0
+Disposal,10,Connor O'Sullivan,GEE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5 - Consider,,13%,56%,5,Consider,12,5,1,,,0,0.5
+Disposal,10,Josh Treacy,FRE,GWS,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,5%,33%,5,Consider,10.5,11,-1,,,0,0
+Disposal,10,Noah Balta,RIC,NTH,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-3%,33%,4,Weak,14.5,11,1,,,0,0
+Disposal,10,Lachlan Bramble,WBD,ESS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,-2%,56%,5.5,Consider,17.5,14,1,,,0,0.5
+Disposal,10,Jason Johannisen,WBD,ESS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-8%,60%,5.5,Consider,19,20,-1,,,1,0.5
+Disposal,10,Bailey Dale,WBD,ESS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,1%,44%,4,Weak,26.5,49,-1,,,0,0
+Disposal,10,Charlie Spargo,MEL,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,-4%,43%,5.5,Consider,11.5,13,-1,,,0,0
+Disposal,10,Kysaiah Pickett,MEL,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,📈 Increasing,⚠️ UNSTABLE,4 - Consider,,12%,33%,4.5,Consider,17.5,21,-1,1,,0,0
+Disposal,10,Aaron Naughton,WBD,ESS,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,1%,56%,4.5,Consider,11.5,11,1,,,0,0.5
+Disposal,11,Luke Ryan,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,9.0 - Good Play,,1%,50%,7.5,Consider,21,22,-1,,,0,0
+Disposal,11,Brennan Cox,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,9.0 - Good Play,,0%,40%,7.5,Consider,11.5,13,-1,,,0,0
+Disposal,12,Mark Keane,ADE,SYD,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.5 - Consider,🟡 CONSIDER,-6%,64%,7,,13.5,23,-1,,,1,0.5
+Disposal,12,Beau McCreery,COL,HAW,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,📈 Increasing,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-4%,55%,4.5,,11,11,0,,,0,0.5
+Disposal,12,Jamie Elliott,COL,HAW,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,6%,50%,4,,12,12,0,,,0,0
+Disposal,12,Jake Melksham,MEL,STK,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-10%,71%,6,,11,9,1,,,1,1
+Disposal,12,Kysaiah Pickett,MEL,STK,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,📈 Increasing,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Hybrid Position,2%,38%,5,,20,12,1,1,,0,0
+Disposal,12,Daniel Turner,MEL,STK,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,0,25%,4,,15.5,14,1,,,0,0
+Disposal,12,Logan Morris,BRL,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,-15%,70%,8,,10,11,-1,,,1,1
+Disposal,12,Eric Hipwood,BRL,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,🟠 Moderate Unders,📉 Declining,📈 Increasing,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,-6%,55%,7.5,,11,12,-1,,,1,0.5
+Disposal,12,Jeremy Sharp,FRE,GCS,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,7.0 - Good Play,🟢 STRONG BET,-3%,46%,7,,15,4,1,,,0,0
+Disposal,12,Matthew Johnson,FRE,GCS,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,⚠️ Flat,📉 Declining,🎯 STABLE,5.0 - Consider,🟡 CONSIDER,3%,55%,5.5,,18.5,18,1,,,0,0.5
+Disposal,11,Toby Bedford,GWS,CAR,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,6.5 - Consider,,-18%,67%,9,AVOID,12.5,11,1,1,Negative - With/WIthout,2,0.5
+Disposal,11,Connor Macdonald,HAW,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-13%,75%,8,Consider,15,20,-1,,,1,1
+Disposal,12,Lloyd Meek,HAW,COL,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🟡 CONSIDER,-5%,60%,6.5,,13.5,15,-1,,,1,0.5
+Disposal,10,Matt Roberts,SYD,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,8%,22%,4,Weak,23,20,1,,,0,0
+Disposal,10,Dane Rampe,SYD,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,10%,56%,4.5,Consider,13,8,1,,,0,0.5
+Disposal,10,Sam Wicks,SYD,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,4%,56%,4.5,Consider,14,20,-1,,,0,0.5
+Disposal,10,Zach Guthrie,GEE,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5 - Consider,,6%,56%,5,Consider,18,21,-1,,,0,0.5
+Disposal,12,Oliver Dempsey,GEE,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,7.0 - Good Play,🟢 STRONG BET,-3%,55%,7.5,,17.5,14,1,,,0,0.5
+Disposal,11,Andrew Brayshaw,FRE,PTA,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,10.0 - Good Play,,-1%,50%,8.5,Consider,29,21,1,,,0,0
+Disposal,11,Alex Pearce,FRE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,10.0 - Good Play,,4%,50%,8,Consider,11,12,-1,,,0,0
+Disposal,11,Karl Worner,FRE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,9.0 - Good Play,,-3%,56%,8.5,Consider,13.5,18,-1,,,0,0.5
+Disposal,11,Jack Buckley,GWS,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.5 - Consider,,-2%,50%,6.5,AVOID,12.5,8,1,,,0,0
+Disposal,10,Kade Chandler,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,10%,67%,5,Consider,14,11,1,1,,0,0.5
+Disposal,10,Ed Langdon,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4 - Consider,,8%,44%,4.5,Consider,20,25,-1,,,0,0
+Disposal,12,Sam Banks,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,6.5 - Good Play,🚫 SKIP - Position,16%,0%,6.5,,23.5,25,-1,,,0,0
+Disposal,12,Nick Vlastuin,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5.5 - Consider,🚫 SKIP - Position,-3%,46%,5.5,,19.5,19,1,,,0,0
+Disposal,11,Isaac Cumming,ADE,WCE,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-8%,60%,7.5,Consider,15.5,16,-1,,,1,0.5
+Disposal,12,Ben Hobbs,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,📉 Declining,⚠️ UNSTABLE,6.0 - Good Play,🟢 STRONG BET,3%,70%,7,,15,19,-1,,,0,1
+Disposal,12,Jade Gresham,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,7.0 - Good Play,🟢 STRONG BET,4%,63%,7.5,,12.5,13,-1,,,0,0.5
+Disposal,12,Isaac Kako,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,6%,50%,6,,9.5,11,-1,,,0,0
+Disposal,12,Matt Guelfi,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,7%,50%,6,,11,10,1,,,0,0
+Disposal,12,Nic Martin,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,7.0 - Good Play,🟢 STRONG BET,0%,60%,7.5,,25.5,29,-1,1,,0,0.5
+Disposal,12,Ben King,GCS,FRE,KeyF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟡 CONSIDER,-5,56%,8.5,,7.5,7,1,,,2,0.5
+Disposal,12,Brayden Fiorini,GCS,FRE,Wing,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟡 CONSIDER,-3%,33%,6,,17.5,19,-1,,,0,0
+Disposal,11,Oliver Hollands,CAR,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,2%,40%,6,AVOID,16.5,17,-1,,,0,0
+Disposal,10,Ryan Byrnes,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,1%,67%,6.5,Consider,18,17,1,,,0,0.5
+Disposal,10,Darcy Wilson,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,2%,44%,6,Consider,18,17,1,,,0,0
+Disposal,11,Harry Himmelberg,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,6.5 - Consider,,7%,50%,6.5,AVOID,18,19,-1,,,0,0
+Disposal,12,Tom Barrass,HAW,COL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🚫 SKIP - Disposals Weak,-5%,50%,4,,11,9,1,,,0,0
+Disposal,10,Nick Blakey,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,6%,44%,5,Consider,19.5,13,1,,,0,0
+Disposal,10,Tom McCartin,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,0%,56%,4.5,Consider,11,14,-1,,,0,0.5
+Disposal,10,Jamie Cripps,WCE,STK,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-6%,67%,5.5,Consider,12.5,9,1,,,1,0.5
+Disposal,12,Kamdyn McIntosh,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,📉 Declining,⚠️ UNSTABLE,6.5 - Good Play,🚫 SKIP - Position,5%,46%,6.5,,14.5,4,1,,,0,0
+Disposal,12,Jack Ross,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5.5 - Consider,🚫 SKIP - Position,4%,45%,5.5,,17.5,17,1,,,0,0
+Disposal,10,Andrew McGrath,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,3%,50%,4,Weak,21.5,25,-1,,,0,0
+Disposal,10,Jaxon Prior,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,2%,50%,4,Weak,15,17,-1,,,0,0
+Disposal,10,Mason Redman,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,-4%,88%,6,Consider,22,27,-1,,,0,1
+Disposal,10,Brennan Cox,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,1%,44%,5,Consider,12,6,1,,,0,0
+Disposal,10,Jordan Clark,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5 - Consider,,2%,56%,5.5,Consider,23,21,1,,,0,0.5
+Disposal,10,Karl Worner,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,6%,50%,6,Consider,13,8,1,,,0,0
+Disposal,12,Sam De Koning,GEE,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,7.0 - Good Play,🟢 STRONG BET,-10%,73%,9,,15.5,12,1,,,1,1
+Disposal,11,Liam Ryan,WCE,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,7.0 - Consider,,1%,63%,7.5,Consider,12,11,1,,Negative - Role Change,0,0.5
+Mark,10,Connor O'Sullivan,GEE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5 - Consider,,41%,22%,3.5,Weak,4.5,3,1,,,0,0
+Mark,11,Mitch McGovern,CAR,GWS,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,8.0 - Good Play,,0%,60%,8.5,Consider,5,3,1,,,0,0.5
+Mark,11,Oliver Hollands,CAR,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,7.0 - Consider,,14%,60%,7.5,Consider,5,3,1,,,0,0.5
+Mark,11,Nick Haynes,CAR,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,21%,50%,6,AVOID,7,8,-1,,,0,0
+Mark,11,Sam Taylor,GWS,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.5 - Consider,,0%,60%,7,Consider,6,7,-1,,,0,0.5
+Mark,12,Nathan Broad,RIC,GWS,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,7.0 - Good Play,🟢 STRONG BET,14%,46%,7,,5.5,7,-1,,,0,0
+Mark,12,Ben Miller,RIC,GWS,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,16%,36%,6,,5,6,-1,,,0,0
+Mark,10,Alex Pearce,FRE,GWS,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,14%,33%,6,Consider,4.5,2,1,,,0,0
+Mark,10,Tom McDonald,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,7%,78%,7.5,Good Play,6,6,0,,,0,1
+Mark,10,Steven May,MEL,BRL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5 - Consider,,0%,67%,6.5,Consider,6,8,-1,,,0,0.5
+Mark,10,Jake Bowey,MEL,BRL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,-2%,67%,7.5,Good Play,6,8,-1,,,0,0.5
+Mark,10,Noah Balta,RIC,NTH,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,4%,65%,6.5,Consider,5.5,2,1,,,0,0.5
+Mark,12,Hayden McLean,SYD,ADE,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Good Play,🟢 STRONG BET,6%,60%,6.5,,3.5,1,1,,,0,0.5
+Mark,11,Jake Waterman,WCE,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,8.0 - Good Play,,7%,57%,8.5,Consider,6,4,1,,,0,0.5
+Mark,11,Oscar Allen,WCE,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,9.0 - Good Play,,-9%,75%,11,Good Play,4,4,0,,,1,1
+Mark,10,Nick Blakey,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,5 - Consider,,9%,78%,7,Consider,5,1,1,,,0,1
+Mark,10,Tom McCartin,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,13%,44%,5,Consider,5,5,0,,,0,0
+Mark,12,Jake Lloyd,SYD,ADE,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,11%,46%,6,,6.5,3,1,,,0,0
+Mark,10,Max Holmes,GEE,PTA,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,4 - Consider,,16%,44%,6.5,Consider,4.5,5,-1,,,0,0
+Mark,11,Alex Pearce,FRE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,11.3 - Good Play,,7%,40%,9,Consider,4.5,7,-1,,,0,0
+Mark,11,Nick Larkey,NTH,COL,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,3%,50%,6,AVOID,4,4,0,,,0,0
+Mark,11,Jack Darling,NTH,COL,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,10%,50%,6,AVOID,3,5,-1,,,0,0
+Mark,12,Nic Martin,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,8.0 - Good Play,🟢 STRONG BET,14%,40%,8,,7,7,0,1,,0,0
+Mark,11,Harry Himmelberg,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,7.5 - Consider,,15%,40%,7.5,Consider,6,4,1,,,0,0
+Mark,11,Connor Idun,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.5 - Consider,,1%,50%,6.5,AVOID,7,5,1,,,0,0
+Mark,11,Lachie Whitfield,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.5 - Consider,,6%,50%,6.5,AVOID,7,5,1,,,0,0
+Mark,10,Ed Langdon,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4 - Consider,,27%,33%,5.5,Consider,5,6,-1,,,0,0
+Tackle,10,Kysaiah Pickett,MEL,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,📉 Declining,📈 Increasing,⚠️ UNSTABLE,4 - Consider,,-4%,83%,8.5,Good Play,4,3,1,1,,0,1
+Tackle,10,Jack Macrae,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,5 - Consider,,13%,56%,6,Consider,5,3,1,,,0,0.5
+Tackle,10,Jack Steele,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,📈 Increasing,⚠️ Flat,🎯 STABLE,5 - Consider,,50%,25%,5.5,Consider,5,14,-1,,,0,0
+Tackle,11,Kade Chandler,MEL,SYD,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,7.0 - Consider,,10%,70%,8,Consider,3,4,-1,1,,0,1
+Tackle,12,Lloyd Meek,HAW,COL,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🟢 STRONG BET,-10%,70%,7,,4,4,0,,,1,1
+Tackle,11,Tom Powell,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,9.0 - Good Play,,16%,40%,9,Consider,4.5,3,1,,,0,0
+Tackle,12,James Rowbottom,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,5.0 - Consider,🟢 STRONG BET,11%,55%,5.5,,6.5,9,-1,,,0,0.5
+Tackle,12,Chad Warner,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🟢 STRONG BET,-5%,65%,5.5,,4,4,0,1,,0,0.5
+Tackle,11,Luke Davies-Uniacke,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,9.0 - Good Play,,0%,60%,9.5,Consider,4,4,0,,,0,0.5
+Tackle,11,George Wardlaw,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,📈 Increasing,📉 Declining,⚠️ UNSTABLE,7.0 - Consider,,0%,50%,7,Consider,5.5,4,1,,,0,0
+Disposal,12,Luke Jackson,FRE,GCS,Ruck,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,10.0 - Strong Play,🟢 STRONG BET,10%,38%,10,,16,27,-1,1,,0,0
+Disposal,10,Toby Nankervis,RIC,NTH,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,4 - Consider,,7%,56%,4.5,Consider,16,15,1,,,0,0.5
+Disposal,12,Rowan Marshall,STK,MEL,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,4.0 - Consider,🟡 CONSIDER,6%,55%,4.5,,16.5,16,1,,,0,0.5
+Disposal,12,Brodie Grundy,SYD,ADE,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,📈 Increasing,🎯 STABLE,5.5 - Consider,🟡 CONSIDER,7%,46%,5.5,,16,23,-1,,,0,0
+Disposal,12,Jake Lloyd,SYD,ADE,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,7.5 - Good Play,🟢 STRONG BET,6%,46%,7.5,,20,11,1,,,0,0
+Disposal,11,Zak Butters,PTA,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,7.0 - Consider,,-1%,57%,7.5,Consider,28,24,1,,,0,0.5
+Disposal,11,Willem Drew,PTA,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,9.0 - Good Play,,2%,70%,10,Good Play,18,23,-1,,,0,1
+Disposal,11,Miles Bergman,PTA,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,7.0 - Consider,,-10%,60%,8.5,Consider,19.5,23,-1,,,1,0.5
+Disposal,12,Matt Rowell,GCS,FRE,InsM,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,9.0 - Strong Play,🚫 SKIP - Position,6%,40%,9,,23,27,-1,,,0,0
+Disposal,12,Noah Anderson,GCS,FRE,InsM,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,6.0 - Good Play,🚫 SKIP - Position,8%,50%,6,,28,39,-1,,,0,0
+Disposal,12,Touk Miller,GCS,FRE,InsM,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,6.0 - Good Play,🚫 SKIP - Position,5%,50%,6,,25,24,1,,,0,0
+Disposal,10,Finn Callaghan,GWS,FRE,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,4 - Consider,,2%,50%,6.5,Consider,26.5,24,1,,,0,0
+Disposal,10,Tom Green,GWS,FRE,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,4 - Consider,,9%,25%,6,Consider,30.5,25,1,,,0,0
+Disposal,10,Patrick Lipinski,COL,ADE,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,📉 Declining,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,8%,33%,7,Consider,18.5,5,1,,,0,0
+Disposal,10,Nasiah Wanganeen-Milera,STK,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5 - Consider,,1%,44%,7,Consider,27.5,27,1,,,0,0
+Disposal,10,Sam Banks,RIC,NTH,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,5 - Consider,,-17%,88%,9,Good Play,22,25,-1,,,2,1
+Disposal,10,Hugo Ralphsmith,RIC,NTH,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,5 - Consider,,-8%,80%,8.5,Good Play,13,16,-1,,,1,1
+Disposal,10,Callum Wilkie,STK,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,7 - Good Play,,4%,44%,7.5,Good Play,18,24,-1,,,0,0
+Disposal,10,Isaac Heeney,SYD,CAR,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,📉 Declining,🎯 STABLE,5 - Consider,,-4%,78%,7,Consider,22.5,38,-1,,,0,1
+Disposal,10,Chad Warner,SYD,CAR,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,4 - Consider,,-4%,44%,5,Consider,22.5,30,-1,1,,0,0
+Mark,11,Eric Hipwood,BRL,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,📉 Declining,📈 Increasing,📉 LOW USAGE,8.5 - Good Play,,20%,50%,8.5,Consider,4.5,3,1,,,0,0
+Mark,11,Harry McKay,CAR,GWS,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,8.0 - Good Play,,0%,38%,8,Consider,6.5,5,1,,,0,0
+Mark,11,Charlie Curnow,CAR,GWS,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,7.0 - Consider,,6%,38%,7,Consider,6.5,5,1,,,0,0
+Mark,12,Mark Keane,ADE,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,8.0 - Good Play,🟢 STRONG BET,-11%,46%,9,,4.5,10,-1,,,1,0
+Mark,12,Brody Mihocek,COL,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6.0 - Good Play,🟢 STRONG BET,33%,56%,6.5,,3,6,-1,,,0,0.5
+Mark,11,Steven May,MEL,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,6.0 - Consider,,-3%,57%,6.5,AVOID,6.5,5,1,,,0,0.5
+Mark,10,Mitch McGovern,CAR,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,5 - Consider,,4%,56%,8,Good Play,5,3,1,,,0,0.5
+Mark,10,Jacob Weitering,CAR,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4 - Consider,,18%,56%,7,Consider,7,4,1,,,0,0.5
+Mark,10,Josh Treacy,FRE,GWS,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,13%,56%,9.5,Good Play,5,2,1,,,0,0.5
+Mark,11,Callum Wilkie,STK,GCS,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,8.0 - Good Play,,5%,50%,8,Consider,8,8,0,,,0,0
+Mark,11,Brennan Cox,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,12.3 - Strong Play,,18%,50%,10,Good Play,4.5,3,1,,,0,0
+Mark,11,Luke Ryan,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,12.3 - Strong Play,,0%,60%,11,Good Play,6.5,7,-1,,,0,0.5
+Mark,11,Heath Chapman,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,10.3 - Good Play,,-9%,67%,10,Good Play,5,9,-1,,,1,0.5
+Mark,11,Jordan Clark,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,10.3 - Good Play,,-4%,60%,9.5,Consider,5.5,6,-1,,,0,0.5
+Mark,12,Nick Vlastuin,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,8.0 - Good Play,🚫 SKIP - Position,17%,64%,8.5,,5.5,4,1,,,0,0.5
+Mark,12,Tom Brown,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,7.0 - Good Play,🚫 SKIP - Position,9%,56%,7.5,,4.5,2,1,,,0,0.5
+Mark,12,Sam Banks,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,📉 LOW USAGE,7.0 - Good Play,🚫 SKIP - Hybrid Position,-4%,55%,7.5,,5,7,-1,,,0,0.5
+Mark,10,Heath Chapman,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,4 - Consider,,-8%,63%,9,Good Play,5,4,1,,,1,0.5
+Mark,10,Brennan Cox,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,6 - Good Play,,11%,56%,8.5,Good Play,5,3,1,,,0,0.5
+Mark,10,Luke Ryan,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4 - Consider,,3%,56%,8,Good Play,6.5,5,1,,,0,0.5
+Tackle,12,James Worpel,HAW,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,4.0 - Consider,🚫 SKIP - Position,10%,70%,5,,5,4,1,,,0,1
+Tackle,12,Jai Newcombe,HAW,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,⚠️ Flat,🎯 STABLE,4.0 - Consider,🚫 SKIP - Position,16%,60%,4.5,,5,3,1,,,0,0.5
+Tackle,12,Kamdyn McIntosh,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,📈 Increasing,📉 Declining,⚠️ UNSTABLE,7.0 - Good Play,🚫 SKIP - Position,7%,58%,7.5,,4,1,1,,,0,0.5
+Tackle,12,Jacob Hopper,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,4.0 - Consider,🚫 SKIP - Position,-14%,73%,6,,4,2,1,,,1,1
+Tackle,12,Tim Taranto,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,📉 Declining,⚠️ Flat,🎯 STABLE,4.0 - Consider,🚫 SKIP - Position,8%,57%,4.5,,4.5,2,1,,,0,0.5
+Tackle,11,George Hewett,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,⚠️ Flat,📉 Declining,🎯 STABLE,8.0 - Good Play,,7%,50%,8,Consider,6,1,1,,,0,0
+Tackle,11,Patrick Cripps,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,📈 Increasing,📉 Declining,🎯 STABLE,6.0 - Consider,,-3%,50%,6,AVOID,6,7,-1,,,0,0
+Tackle,11,Adam Cerra,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,6.0 - Consider,,0%,50%,6,AVOID,4.5,6,-1,,,0,0
+Tackle,10,Caleb Serong,FRE,GWS,InsM,🟠 Moderate (Long Travel),🔵 Avoid (Rain),🔴 Strong Unders,⚠️ Flat,⚠️ Flat,🎯 STABLE,5 - Consider,,-4%,68%,8.5,Good Play,4.5,3,1,,,0,0.5
+Tackle,10,Andrew Brayshaw,FRE,GWS,InsM,🟠 Moderate (Long Travel),🔵 Avoid (Rain),🔴 Strong Unders,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4 - Consider,,11%,44%,8,Good Play,6,6,0,,,0,0
+Tackle,10,Shaun Mannagh,GEE,PTA,GenF,✅ Neutral,🔵 Avoid (Rain),✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,33%,33%,4.5,Consider,4.5,2,1,,,0,0
+Tackle,11,James Peatling,ADE,WCE,InsM,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Consider,,0%,78%,7,Consider,5,5,0,1,Negative - Role Change,0,1
+Tackle,10,Rowan Marshall,STK,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,📉 Declining,🎯 STABLE,4 - Consider,,5%,33%,3.5,Weak,3.5,5,-1,,,0,0
+Tackle,11,Marcus Windhager,STK,GCS,GenD,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,📉 Declining,⚠️ UNSTABLE,7.0 - Consider,,-18%,80%,10,Good Play,4,4,0,1,Role - Unsure,2,1
+Tackle,11,Jack Higgins,STK,GCS,GenF,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,6.0 - Consider,,12%,50%,6,,2.5,1,1,,,0,0
+Tackle,11,Ryley Sanders,WBD,GEE,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,5.7 - Consider,,-15%,80%,7.7,AVOID,4,8,-1,1,,1,1
+Tackle,11,Tim Kelly,WCE,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,📉 Declining,⚠️ UNSTABLE,9.0 - Good Play,,4%,50%,9,Consider,3.5,3,1,,,0,0
+Disposal,10,Patrick Dangerfield,GEE,PTA,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,📈 Increasing,📉 Declining,📉 LOW USAGE,4 - Consider,,5%,67%,3,Weak,16,3,1,,,0,0.5
+Disposal,12,Kai Lohmann,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - FalseEdge Sub,-48%,83%,7,,11.5,15,-1,,sub previously?,2,1
+Disposal,12,Charlie Cameron,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,-11%,56%,4.5,,11.5,8,-1,,,1,0.5
+Disposal,12,Cam Rayner,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,-5%,73%,4,,15,14,1,,,0,1
+Disposal,12,Lachie Neale,BRL,ESS,InsM,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,⚠️ Flat,📉 Declining,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,-6%,55%,6.5,,28.5,26,1,,,1,0.5
+Mark,12,Jarrod Berry,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,-2%,60%,4.5,,5.5,9,-1,,,0,0.5
+Disposal,12,Callum Ah Chee,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,-2%,64%,3.5,,12,13,-1,,,0,0.5
+Disposal,12,Levi Ashcroft,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-2%,36%,4,,21.5,15,1,,,0,0
+Disposal,12,Will Ashcroft,BRL,ESS,InsM,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,2%,55%,5.5,,26.5,30,-1,,,0,0.5
+Mark,12,Jack Payne,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,-20%,60%,5.5,,6.5,9,-1,,,2,0.5
+Disposal,12,Darcy Fort,BRL,ESS,Ruck,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,-2%,80%,5,,11,10,1,,,0,1
+Mark,12,Eric Hipwood,BRL,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,📈 Increasing,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,-6%,73%,5,,5.5,5,1,,,1,1
+Mark,12,Jaspa Fletcher,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,-13%,64%,5.5,,6.5,12,-1,,,1,0.5
+Disposal,12,Jarrod Berry,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,-3%,70%,5,,19,25,-1,,,0,1
+Mark,12,Harris Andrews,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,11%,45%,4,,6.5,12,-1,,,0,0
+Disposal,12,Harris Andrews,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,0%,55%,3.5,,13,16,-1,,,0,0.5
+Disposal,12,Jack Payne,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,10%,50%,3,,10.5,17,-1,,,0,0
+Disposal,12,Mason Redman,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,8%,50%,5,,19.5,26,-1,,,0,0
+Disposal,12,Archie Roberts,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,2%,40%,5,,24,20,1,,,0,0
+Disposal,12,Nate Caddy,ESS,BRL,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🟡 CONSIDER,9%,40%,5,,10.5,10,1,,,0,0
+Disposal,12,Andrew McGrath,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🚫 SKIP - Position,6%,40%,4,,22,15,1,,,0,0
+Disposal,12,Jaxon Prior,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🚫 SKIP - Position,5%,40%,4,,15.5,14,1,,,0,0
+Mark,12,Peter Wright,ESS,BRL,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,3.0 - Consider,🟡 CONSIDER,17%,50%,3,,5,6,-1,,,0,0
+Disposal,12,Peter Wright,ESS,BRL,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,28%,33%,4,,11.5,15,-1,,,0,0
+Disposal,12,Michael Frederick,FRE,GCS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,1%,46%,4,,12,7,1,,,0,0
+Disposal,12,Karl Worner,FRE,GCS,KeyD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,1%,50%,4,,13.5,10,1,,,0,0
+Disposal,12,Andrew Brayshaw,FRE,GCS,InsM,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,-4%,55%,5.5,,29,30,-1,,,0,0.5
+Disposal,12,Murphy Reid,FRE,GCS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,0%,36%,4,,13.5,14,-1,,,0,0
+Disposal,12,Mac Andrew,GCS,FRE,KeyD,✅ Neutral,⚠️ Medium Unders Edge (Rain),✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🚫 SKIP - Position,-3%,67%,4.5,,13,20,-1,,,0,0.5
+Mark,12,Mark O'Connor,GEE,WCE,InsM/Def,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,-12%,64%,7,,6.5,6,1,1,,1,0.5
+Disposal,12,Mark O'Connor,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,2%,46%,5,,14.5,15,-1,1,,0,0
+Disposal,12,Rhys Stanley,GEE,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,📈 Increasing,⚠️ UNSTABLE,5.0 - Consider,🟡 CONSIDER,-15%,67%,7.5,,12,9,1,,,2,0.5
+Mark,12,Tom Stewart,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🟡 CONSIDER,-27%,63%,7,,7.5,7,1,,,2,0.5
+Mark,12,Lawson Humphries,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🚫 SKIP - Position,-9%,70%,6.5,,6.5,4,1,,,1,1
+Disposal,12,Tom Stewart,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-22%,67%,6.5,,21,18,1,,,2,0.5
+Mark,12,Oliver Dempsey,GEE,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🟡 CONSIDER,-20%,91%,7.5,,5,2,1,,,2,1
+Disposal,12,Gryan Miers,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🚫 SKIP - Hybrid Position,1%,38%,4,,21.5,26,1,,,0,0
+Disposal,12,Shaun Mannagh,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,1%,63%,4.5,,18.5,18,1,,,0,0.5
+Mark,12,Shannon Neale,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🟡 CONSIDER,-34%,91%,7.5,,5.5,5,1,,,2,1
+Disposal,12,Shannon Neale,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-18%,82%,7,,9.5,8,1,,,2,1
+Disposal,12,Jeremy Cameron,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-6%,73%,6,,15.5,14,1,,,1,1
+Disposal,12,Lawson Humphries,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🚫 SKIP - Position,-1%,60%,4.5,,19.5,12,1,,,0,0.5
+Disposal,12,Zach Guthrie,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🚫 SKIP - Position,3%,55%,4.5,,18.5,13,1,,,0,0.5
+Mark,12,Gryan Miers,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🚫 SKIP - Hybrid Position,9%,44%,4.5,,6,13,1,,,0,0
+Mark,12,Jeremy Cameron,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.5 - Consider,🟡 CONSIDER,-18%,64%,7,,7,7,0,,,2,0.5
+Disposal,11,Jeremy Sharp,FRE,PTA,Wing,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,⚠️ UNSTABLE,8.0 - Good Play,,-10%,40%,7.5,Consider,16,11,1,,,1,0
+Mark,12,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,-20%,70%,8.5,,6.5,7,-1,,,2,1
+Mark,12,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,📈 Increasing,⚠️ UNSTABLE,5.5 - Consider,🚫 SKIP - Position,4%,64%,6,,5,7,-1,,,0,0.5
+Disposal,10,Jeremy Cameron,GEE,PTA,GenF,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,0%,44%,3,Weak,14.5,16,-1,,,0,0
+Disposal,12,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,📈 Increasing,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,-1%,64%,5.5,,24.5,27,-1,,,0,0.5
+Disposal,10,Shaun Mannagh,GEE,PTA,GenF,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,8%,40%,2.5,Weak,16.5,21,-1,,,0,0
+Disposal,12,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,📈 Increasing,⚠️ UNSTABLE,5.0 - Consider,🚫 SKIP - Position,3%,50%,5,,30,30,-1,,,0,0
+Disposal,12,Brad Close,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4.0 - Consider,🟡 CONSIDER,-1%,55%,4.5,,12,13,-1,,,0,0.5
+Disposal,10,Mitch Owens,STK,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,📉 Declining,📉 LOW USAGE,6 - Good Play,,-4%,50%,5.5,Consider,13.5,12,1,,,0,0
+Disposal,11,Nathan Broad,RIC,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4.3 - Consider,,-7%,60%,5.8,AVOID,15,22,-1,,,1,0.5
+Disposal,10,Patrick Voss,FRE,GWS,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,📉 Declining,📉 LOW USAGE,5 - Consider,,15%,20%,4,Weak,8.5,11,-1,,,0,0
+Mark,12,Harry Himmelberg,GWS,RIC,Wing,✅ Neutral,✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,⚠️ UNSTABLE,4.0 - Consider,🟡 CONSIDER,0%,50%,4,,6.5,4,1,,,0,0
+Disposal,10,Bayley Fritsch,MEL,BRL,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,1%,50%,3,Weak,9.5,7,1,,,0,0
+Disposal,10,Jake Bowey,MEL,BRL,KeyD,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,5%,56%,3,Weak,23,22,1,,,0,0.5
+Disposal,10,Jack Darling,NTH,RIC,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,📉 Declining,📉 LOW USAGE,4 - Consider,,-4%,56%,4.5,Consider,10.5,17,-1,,,0,0.5
+Disposal,11,Tim Kelly,WCE,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📉 Declining,📉 Declining,⚠️ UNSTABLE,7.0 - Consider,,-1%,63%,7.5,Consider,17,17,0,,Role - Unsure,0,0.5
+Disposal,10,Bradley Hill,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-5%,56%,4,Weak,20,22,-1,,,0,0.5
+Disposal,10,Jimmy Webster,STK,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-6%,56%,4.5,Consider,14,17,-1,,,1,0.5
+Mark,10,Jimmy Webster,STK,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-7%,56%,5.5,Consider,5,6,-1,,,1,0.5
+Mark,10,Jack Sinclair,STK,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-6%,67%,5.5,Consider,4.5,7,-1,,,1,0.5
+Disposal,10,Jack Sinclair,STK,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,0%,78%,4,Weak,26,38,-1,,,0,1
+Disposal,10,Rowan Marshall,STK,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,📈 Increasing,📉 Declining,🎯 STABLE,4 - Consider,,-7%,67%,3.5,Weak,18.5,27,-1,,,1,0.5
+Disposal,10,Max Hall,STK,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,-1%,44%,4,Weak,14.5,13,1,,,0,0
+Disposal,10,Mattaes Phillipou,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,⚠️ Flat,⚠️ Flat,📉 LOW USAGE,4 - Consider,,20%,20%,3.5,Weak,17,14,1,,,0,0
+Disposal,10,Christian Salem,MEL,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,10%,44%,3.5,Weak,20.5,20,1,,,0,0
+Mark,10,Christian Salem,MEL,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,📉 Declining,⚠️ Flat,📉 LOW USAGE,4 - Consider,,32%,22%,4.5,Consider,6,8,-1,,,0,0

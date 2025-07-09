@@ -1,0 +1,822 @@
+Type,Bet Priority,Player,Team,Opponent,Position,Travel Fatigue,Weather,DvP,,Bet Tier,Bet Flag,Avg vs Line,Line Consistency,Bet Confidence,Line,Actual,W/L
+Tackle,11,Adam Cerra,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,,,🔵 Avoid (Rain),0%,50%,#REF!,4.5,6,-1
+Tackle,11,Patrick Cripps,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,,,🔵 Avoid (Rain),-3%,50%,#REF!,6,7,-1
+Tackle,10,Andrew Brayshaw,FRE,GWS,InsM,🟠 Moderate (Long Travel),🔵 Avoid (Rain),🔴 Strong Unders,,,🔵 Avoid (Rain),11%,44%,#REF!,6,6,0
+Tackle,10,Caleb Serong,FRE,GWS,InsM,🟠 Moderate (Long Travel),🔵 Avoid (Rain),🔴 Strong Unders,,,🔵 Avoid (Rain),-4%,68%,#REF!,4.5,3,1
+Tackle,11,George Hewett,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,,,🔵 Avoid (Rain),7%,50%,#REF!,6,1,1
+Tackle,15,Jack Macrae,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #7 - Strong DvP + Tackle,7%,63%,,5,6,-1
+Tackle,15,Hunter Clark,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #7 - Strong DvP + Tackle,20%,60%,,4,5,-1
+Tackle,15,Marcus Windhager,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #7 - Strong DvP + Tackle,-14%,85%,,4,1,1
+Disposal,10,Jake Bowey,MEL,BRL,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,5%,56%,#REF!,23,22,1
+Tackle,15,Bailey Humphrey,GCS,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #7 - Strong DvP + Tackle,17%,67%,,4,3,1
+Tackle,15,Matt Rowell,GCS,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #7 - Strong DvP + Tackle,-4%,67%,,8.5,8,1
+Tackle,15,Jack Steele,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #7 - Strong DvP + Tackle,7%,58%,,7.5,5,1
+Tackle,15,Will Setterfield,ESS,FRE,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,1%,40%,,7.5,5,1
+Tackle,15,Jye Caldwell,ESS,FRE,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,-8%,44%,,7.5,5,1
+Tackle,15,Zach Merrett,ESS,FRE,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,-18%,62%,,4.5,3,1
+Tackle,15,Josh Dunkley,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,8%,57%,,6,10,-1
+Disposal,10,Christian Salem,MEL,BRL,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,10%,44%,#REF!,20.5,20,1
+Tackle,15,Hugh McCluggage,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,18%,50%,,4.5,6,-1
+Tackle,15,Lachie Neale,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,0%,50%,,3.5,4,-1
+Tackle,15,Will Ashcroft,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,-5%,64%,,3,5,-1
+Mark,15,John Noble,GCS,GWS,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #9 - Strong DvP + Marks + GenD,27%,50%,,4,3,1
+Mark,15,Daniel Rioli,GCS,GWS,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #9 - Strong DvP + Marks + GenD,-4%,58%,,4,2,1
+Mark,15,Bodhi Uwland,GCS,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #9 - Strong DvP + Marks + GenD,4%,58%,,4.5,3,1
+Mark,15,Joel Jeffrey,GCS,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #9 - Strong DvP + Marks + GenD,17%,68%,,5,6,-1
+Mark,15,Wil Powell,GCS,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🤔 CONSIDER #9 - Strong DvP + Marks + GenD,9%,42%,,4.5,6,-1
+Mark,16,Cooper Sharman,STK,FRE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🥇 TIER 1 #1 - KeyF + Mark (90.9% WR) (Need: Lines >5.0),0%,57%,,5.5,4,1
+Mark,16,Jack Gunston,HAW,NTH,KeyF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🥇 TIER 1 #1 - KeyF + Mark (90.9% WR) (Need: Lines >5.0),4%,45%,,5.5,4,1
+Mark,16,Sam Darcy,WBD,SYD,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🥇 TIER 1 #1 - KeyF + Mark (90.9% WR) (Need: Lines >5.0),-3%,25%,,7.5,2,1
+Mark,16,Riley Thilthorpe,ADE,RIC,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🥇 TIER 1 #1 - KeyF + Mark (90.9% WR) (Need: Lines >5.0),-5%,57%,,5.5,6,-1
+Mark,16,Charlie Curnow,CAR,PTA,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🥇 TIER 1 #1 - KeyF + Mark (90.9% WR) (Need: Lines >5.0),4%,54%,,5.5,6,-1
+Mark,16,Oliver Hollands,CAR,PTA,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🥇 TIER 1 #3 - Wing + Mark (84.6% WR) (Need: Line vs Avg <-20% + Line >4.5),11%,57%,,5,2,1
+Mark,16,Dylan Stephens,NTH,HAW,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🥇 TIER 1 #3 - Wing + Mark (84.6% WR) (Need: Line vs Avg <-20% + Line >4.5),0%,54%,,5,1,1
+Mark,16,Mason Wood,STK,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,#2,,🥇 TIER 1 #3 - Wing + Mark (84.6% WR) (Need: Line vs Avg <-20% + Line >4.5),-4%,50%,,6.5,4,1
+Mark,16,Bailey Williams,WBD,SYD,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🥇 TIER 1 #3 - Wing + Mark (84.6% WR) (Need: Line vs Avg <-20% + Line >4.5),13%,38%,,7,7,0
+Disposal,16,Daniel Turner,MEL,GCS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🥈 TIER 2 #4 - Long Travel + Disposal (77.8% WR) (Need: <-10% Avg vs Line),-15%,64%,,14,12,1
+Disposal,16,Tyler Brockman,WCE,COL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🥈 TIER 2 #4 - Long Travel + Disposal (77.8% WR) (Need: <-10% Avg vs Line),-13%,55%,,15,10,1
+Disposal,16,Dan Butler,STK,FRE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🥈 TIER 2 #4 - Long Travel + Disposal (77.8% WR) (Need: <-10% Avg vs Line),-12%,67%,,9.5,6,1
+Disposal,16,Clay Hall,WCE,COL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🥈 TIER 2 #4 - Long Travel + Disposal (77.8% WR) (Need: <-10% Avg vs Line),-10%,75%,,15,22,-1
+Tackle,16,Elijah Hewett,WCE,COL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🥈 TIER 2 #5 - Strong DvP + Tackle (73.7% WR),16%,40%,,4.5,1,1
+Tackle,16,Jack Graham,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🥈 TIER 2 #5 - Strong DvP + Tackle (73.7% WR),11%,46%,,7,8,-1
+Tackle,16,Marcus Windhager,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),-18%,86%,,4,3,1
+Tackle,16,Jack Macrae,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),8%,58%,,5,4,1
+Tackle,16,Jack Steele,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),11%,62%,,7,9,-1
+Disposal,10,Matt Roberts,SYD,CAR,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,8%,22%,#REF!,23,20,1
+Tackle,11,Marcus Windhager,STK,GCS,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,-18%,80%,#REF!,4,4,0
+Tackle,16,Hunter Clark,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),33%,40%,,4.5,5,-1
+Tackle,10,Shaun Mannagh,GEE,PTA,GenF,✅ Neutral,🔵 Avoid (Rain),🔷 Moderate Easy,,,,33%,33%,#REF!,4.5,2,1
+Tackle,10,Sam Powell-Pepper,PTA,GEE,GenF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,,,,-11%,56%,#REF!,3.5,2,1
+Tackle,10,Ryley Sanders,WBD,ESS,GenF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,,,,-8%,89%,#REF!,4,1,1
+Tackle,10,Cam Rayner,BRL,MEL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,2%,67%,#REF!,2.5,1,1
+Disposal,12,Jeremy Howe,COL,HAW,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-7%,44%,,15.5,10,1
+Tackle,10,Jack Steele,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,50%,25%,#REF!,5,14,-1
+Disposal,12,Tom Barrass,HAW,COL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-5%,50%,,11,9,1
+Disposal,12,Kai Lohmann,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,🔷 Moderate Easy,,,,-48%,83%,,11.5,15,-1
+Disposal,12,Bailey Humphrey,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,,-9%,50%,,18.5,12,1
+Disposal,12,Gryan Miers,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,1%,38%,,21.5,26,1
+Disposal,12,James Jordon,SYD,ADE,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,9,36%,,14.5,11,1
+Disposal,12,Sam Flanders,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,,2%,33%,,18.5,16,1
+Mark,12,Sam Banks,RIC,GWS,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-4%,55%,,5,7,-1
+Disposal,10,Rory Laird,ADE,COL,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,5%,33%,#REF!,22.5,27,-1
+Tackle,11,Nick Watson,HAW,BRL,GenF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,,,,4%,60%,#REF!,2.5,0,1
+Mark,10,Josh Treacy,FRE,GWS,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,13%,56%,#REF!,5,2,1
+Mark,10,Ed Langdon,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,27%,33%,#REF!,5,6,-1
+Mark,12,Gryan Miers,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,9%,44%,,6,13,1
+Disposal,12,Kysaiah Pickett,MEL,STK,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,2%,38%,,20,12,1
+Mark,15,Lawson Humphries,GEE,BRL,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,8%,46%,,5.5,4,1
+Tackle,11,Jack Higgins,STK,GCS,GenF,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,12%,50%,,2.5,1,1
+Mark,11,Peter Wright,ESS,RIC,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,9%,40%,#REF!,5.5,5,1
+Mark,11,Harry McKay,CAR,GWS,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,0%,38%,#REF!,6.5,5,1
+Disposal,10,Bailey Dale,WBD,ESS,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,1%,44%,#REF!,26.5,49,-1
+Mark,15,Sam Banks,RIC,WBD,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-29%,75%,,5.5,1,1
+Mark,15,Oliver Hollands,CAR,NTH,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,12%,53%,,5,5,0
+Mark,15,Nick Larkey,NTH,CAR,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,11%,44%,,4,3,1
+Mark,15,Jack Darling,NTH,CAR,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-10%,60%,,4,2,1
+Disposal,10,Jordan Clark,FRE,GWS,Des,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,2%,56%,#REF!,23,21,1
+Disposal,15,Noah Answerth,BRL,GEE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,3%,50%,,13.5,13,1
+Mark,15,Noah Answerth,BRL,GEE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,64%,,5,4,1
+Tackle,11,Tim Kelly,WCE,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,4%,50%,#REF!,3.5,3,1
+Mark,11,Jaspa Fletcher,BRL,HAW,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,4%,40%,#REF!,5.5,5,1
+Mark,11,Jase Burgoyne,PTA,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,70%,#REF!,5,4,1
+Disposal,10,Jack Sinclair,STK,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,0%,78%,#REF!,26,38,-1
+Mark,15,Darcy Wilmot,BRL,GEE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,43%,,5,5,0
+Mark,15,Ryan Lester,BRL,GEE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,50%,,5,6,-1
+Tackle,11,Braeden Campbell,SYD,MEL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,7%,78%,#REF!,3,7,-1
+Mark,15,Aaron Cadman,GWS,GCS,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,0%,57%,,4.5,3,1
+Tackle,11,Ryley Sanders,WBD,GEE,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,,-15%,80%,AVOID,4,8,-1
+Tackle,11,Tom Sparrow,MEL,SYD,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,17%,40%,#REF!,3.5,5,-1
+Disposal,15,Jarrod Berry,BRL,GEE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,2%,58%,,19.5,26,-1
+Disposal,15,Ryan Lester,BRL,GEE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,6%,43%,,13,14,-1
+Mark,11,Charlie Curnow,CAR,GWS,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,6%,38%,#REF!,6.5,5,1
+Disposal,11,Luke Ryan,FRE,PTA,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,1%,50%,#REF!,21,22,-1
+Mark,15,Jesse Hogan,GWS,GCS,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,21%,55%,,4.5,7,-1
+Mark,11,Jake Waterman,WCE,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,7%,57%,#REF!,6,4,1
+Mark,10,Alex Pearce,FRE,GWS,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,14%,33%,#REF!,4.5,2,1
+Mark,15,Nick Vlastuin,RIC,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,20%,69%,,5,7,-1
+Mark,10,Steven May,MEL,BRL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,67%,#REF!,6,8,-1
+Mark,11,Eric Hipwood,BRL,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,20%,50%,#REF!,4.5,3,1
+Mark,15,Tom Brown,RIC,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,11%,54%,,4.5,3,-1
+Mark,14,Heath Chapman,FRE,NTH,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,55%,,4.5,5,-1
+Mark,11,Oliver Hollands,CAR,GWS,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,14%,60%,#REF!,5,3,1
+Disposal,15,Zac Bailey,BRL,GEE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,10%,50%,,16,19,-1
+Mark,14,Archie Roberts,ESS,GEE,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-6%,75%,,6,5,1
+Mark,15,Blake Acres,CAR,NTH,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,5%,55%,,4.5,7,-1
+Mark,10,Callum Wilkie,STK,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,8%,44%,#REF!,8,6,1
+Mark,14,Andrew McGrath,ESS,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,29%,58%,,3.5,3,1
+Mark,14,Lachie Whitfield,GWS,BRL,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,21%,46%,,6,5,1
+Mark,14,Jordan Clark,FRE,NTH,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-2%,50%,,5.5,5,1
+Mark,14,Massimo D'Ambrosio,HAW,ADE,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,10%,75%,,4,1,1
+Tackle,11,Charlie Spargo,MEL,SYD,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-5%,50%,#REF!,2.5,4,-1
+Mark,15,Lachie Whitfield,GWS,GCS,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,18%,50%,,6,1,1
+Mark,14,Jarrod Berry,BRL,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-1%,58%,,6,5,1
+Mark,15,Mark O'Connor,GEE,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,1%,64%,,6,3,1
+Mark,15,Zach Guthrie,GEE,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,5%,71%,,6,3,1
+Mark,15,Connor Rozee,PTA,SYD,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,-11%,62%,,5.5,4,1
+Mark,14,Ryan Lester,BRL,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,5%,46%,,5.5,5,1
+Mark,14,Liam Duggan,WCE,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,8%,46%,,4.5,7,-1
+Mark,14,Josh Worrell,ADE,HAW,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,-11%,54%,,5.5,5,1
+Mark,14,Rory Laird,ADE,HAW,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,18%,58%,,5,5,0
+Mark,15,Jeremy Howe,COL,STK,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,-20%,64%,,6,5,1
+Mark,15,Jack Sinclair,STK,COL,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,-11%,62%,,5.5,3,1
+Mark,15,Caleb Daniel,NTH,CAR,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,14%,46%,,3.5,3,1
+Disposal,15,Dayne Zorko,BRL,GEE,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,50%,,25.5,33,-1
+Disposal,15,Lachie Neale,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,5%,50%,,25,17,1
+Disposal,15,Hugh McCluggage,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,3%,50%,,26,22,-1
+Disposal,15,Josh Dunkley,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,4%,50%,,23,30,-1
+Mark,14,Lachie Ash,GWS,BRL,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,14%,53%,,6,7,-1
+Mark,15,Nick Blakey,SYD,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,5%,67%,,5,5,0
+Mark,14,Dayne Zorko,BRL,GWS,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,17%,46%,,6,8,-1
+Mark,15,Riley Bice,SYD,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,20%,50%,,4.5,0,1
+Mark,15,Dane Rampe,SYD,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,62%,,4,4,0
+Mark,15,Luke McDonald,NTH,CAR,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,2%,61%,,4,8,-1
+Mark,15,Matt Roberts,SYD,PTA,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,4%,58%,,6,6,0
+Disposal,15,Eric Hipwood,BRL,GEE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,6%,50%,,10,7,1
+Mark,10,Noah Balta,RIC,NTH,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,4%,65%,#REF!,5.5,2,1
+Mark,15,Nasiah Wanganeen-Milera,STK,COL,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,-9%,62%,,6,7,-1
+Mark,15,Mitch Georgiades,PTA,SYD,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,15%,54%,,5,4,1
+Mark,15,Xavier Duursma,ESS,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,18%,46%,,4.5,3,1
+Mark,15,Aaron Naughton,WBD,RIC,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,-3%,70%,,5,2,1
+Mark,10,Nick Blakey,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,9%,78%,#REF!,5,1,1
+Mark,15,Tim Membrey,COL,STK,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,-6%,64%,,5,4,1
+Mark,10,Tom McCartin,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,13%,44%,#REF!,5,5,0
+Mark,14,Peter Wright,ESS,GEE,KeyF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,13%,50%,,5,4,1
+Disposal,15,Cam Rayner,BRL,GEE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-1%,64%,,15,19,-1
+Disposal,15,Harris Andrews,BRL,GEE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,5%,43%,,12.5,16,-1
+Disposal,15,Logan Morris,BRL,GEE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-5%,54%,,10,13,-1
+Mark,14,Zach Guthrie,GEE,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,,3%,77%,,6,8,-1
+Mark,14,Mark O'Connor,GEE,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,,25%,46%,,4.5,12,-1
+Mark,14,Nate Caddy,ESS,GEE,KeyF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,0%,58%,,4,1,1
+Disposal,15,Charlie Cameron,BRL,GEE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,10%,50%,,8.5,10,-1
+Mark,15,Dylan Stephens,NTH,CAR,Wing,✅ Neutral,✅ Neutral,✅ Neutral,,,,9%,50%,,4.5,6,-1
+Mark,15,Jase Burgoyne,PTA,SYD,Wing,✅ Neutral,✅ Neutral,✅ Neutral,,,,18%,54%,,4.5,7,-1
+Mark,15,Logan Morris,BRL,GEE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-2%,69%,,4,8,-1
+Mark,10,Jacob Weitering,CAR,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,18%,56%,#REF!,7,4,1
+Mark,10,Mitch McGovern,CAR,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,4%,56%,#REF!,5,3,1
+Disposal,17,Brennan Cox,FRE,SYD,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,-4%,53%,,12,6,1
+Disposal,17,Heath Chapman,FRE,SYD,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-10%,71%,,15.5,13,1
+Disposal,10,Tom McDonald,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,6%,33%,#REF!,15,16,-1
+Disposal,10,Judd McVee,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,0%,44%,#REF!,16,13,1
+Disposal,10,Dane Rampe,SYD,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,10%,56%,#REF!,13,8,1
+Tackle,10,Marcus Windhager,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-8%,78%,#REF!,4,0,1
+Mark,15,Tom Lynch,RIC,WBD,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,-1%,55%,,4.5,5,-1
+Disposal,10,Sam Wicks,SYD,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,4%,56%,#REF!,14,20,-1
+Disposal,10,Mitchell Hinge,ADE,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,1%,44%,#REF!,18,21,-1
+Mark,10,Connor O'Sullivan,GEE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,41%,22%,#REF!,4.5,3,1
+Disposal,17,Jordan Clark,FRE,SYD,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-4%,67%,,26,13,1
+Disposal,15,Darcy Wilmot,BRL,GEE,Unknown,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,10%,50%,,17,16,1
+Disposal,10,Wayne Milera,ADE,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-1%,56%,#REF!,17,17,0
+Disposal,10,Lachlan Bramble,WBD,ESS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-2%,56%,#REF!,17.5,14,1
+Disposal,10,Jason Johannisen,WBD,ESS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-8%,60%,#REF!,19,20,-1
+Disposal,10,Brennan Cox,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,1%,44%,#REF!,12,6,1
+Disposal,10,Karl Worner,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,6%,50%,#REF!,13,8,1
+Disposal,10,Zach Guthrie,GEE,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,6%,56%,#REF!,18,21,-1
+Mark,16,Darcy Fogarty,ADE,RIC,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,-5%,62%,,5,3,1
+Mark,11,Harry Himmelberg,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,15%,40%,#REF!,6,4,1
+Mark,15,Archie Roberts,ESS,FRE,Des,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,2%,39%,,5.5,8,-1
+Disposal,10,Andrew McGrath,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,3%,50%,#REF!,21.5,25,-1
+Disposal,17,Luke Jackson,FRE,SYD,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,1%,50%,,18,13,1
+Mark,15,Harry Himmelberg,GWS,GCS,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,17%,38%,,5.5,1,1
+Mark,16,Blake Acres,CAR,PTA,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,0%,50%,,4.5,0,1
+Mark,11,Alex Pearce,FRE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,7%,40%,#REF!,4.5,7,-1
+Mark,11,Nathan Broad,RIC,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,2%,70%,#REF!,6,8,-1
+Tackle,10,Tom Atkins,GEE,PTA,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,,,,28%,33%,#REF!,8,5,1
+Disposal,16,Jack Macrae,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,4%,42%,,26.5,26,1
+Disposal,10,Jaxon Prior,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,2%,50%,#REF!,15,17,-1
+Disposal,10,Mason Redman,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-4%,88%,#REF!,22,27,-1
+Disposal,10,Jimmy Webster,STK,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-6%,56%,#REF!,14,17,-1
+Disposal,11,Brennan Cox,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,40%,#REF!,11.5,13,-1
+Disposal,11,Laitham Vandermeer,WBD,GEE,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,8%,38%,#REF!,10.5,13,-1
+Disposal,11,Josh Battle,HAW,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,8%,50%,#REF!,17.5,23,-1
+Disposal,11,Nick Vlastuin,RIC,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,-3%,50%,#REF!,19,24,-1
+Disposal,16,Jack Sinclair,STK,FRE,Des,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,1%,64%,,26.5,22,1
+Disposal,11,Harry Himmelberg,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,7%,50%,#REF!,18,19,-1
+Mark,11,Nick Blakey,SYD,MEL,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-5%,78%,#REF!,5.5,6,-1
+Disposal,16,Nasiah Wanganeen-Milera,STK,FRE,Des,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,2%,43%,,28.5,28,1
+Disposal,15,Jaspa Fletcher,BRL,GEE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,3%,33%,,19.5,23,-1
+Mark,15,Peter Wright,ESS,FRE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,21%,33%,,4.5,5,-1
+Mark,16,Josh Treacy,FRE,STK,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,16%,43%,,4.5,4,1
+Mark,16,Patrick Voss,FRE,STK,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,0%,70%,,3,2,1
+Disposal,15,Levi Ashcroft,BRL,GEE,Unknown,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,15%,29%,,17.5,23,-1
+Disposal,15,Will Ashcroft,BRL,GEE,Unknown,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,2%,50%,,26.5,28,-1
+Mark,16,Karl Amon,HAW,NTH,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,27%,46%,,3.5,4,-1
+Mark,11,Max Holmes,GEE,WBD,InsM,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,16%,40%,#REF!,4.5,5,-1
+Disposal,16,Kade Chandler,MEL,GCS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,14%,50%,,13,11,1
+Disposal,15,Jack Steele,STK,COL,InsM,✅ Neutral,✅ Neutral,✅ Neutral,,,,0%,0%,,22,19,1
+Disposal,16,Xavier Lindsay,MEL,GCS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,2%,46%,,14.5,12,1
+Disposal,16,Ed Langdon,MEL,GCS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,13%,43%,,18,11,1
+Mark,11,Mitch McGovern,CAR,GWS,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,60%,#REF!,5,3,1
+Disposal,16,Clayton Oliver,MEL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,2%,54%,,25,24,1
+Disposal,16,Tom Sparrow,MEL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,-1%,57%,,13,10,1
+Disposal,16,Judd McVee,MEL,GCS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-3%,54%,,16,12,1
+Disposal,16,Christian Petracca,MEL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,-1%,43%,,25.5,32,-1
+Disposal,16,Kysaiah Pickett,MEL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,7%,46%,,17.5,25,-1
+Disposal,16,Harvey Langford,MEL,GCS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,-1%,31%,,18.5,19,-1
+Disposal,16,Jake Melksham,MEL,GCS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,1%,55%,,9.5,18,-1
+Disposal,16,Christian Salem,MEL,GCS,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,12%,43%,,19,22,-1
+Disposal,16,Jake Bowey,MEL,GCS,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,5%,43%,,21.5,25,-1
+Disposal,16,Trent Rivers,MEL,GCS,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-2%,34%,,21,27,-1
+Disposal,10,Mitch Owens,STK,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-4%,50%,#REF!,13.5,12,1
+Disposal,10,Max Hall,STK,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-1%,44%,#REF!,14.5,13,1
+Disposal,10,Jamie Cripps,WCE,STK,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-6%,67%,#REF!,12.5,9,1
+Disposal,10,Shaun Mannagh,GEE,PTA,GenF,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,8%,40%,#REF!,16.5,21,-1
+Disposal,10,Jeremy Cameron,GEE,PTA,GenF,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,0%,44%,#REF!,14.5,16,-1
+Disposal,10,Shai Bolton,FRE,GWS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,-1%,38%,#REF!,18.5,24,-1
+Disposal,10,Patrick Voss,FRE,GWS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,15%,20%,#REF!,8.5,11,-1
+Disposal,10,Sam Powell-Pepper,PTA,GEE,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,1%,33%,#REF!,13.5,23,-1
+Disposal,10,Alex Neal-Bullen,ADE,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,1%,33%,#REF!,17,9,1
+Disposal,10,Ben Keays,ADE,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,5%,33%,#REF!,17,7,1
+Mark,16,Nick Larkey,NTH,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,16%,50%,,3.5,7,-1
+Disposal,10,Josh Rachele,ADE,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-1%,56%,#REF!,12.5,14,-1
+Disposal,10,Kysaiah Pickett,MEL,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,12%,33%,#REF!,17.5,21,-1
+Disposal,10,Charlie Spargo,MEL,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-4%,43%,#REF!,11.5,13,-1
+DIsposal,11,Ryley Sanders,WBD,GEE,GenF,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,5%,60%,#REF!,20,13,1
+Mark,16,Travis Boak,PTA,CAR,Wing,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,10%,57%,,4,3,1
+Mark,16,Mitch Georgiades,PTA,CAR,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,15%,54%,,5,6,-1
+Disposal,11,Joe Richards,PTA,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-2%,50%,#REF!,14.5,13,1
+Mark,11,Sam Taylor,GWS,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,60%,#REF!,6,7,-1
+Mark,16,Tom Lynch,RIC,ADE,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,50%,,4.5,1,1
+Disposal,16,Anthony Caminiti,STK,FRE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,1%,57%,,13.5,14,-1
+Disposal,11,Sam Powell-Pepper,PTA,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-6%,60%,#REF!,15.5,9,1
+Disposal,11,Toby Bedford,GWS,CAR,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-18%,67%,AVOID,12.5,11,1
+Disposal,11,Liam Ryan,WCE,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,1%,63%,#REF!,12,11,1
+Disposal,11,Connor Macdonald,HAW,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-13%,75%,#REF!,15,20,-1
+Tackle,11,Harley Reid,WCE,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-20%,70%,#REF!,3.5,2,1
+Disposal,16,Callum Wilkie,STK,FRE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-2%,57%,,20.5,16,1
+Tackle,11,Liam Baker,WCE,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-9%,60%,#REF!,3.5,2,1
+Disposal,16,Cooper Sharman,STK,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,2%,42%,,11.5,10,1
+Mark,11,Steven May,MEL,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-3%,57%,#REF!,6.5,5,1
+Disposal,11,Tom Powell,NTH,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,16%,30%,#REF!,19.5,28,-1
+Disposal,16,Darcy Wilson,STK,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-2%,58%,,17,12,1
+Disposal,16,Jack Higgins,STK,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-1%,43%,,9.5,15,-1
+Disposal,16,Jack Steele,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,6%,50%,,20.5,22,-1
+Disposal,16,Marcus Windhager,STK,FRE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,8%,28%,,18.5,21,-1
+Disposal,16,Mason Wood,STK,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-2%,50%,,15.5,15,1
+Disposal,16,Max Hall,STK,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-3%,50%,,13.5,21,-1
+Disposal,16,Mitch Owens,STK,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,8%,43%,,12.5,14,-1
+Disposal,16,Rowan Marshall,STK,FRE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,3%,50%,,17.5,22,-1
+Tackle,11,Kade Chandler,MEL,SYD,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,10%,70%,#REF!,3,4,-1
+Disposal,16,Hunter Clark,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,-17%,66%,,17.5,16,1
+Mark,16,Hayden McLean,SYD,WBD,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-16%,73%,,4,4,0
+Mark,16,Aaron Naughton,WBD,SYD,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,16%,50%,,4,12,-1
+Mark,16,Joel Freijah,WBD,SYD,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,0%,50%,,3.5,7,-1
+Disposal,16,Elijah Hewett,WCE,COL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-8%,67%,,17,16,1
+Disposal,16,Harley Reid,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-4%,64%,,18.5,17,1
+Disposal,16,Jamie Cripps,WCE,COL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,3%,42%,,11,7,1
+Disposal,16,Jayden Hunt,WCE,COL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-3%,50%,,13.5,1,1
+Disposal,16,Tim Kelly,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,8%,55%,,15,12,1
+Disposal,16,Jack Graham,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,2%,54%,,19,19,0
+Disposal,16,Brady Hough,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-7%,70%,,15.5,27,-1
+Disposal,16,Jack Williams,WCE,COL,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,2%,55%,,9,11,-1
+Disposal,16,Liam Baker,WCE,COL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,7%,36%,,21,35,-1
+Disposal,16,Liam Duggan,WCE,COL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,64%,,20,27,-1
+Disposal,16,Liam Ryan,WCE,COL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,2%,58%,,11.5,12,-1
+Disposal,16,Matt Flynn,WCE,COL,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,7%,40%,,12.5,15,-1
+Disposal,16,Reuben Ginbey,WCE,COL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,12%,64%,,11.5,15,-1
+Disposal,16,Ryan Maric,WCE,COL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,20%,21%,,17.5,21,-1
+Disposal,16,Sandy Brock,WCE,COL,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,-1%,50%,,10.5,13,-1
+Disposal,16,Tom McCarthy,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,0%,27%,,24.5,29,-1
+Tackle,12,Marcus Windhager,STK,MEL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-16%,82%,,4,4,0
+Disposal,12,Dayne Zorko,BRL,ESS,Des,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,-2%,55%,,27.5,23,1
+Disposal,12,Archie Roberts,ESS,BRL,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,2%,40%,,24,20,1
+Disposal,12,Ryan Maric,WCE,GEE,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-1%,55%,,22.5,15,1
+Disposal,12,Karl Amon,HAW,COL,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,50%,,23.5,22,1
+Disposal,12,Luke Ryan,FRE,GCS,Des,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,,-2%,46%,,21.5,18,1
+Disposal,12,Jordan Clark,FRE,GCS,Des,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,,0%,64%,,23,30,-1
+Disposal,12,Lawson Humphries,GEE,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-1%,60%,,19.5,12,1
+Disposal,12,Sam Banks,RIC,GWS,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,16%,0%,,23.5,25,-1
+Tackle,11,Luke Davies-Uniacke,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,,,,0%,60%,#REF!,4,4,0
+Disposal,12,Josh Battle,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,11%,40%,,18,15,1
+Disposal,12,Andrew McGrath,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,6%,40%,,22,15,1
+Disposal,12,Jaxon Prior,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,5%,40%,,15.5,14,1
+Disposal,12,Liam Duggan,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-2%,55%,,19,23,-1
+Mark,11,Callum Wilkie,STK,GCS,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,5%,50%,#REF!,8,8,0
+Disposal,12,James Sicily,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-4%,60%,,21,6,1
+Mark,12,Dayne Zorko,BRL,ESS,Des,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,-7%,73%,,8,6,1
+Tackle,11,Max Holmes,GEE,WBD,InsM,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,23%,60%,#REF!,3,3,0
+Disposal,12,Brennan Cox,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,,-7%,46%,,12.5,10,1
+Disposal,12,Heath Chapman,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,,-4%,50%,,14.5,13,1
+Disposal,12,Reuben Ginbey,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,8%,73%,,11.5,16,-1
+Mark,12,James Sicily,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,70%,,6,3,1
+Tackle,11,James Peatling,ADE,WCE,InsM,✅ Neutral,✅ Neutral,✅ Neutral,,,,0%,78%,#REF!,5,5,0
+Tackle,11,Andrew Brayshaw,FRE,PTA,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,,,,10%,50%,#REF!,6,8,-1
+Disposal,12,Noah Answerth,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,1%,46%,,13.5,20,-1
+Disposal,12,Ryan Lester,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,2%,55%,,14,15,-1
+Disposal,12,Nick Vlastuin,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-3%,46%,,19.5,19,1
+Disposal,12,Mason Redman,ESS,BRL,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,8%,50%,,19.5,26,-1
+Disposal,12,Mark O'Connor,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,2%,46%,,14.5,15,-1
+Disposal,12,Zach Guthrie,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,3%,55%,,18.5,13,1
+Disposal,12,Liam Baker,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,27%,,21.5,29,-1
+Mark,12,Lawson Humphries,GEE,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-9%,70%,,6.5,4,1
+Mark,12,Mark O'Connor,GEE,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-12%,64%,,6.5,6,1
+Tackle,11,James Rowbottom,SYD,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,6%,56%,#REF!,6.5,9,-1
+Mark,12,Nick Vlastuin,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,17%,64%,,5.5,4,1
+Mark,12,Jaxon Prior,ESS,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,12%,60%,,5,2,1
+Mark,12,Riley Bice,SYD,ADE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,12%,60%,,5,0,1
+Mark,12,Andrew McGrath,ESS,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,20%,60%,,4,1,1
+Mark,12,Liam Duggan,WCE,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,18%,46%,,4,7,-1
+Mark,12,Ryan Maric,WCE,GEE,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-7%,82%,,4,6,-1
+Mark,12,Tom Brown,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,9%,56%,,4.5,2,1
+Mark,12,Matt Roberts,SYD,ADE,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,2%,64%,,6,8,-1
+Disposal,17,Luke Ryan,FRE,SYD,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-3%,60%,,22,21,1
+Mark,12,Archie Roberts,ESS,BRL,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-8%,80%,,6,8,-1
+Disposal,17,Patrick Voss,FRE,SYD,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,7%,36%,,9.5,6,1
+Disposal,17,Sean Darcy,FRE,SYD,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-25%,86%,,10.5,10,1
+Mark,12,Josh Battle,HAW,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-5%,80%,,6,8,-1
+Disposal,15,Kai Lohmann,BRL,GEE,GenF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🤔 CONSIDER #6 - Long Travel + Disposal (Need: ≤-10% Avg vs Line),-28%,67%,,10.5,13,-1
+Mark,12,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,-20%,70%,,6.5,7,-1
+Disposal,12,Sam Durham,ESS,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,6%,40%,,22,8,1
+Mark,11,Oscar Allen,WCE,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,-9%,75%,#REF!,4,4,0
+Mark,11,Nick Larkey,NTH,COL,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,3%,50%,#REF!,4,4,0
+Disposal,12,Lachie Neale,BRL,ESS,InsM,🟡 Slight (Short Break),✅ Neutral,🔹 Slight Easy,,,,-6%,55%,,28.5,26,1
+Disposal,12,Matt Rowell,GCS,FRE,InsM,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,,,,6%,40%,,23,27,-1
+Tackle,10,Kysaiah Pickett,MEL,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-4%,83%,#REF!,4,3,1
+Disposal,10,Tom Green,GWS,FRE,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,9%,25%,#REF!,30.5,25,1
+Disposal,12,Jake Soligo,ADE,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,46%,,21.5,15,1
+Mark,12,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,4%,64%,,5,7,-1
+Disposal,10,Finn Callaghan,GWS,FRE,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,2%,50%,#REF!,26.5,24,1
+Disposal,12,Jye Caldwell,ESS,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,9%,50%,,23.5,30,-1
+Disposal,10,Caleb Serong,FRE,GWS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,6%,33%,#REF!,26,36,-1
+Disposal,10,Tom Atkins,GEE,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,44%,#REF!,18,23,-1
+Disposal,10,Chad Warner,SYD,CAR,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-4%,44%,#REF!,22.5,30,-1
+Disposal,10,Isaac Heeney,SYD,CAR,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-4%,78%,#REF!,22.5,38,-1
+Disposal,10,Mattaes Phillipou,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,,20%,20%,#REF!,17,14,1
+Disposal,12,Brady Hough,WCE,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-2%,73%,,15,9,1
+Disposal,12,Chad Warner,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-8%,73%,,25,19,1
+Disposal,11,Andrew Brayshaw,FRE,PTA,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-1%,50%,#REF!,29,21,1
+Disposal,11,Zak Butters,PTA,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,-1%,57%,#REF!,28,24,1
+Disposal,12,James Rowbottom,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-4%,46%,,19,20,-1
+Disposal,11,Willem Drew,PTA,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,2%,70%,#REF!,18,23,-1
+Disposal,11,Miles Bergman,PTA,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,-10%,60%,#REF!,19.5,23,-1
+Disposal,11,Tim Kelly,WCE,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-1%,63%,#REF!,17,17,0
+Disposal,11,Harvey Langford,MEL,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,4%,44%,#REF!,19.5,21,-1
+Disposal,12,Harley Reid,WCE,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-3%,73%,,17,19,-1
+Disposal,12,Tim Kelly,WCE,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,6%,56%,,16,19,-1
+Disposal,12,Jack Ross,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,4%,45%,,17.5,17,1
+Disposal,12,Kamdyn McIntosh,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,5%,46%,,14.5,4,1
+Disposal,12,Touk Miller,GCS,FRE,InsM,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,,,,5%,50%,,25,24,1
+Disposal,12,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,,-1%,64%,,24.5,27,-1
+Disposal,12,Zach Merrett,ESS,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,5%,50%,,28,28,0
+Disposal,12,Harvey Langford,MEL,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-5%,40%,,20,10,1
+Disposal,12,Christian Petracca,MEL,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,36%,,25.5,22,1
+Disposal,12,Noah Anderson,GCS,FRE,InsM,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,,,,8%,50%,,28,39,-1
+Disposal,12,Will Ashcroft,BRL,ESS,InsM,🟡 Slight (Short Break),✅ Neutral,🔹 Slight Easy,,,,2%,55%,,26.5,30,-1
+Disposal,12,Andrew Brayshaw,FRE,GCS,InsM,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔵 Strong Easy,,,,-4%,55%,,29,30,-1
+Disposal,12,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,,3%,50%,,30,30,-1
+Mark,11,Nasiah Wanganeen-Milera,STK,GCS,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-13%,70%,#REF!,6,3,1
+Mark,11,Nick Vlastuin,RIC,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,3%,60%,#REF!,6.5,4,1
+Disposal,12,Mac Andrew,GCS,FRE,KeyD,✅ Neutral,⚠️ Medium Unders Edge (Rain),✅ Neutral,,,,-3%,67%,,13,20,-1
+Disposal,15,Darcy Fort,BRL,GEE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,0%,63%,,11,8,1
+Mark,12,Harry Himmelberg,GWS,RIC,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,0%,50%,,6.5,4,1
+Mark,12,Jaspa Fletcher,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,-13%,64%,,6.5,12,-1
+Mark,12,Jesse Hogan,GWS,RIC,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,-15%,75%,,6.5,4,1
+Tackle,12,Jack Higgins,STK,MEL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,6%,55%,,2.5,1,-1
+Tackle,12,Rhyan Mansell,RIC,GWS,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,0%,75%,,3,4,-1
+Mark,12,Oliver Dempsey,GEE,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,-20%,91%,,5,2,1
+Tackle,11,Kysaiah Pickett,MEL,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,6%,70%,#REF!,3.5,4,-1
+Mark,12,Eric Hipwood,BRL,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,🟡 CONSIDER,-6%,73%,,5.5,5,1
+Mark,12,Shannon Neale,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-34%,91%,,5.5,5,1
+Disposal,12,Tom Stewart,GEE,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟡 CONSIDER,-22%,67%,,21,18,1
+Mark,12,Tom Stewart,GEE,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟡 CONSIDER,-27%,63%,,7.5,7,1
+Mark,11,Jye Amiss,FRE,PTA,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-15%,80%,#REF!,4,3,1
+Disposal,12,Ben Long,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟡 CONSIDER,4%,44%,,11.5,11,1
+Disposal,12,Dylan Moore,HAW,COL,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,-5%,60%,,17,18,-1
+Tackle,10,Jack Macrae,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,13%,56%,#REF!,5,3,1
+Disposal,12,Beau McCreery,COL,HAW,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,-4%,55%,,11,11,0
+Disposal,12,Jamie Elliott,COL,HAW,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,6%,50%,,12,12,0
+Disposal,12,Levi Ashcroft,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-2%,36%,,21.5,15,1
+Tackle,11,Tom Powell,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,,,,16%,40%,#REF!,4.5,3,1
+Disposal,12,Braeden Campbell,SYD,ADE,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,0%,36%,,13.5,8,1
+Disposal,12,Murphy Reid,FRE,GCS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔵 Strong Easy,,,🟡 CONSIDER,0%,36%,,13.5,14,-1
+Disposal,12,Cam Rayner,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-5%,73%,,15,14,1
+Disposal,12,Callum Ah Chee,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-2%,64%,,12,13,-1
+Mark,11,Connor Idun,GWS,CAR,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,1%,50%,#REF!,7,5,1
+Disposal,12,Michael Frederick,FRE,GCS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔵 Strong Easy,,,🟡 CONSIDER,1%,46%,,12,7,1
+Mark,11,Lachie Whitfield,GWS,CAR,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,6%,50%,#REF!,7,5,1
+Disposal,10,Nasiah Wanganeen-Milera,STK,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,1%,44%,#REF!,27.5,27,1
+Tackle,11,George Wardlaw,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,,,,0%,50%,#REF!,5.5,4,1
+Disposal,10,Noah Balta,RIC,NTH,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-3%,33%,#REF!,14.5,11,1
+Disposal,12,Shaun Mannagh,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,1%,63%,,18.5,18,1
+Mark,11,Lachlan Bramble,WBD,GEE,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,20%,50%,#REF!,3.5,0,1
+Disposal,10,Connor O'Sullivan,GEE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,13%,56%,#REF!,12,5,1
+Disposal,10,Nick Blakey,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,6%,44%,#REF!,19.5,13,1
+Mark,11,Jack Darling,NTH,COL,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,10%,50%,#REF!,3,5,-1
+Disposal,12,Brad Close,GEE,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-1%,55%,,12,13,-1
+Disposal,12,Charlie Cameron,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-11%,56%,,11.5,8,-1
+Disposal,10,Tom McCartin,SYD,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,0%,56%,#REF!,11,14,-1
+Disposal,10,Callum Wilkie,STK,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,4%,44%,#REF!,18,24,-1
+Disposal,12,Ben Ainsworth,GCS,FRE,GenF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟡 CONSIDER,5%,33%,,14.5,13,1
+Disposal,11,Mitch McGovern,CAR,GWS,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-7%,60%,#REF!,16.5,15,1
+Disposal,11,Jack Buckley,GWS,CAR,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-2%,50%,#REF!,12.5,8,1
+Disposal,12,Jake Melksham,MEL,STK,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,-10%,71%,,11,9,1
+Disposal,11,Alex Pearce,FRE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,4%,50%,#REF!,11,12,-1
+Disposal,12,Daniel Turner,MEL,STK,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,0,25%,,15.5,14,1
+Mark,12,Nick Blakey,SYD,ADE,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,2%,73%,,5,0,1
+Mark,12,Jayden Laverde,ESS,BRL,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,-9%,50%,,5.5,7,-1
+Disposal,11,Karl Worner,FRE,PTA,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-3%,56%,#REF!,13.5,18,-1
+Disposal,11,Nathan Broad,RIC,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🔹 Slight Easy,,,,-7%,60%,#REF!,15,22,-1
+Disposal,11,Caleb Daniel,NTH,COL,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,9%,30%,#REF!,23.5,30,-1
+Mark,12,Jeremy Cameron,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER,-18%,64%,,7,7,0
+Mark,12,Jarrod Berry,BRL,ESS,GenF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,🟡 CONSIDER,-2%,60%,,5.5,9,-1
+Mark,12,Jack Payne,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER,-20%,60%,,6.5,9,-1
+Mark,12,Harris Andrews,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER,11%,45%,,6.5,12,-1
+Mark,12,Peter Wright,ESS,BRL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,17%,50%,,5,6,-1
+Disposal,12,Nathan Broad,RIC,GWS,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,-2%,56%,,15,17,-1
+Disposal,12,Mark Keane,ADE,SYD,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,-6%,64%,,13.5,23,-1
+Disposal,12,Harris Andrews,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER,0%,55%,,13,16,-1
+Disposal,12,Jack Payne,BRL,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER,10%,50%,,10.5,17,-1
+Mark,14,Jake Bowey,MEL,PTA,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,2%,46%,,5.5,3,1
+Mark,11,Josh Battle,HAW,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,4%,50%,#REF!,5.5,6,-1
+Disposal,12,Karl Worner,FRE,GCS,KeyD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔹 Slight Easy,,,🟡 CONSIDER,1%,50%,,13.5,10,1
+Mark,14,Josh Treacy,FRE,NTH,KeyF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,3%,67%,,5,8,-1
+Disposal,12,Nate Caddy,ESS,BRL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,9%,40%,,10.5,10,1
+Disposal,12,Shannon Neale,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,-18%,82%,,9.5,8,1
+Disposal,12,Tim Membrey,COL,HAW,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,9%,56%,,10,9,1
+Mark,11,Brennan Cox,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,18%,50%,#REF!,4.5,3,1
+Disposal,12,Ben King,GCS,FRE,KeyF,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,,,🟡 CONSIDER,-5,56%,,7.5,7,1
+Disposal,12,Jeremy Cameron,GEE,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,-6%,73%,,15.5,14,1
+Disposal,12,Brody Mihocek,COL,HAW,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,11%,33%,,8.5,12,-1
+Mark,11,Heath Chapman,FRE,PTA,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-9%,67%,#REF!,5,9,-1
+Disposal,12,Peter Wright,ESS,BRL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟡 CONSIDER,28%,33%,,11.5,15,-1
+Mark,11,Lawson Humphries,GEE,WBD,Des,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,7%,55%,#REF!,5.5,6,-1
+Mark,11,Jack Henry,GEE,WBD,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,33%,60%,#REF!,6,8,-1
+Disposal,12,Lloyd Meek,HAW,COL,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER,-5%,60%,,13.5,15,-1
+Disposal,12,Rowan Marshall,STK,MEL,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER,6%,55%,,16.5,16,1
+Disposal,12,Brodie Grundy,SYD,ADE,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER,7%,46%,,16,23,-1
+Disposal,12,Darcy Fort,BRL,ESS,Ruck,🟡 Slight (Short Break),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER,-2%,80%,,11,10,1
+Disposal,12,Rhys Stanley,GEE,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER,-15%,67%,,12,9,1
+Disposal,12,Max Gawn,MEL,STK,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER,3%,46%,,21,22,-1
+Mark,11,Nick Haynes,CAR,GWS,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,21%,50%,#REF!,7,8,-1
+Mark,11,Luke Ryan,FRE,PTA,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,0%,60%,#REF!,6.5,7,-1
+Mark,11,Jordan Clark,FRE,PTA,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-4%,60%,#REF!,5.5,6,-1
+Disposal,12,Matthew Johnson,FRE,GCS,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,,,🟡 CONSIDER,3%,55%,,18.5,18,1
+Disposal,12,Jarrod Berry,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,🟡 CONSIDER,-3%,70%,,19,25,-1
+Mark,14,Mitchell Hinge,ADE,HAW,GenD,✅ Neutral,✅ Neutral,✅ Neutral,,,,4%,42%,,4.5,5,-1
+Disposal,12,Brayden Fiorini,GCS,FRE,Wing,✅ Neutral,⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,,,🟡 CONSIDER,-3%,33%,,17.5,19,-1
+Mark,13,Jack Darling,NTH,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER - Long Travel,-14%,64%,,4,4,0
+Mark,13,Nick Larkey,NTH,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,🟡 CONSIDER - Long Travel,-18%,91%,,5,6,-1
+Disposal,13,Eric Hipwood,BRL,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER - Long Travel,11%,50%,,9.5,9,1
+Disposal,13,Logan Morris,BRL,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟡 CONSIDER - Long Travel,3%,46%,,8.5,12,-1
+Disposal,13,Jack Darling,NTH,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER - Long Travel,1%,55%,,10.5,10,1
+Disposal,10,Bayley Fritsch,MEL,BRL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,1%,50%,#REF!,9.5,7,1
+Disposal,10,Jesse Hogan,GWS,FRE,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,3%,75%,#REF!,12.5,11,1
+Disposal,13,Nick Larkey,NTH,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 CONSIDER - Long Travel,-5%,73%,,10,11,-1
+Disposal,14,Sam Docherty,CAR,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟡 CONSIDER - Moderate DvP Long Travel,-15%,63%,,23.5,20,1
+Disposal,10,Josh Treacy,FRE,GWS,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,5%,33%,#REF!,10.5,11,-1
+Mark,13,Sam Banks,RIC,SYD,Des,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP,12%,40%,,5,4,1
+Mark,13,Ben Miller,RIC,SYD,KeyD,✅ Neutral,⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP,30%,25%,,4.5,8,-1
+Disposal,10,Aaron Naughton,WBD,ESS,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,1%,56%,#REF!,11.5,11,1
+Disposal,10,Patrick Dangerfield,GEE,PTA,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,5%,67%,#REF!,16,3,1
+Disposal,10,Jack Darling,NTH,RIC,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-4%,56%,#REF!,10.5,17,-1
+Mark,10,Jeremy Cameron,GEE,PTA,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,4%,56%,#REF!,5,8,-1
+Disposal,11,Jake Waterman,WCE,ADE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-4%,57%,#REF!,11,7,1
+Tackle,12,Jacob Hopper,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,-14%,73%,,4,2,1
+Tackle,12,James Worpel,HAW,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,10%,70%,,5,4,1
+Tackle,12,Jai Newcombe,HAW,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,16%,60%,,5,3,1
+Tackle,12,Kamdyn McIntosh,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,7%,58%,,4,1,1
+Tackle,12,Tim Taranto,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,8%,57%,,4.5,2,1
+Tackle,14,Lachie Neale,BRL,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,-10%,69%,,4,2,1
+Tackle,14,Josh Dunkley,BRL,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,14%,54%,,6,2,1
+Tackle,14,Hugh McCluggage,BRL,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟡 CONSIDER - Strong DvP Tackles,25%,46%,,4.5,1,1
+Mark,13,Mitch Georgiades,PTA,GWS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,,,🟡 STRONG BET - Long Travel,21%,36%,,4.5,5,1
+Disposal,13,Caleb Daniel,NTH,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟡 STRONG BET - Long Travel,4%,64%,,25,29,-1
+Disposal,13,Connor Rozee,PTA,GWS,Des,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟡 STRONG BET - Long Travel,5%,46%,,27.5,28,-1
+Mark,13,Paul Curtis,NTH,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,🟡 STRONG BET - Long Travel,9%,50%,,4,2,1
+Mark,14,Luke Ryan,FRE,NTH,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,6%,58%,,6,3,1
+Mark,13,Cameron Zurhaar,NTH,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,🟡 STRONG BET - Long Travel,7%,73%,,4,6,-1
+Disposal,13,Luke McDonald,NTH,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,🟡 STRONG BET - Long Travel,1%,55%,,14,23,-1
+Disposal,13,Charlie Cameron,BRL,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟡 STRONG BET - Long Travel,5%,50%,,9.5,7,1
+Disposal,13,Callum Ah Chee,BRL,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟡 STRONG BET - Long Travel,8%,58%,,11,10,1
+Disposal,13,Cam Rayner,BRL,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟡 STRONG BET - Long Travel,-2%,58%,,14.5,17,-1
+Disposal,13,Kai Lohmann,BRL,ADE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟡 STRONG BET - Long Travel,-31%,71%,,10.5,11,-1
+Disposal,13,Cameron Zurhaar,NTH,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 STRONG BET - Long Travel,-7%,73%,,12.5,10,1
+Disposal,13,Paul Curtis,NTH,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 STRONG BET - Long Travel,8%,50%,,13,8,1
+Disposal,13,Colby McKercher,NTH,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟡 STRONG BET - Long Travel,-5%,64%,,17,35,-1
+Mark,13,Jack Payne,BRL,ADE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟡 STRONG BET - Long Travel,3%,55%,,6,9,-1
+Mark,13,Harris Andrews,BRL,ADE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟡 STRONG BET - Long Travel,22%,42%,,6,7,-1
+Mark,13,Aliir Aliir,PTA,GWS,KeyD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,,,🟡 STRONG BET - Long Travel,3%,46%,,6,4,1
+Mark,14,Brennan Cox,FRE,NTH,KeyD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,19%,58%,,4,6,-1
+Mark,13,Mac Andrew,GCS,GEE,KeyD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔷 Moderate Easy,,,🟡 STRONG BET - Long Travel,13%,60%,,4.5,2,1
+Disposal,13,Aliir Aliir,PTA,GWS,KeyD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟡 STRONG BET - Long Travel,4%,55%,,13,14,-1
+Disposal,13,Mac Andrew,GCS,GEE,KeyD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔷 Moderate Easy,,,🟡 STRONG BET - Long Travel,3%,60%,,13,11,1
+Mark,13,Caleb Daniel,NTH,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,🟡 STRONG BET - Long Travel,14%,55%,,3.5,4,-1
+Disposal,13,Harris Andrews,BRL,ADE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟡 STRONG BET - Long Travel,2%,50%,,13,14,-1
+Disposal,13,Jack Payne,BRL,ADE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟡 STRONG BET - Long Travel,9%,55%,,11,18,-1
+Disposal,13,Mitch Georgiades,PTA,GWS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟡 STRONG BET - Long Travel,6%,45%,,11.5,8,1
+Disposal,10,Toby Nankervis,RIC,NTH,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,7%,56%,#REF!,16,15,1
+Mark,10,Max Holmes,GEE,PTA,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,16%,44%,#REF!,4.5,5,-1
+Disposal,10,Rowan Marshall,STK,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,,-7%,67%,#REF!,18.5,27,-1
+Disposal,13,Jed Walter,GCS,GEE,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔹 Slight Easy,,,🟡 STRONG BET - Long Travel,-12%,60%,,8.5,7,1
+Disposal,13,Ben King,GCS,GEE,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔹 Slight Easy,,,🟡 STRONG BET - Long Travel,-7%,55%,,8,4,1
+Mark,14,Connor Idun,GWS,BRL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET - GenD Mark (Priority #3),4%,46%,,6.5,6,1
+Mark,14,Ryan Byrnes,STK,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET - GenD Mark (Priority #3),-3%,58%,,6,6,0
+Mark,14,Josh Battle,HAW,ADE,KeyD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,,6%,50%,,5.5,3,1
+Mark,14,Christian Salem,MEL,PTA,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - GenD Mark (Priority #3),20%,31%,,6.5,7,-1
+Mark,10,Jake Bowey,MEL,BRL,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-2%,67%,#REF!,6,8,-1
+Mark,14,Jack Henry,GEE,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,,12%,63%,,6.5,4,1
+Mark,14,Taylor Walker,ADE,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,15%,50%,,4,5,-1
+Mark,14,Anthony Caminiti,STK,WBD,KeyD,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,7%,50%,,6,6,0
+Mark,14,Connor O'Sullivan,GEE,ESS,KeyD,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,,20%,50%,,5,10,-1
+Disposal,14,Paul Curtis,NTH,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET - GenF Disposal Moderate Travel (Priority #5),13%,44%,,12,12,0
+Disposal,14,Cameron Zurhaar,NTH,FRE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET - GenF Disposal Moderate Travel (Priority #5),0%,67%,,11.5,8,1
+Disposal,14,Jesse Motlop,CAR,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET - GenF Disposal Moderate Travel (Priority #5),9%,50%,,9.5,10,1
+Disposal,14,Lachie Fogarty,CAR,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET - GenF Disposal Moderate Travel (Priority #5),0%,60%,,11,17,-1
+Disposal,13,Willie Rioli,PTA,GWS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 AUTO-BET - GenF Medium Rain,10%,40%,,11,6,1
+Disposal,13,Sam Flanders,GCS,GEE,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,,,🟢 AUTO-BET - GenF Medium Rain,3%,40%,,18,7,1
+Disposal,10,Caleb Windsor,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,1%,57%,#REF!,17.5,6,1
+Disposal,10,Kade Chandler,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,10%,67%,#REF!,14,11,1
+Disposal,10,Ed Langdon,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,8%,44%,#REF!,20,25,-1
+Disposal,13,Ben Ainsworth,GCS,GEE,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,,,🟢 AUTO-BET - GenF Medium Rain,3%,40%,,14.5,4,1
+Mark,14,Trent Rivers,MEL,PTA,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,23%,46%,,4.5,1,1
+Mark,10,Mason Redman,ESS,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-33%,100%,#REF!,6,4,1
+Disposal,13,Darcy Byrne-Jones,PTA,GWS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 AUTO-BET - GenF Medium Rain,0%,50%,,12,9,1
+Disposal,13,Sam Powell-Pepper,PTA,GWS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 AUTO-BET - GenF Medium Rain,1%,46%,,14,9,1
+Disposal,10,Patrick Lipinski,COL,ADE,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,8%,33%,#REF!,18.5,5,1
+Disposal,10,Ryan Byrnes,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,1%,67%,#REF!,18,17,1
+Disposal,10,Darcy Wilson,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,2%,44%,#REF!,18,17,1
+Disposal,10,Sam Banks,RIC,NTH,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-17%,88%,#REF!,22,25,-1
+Disposal,10,Hugo Ralphsmith,RIC,NTH,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,-8%,80%,#REF!,13,16,-1
+Disposal,10,Bradley Hill,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-5%,56%,#REF!,20,22,-1
+Disposal,11,Jase Burgoyne,PTA,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,2%,40%,#REF!,20.5,18,1
+Disposal,11,Jeremy Sharp,FRE,PTA,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-10%,40%,#REF!,16,11,1
+Disposal,13,Joe Richards,PTA,GWS,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 AUTO-BET - GenF Medium Rain,12%,50%,,13.5,15,-1
+Disposal,11,Oliver Hollands,CAR,GWS,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,2%,40%,#REF!,16.5,17,-1
+Disposal,11,Jackson Mead,PTA,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,8%,50%,#REF!,14.5,5,1
+Disposal,11,Isaac Cumming,ADE,WCE,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-8%,60%,#REF!,15.5,16,-1
+Disposal,13,Ben Long,GCS,GEE,GenF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),✅ Neutral,,,🟢 AUTO-BET - GenF Medium Rain,8%,50%,,11,8,1
+Mark,14,Aaron Naughton,WBD,STK,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟢 AUTO-BET - KeyF Mark (Priority #1),0%,67%,,5,3,1
+Mark,14,Riley Thilthorpe,ADE,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟢 AUTO-BET - KeyF Mark (Priority #1),1%,54%,,5.5,1,1
+Mark,14,Jeremy Cameron,GEE,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET - KeyF Mark (Priority #1),-20%,70%,,7,6,1
+Mark,14,Charlie Curnow,CAR,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET - KeyF Mark (Priority #1),-10%,64%,,7,2,1
+Mark,13,Dylan Stephens,NTH,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET - Wing Long Travel,-10%,60%,,6,3,1
+Mark,10,Brennan Cox,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,11%,56%,#REF!,5,3,1
+Mark,13,Jaspa Fletcher,BRL,ADE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - Wing Long Travel,3%,58%,,6,5,1
+Mark,10,Heath Chapman,FRE,GWS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,-8%,63%,#REF!,5,4,1
+Disposal,13,Jaspa Fletcher,BRL,ADE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,🟢 AUTO-BET - Wing Long Travel,0%,42%,,20,27,-1
+Disposal,13,Zac Bailey,BRL,ADE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,🟢 AUTO-BET - Wing Long Travel,3%,58%,,17,21,-1
+Disposal,13,Dylan Stephens,NTH,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - Wing Long Travel,-11%,50%,,20,19,1
+Mark,10,Jimmy Webster,STK,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,,-7%,56%,#REF!,5,6,-1
+Disposal,13,Jy Simpkin,NTH,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - Wing Long Travel,9%,46%,,21,23,-1
+Tackle,13,Jy Simpkin,NTH,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET - Wing Long Travel,-5%,73%,,4,2,1
+Mark,10,Luke Ryan,FRE,GWS,Des,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,3%,56%,#REF!,6.5,5,1
+Mark,10,Jack Sinclair,STK,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,,,,-6%,67%,#REF!,4.5,7,-1
+Mark,10,Christian Salem,MEL,BRL,Des,✅ Neutral,✅ Neutral,✅ Neutral,,,,32%,22%,#REF!,6,8,-1
+Disposal,13,Brayden Fiorini,GCS,GEE,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 AUTO-BET - Wing Long Travel,-2%,40%,,18,24,-1
+Disposal,13,Travis Boak,PTA,GWS,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔵 Strong Easy,,,🟢 AUTO-BET - Wing Long Travel,14%,33%,,18.5,22,-1
+Disposal,13,Jackson Mead,PTA,GWS,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔵 Strong Easy,,,🟢 AUTO-BET - Wing Long Travel,9%,27%,,13.5,8,1
+Mark,14,Jaspa Fletcher,BRL,GWS,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET - Wing Mark (Priority #4),22%,46%,,5,6,-1
+Mark,14,Harry Morrison,HAW,ADE,Wing,🟡 Slight (Short Break),✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - Wing Mark (Priority #4),0%,50%,,4.5,5,-1
+Mark,14,Karl Amon,HAW,ADE,Wing,🟡 Slight (Short Break),✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - Wing Mark (Priority #4),15%,50%,,4,3,1
+Mark,14,Mason Wood,STK,WBD,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟢 AUTO-BET - Wing Mark (Priority #4),1%,46%,,6.5,4,1
+Mark,14,Bradley Hill,STK,WBD,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟢 AUTO-BET - Wing Mark (Priority #4),15%,67%,,5.5,4,1
+Mark,14,Xavier Duursma,ESS,GEE,Wing,✅ Neutral,✅ Neutral,✅ Neutral,,,🟢 AUTO-BET - Wing Mark (Priority #4),5%,75%,,5,6,-1
+Mark,14,Dylan Stephens,NTH,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟢 AUTO-BET - Wing Mark (Priority #4),4%,55%,,5,2,1
+Mark,10,Tom McDonald,MEL,BRL,GenD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,7%,78%,#REF!,6,6,0
+Mark,14,Jase Burgoyne,PTA,MEL,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET - Wing Mark (Priority #4),11%,58%,,4.5,9,-1
+Mark,15,Jaspa Fletcher,BRL,GEE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET 🏅#4 - Wing + Mark (Need: Line vs Avg <20% + Line >4.5),10%,43%,,5.5,4,1
+Mark,15,Jarrod Berry,BRL,GEE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET 🏅#4 - Wing + Mark (Need: Line vs Avg <20% + Line >4.5),0%,58%,,5.5,10,-1
+Mark,15,Sam Docherty,CAR,NTH,Wing,✅ Neutral,✅ Neutral,✅ Neutral,,,🟢 AUTO-BET 🏅#4 - Wing + Mark (Need: Line vs Avg <20% + Line >4.5),-5%,67%,,5.5,16,-1
+Mark,15,Bailey Williams,WBD,RIC,Wing,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET 🏅#4 - Wing + Mark (Need: Line vs Avg <20% + Line >4.5),0%,0%,,7.5,15,-1
+Mark,15,Charlie Curnow,CAR,NTH,KeyF,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,🟢 AUTO-BET 🥇#1 - KeyF + Mark (Need: Lines >5.0),-10%,50%,,6.5,3,1
+Mark,15,Sam Darcy,WBD,RIC,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,🟢 AUTO-BET 🥇#1 - KeyF + Mark (Need: Lines >5.0),-16%,71%,,8.5,8,1
+Mark,15,Cooper Sharman,STK,COL,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,🟢 AUTO-BET 🥇#1 - KeyF + Mark (Need: Lines >5.0),7%,46%,,5.5,2,1
+Mark,15,Josh Treacy,FRE,ESS,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,🟢 AUTO-BET 🥇#1 - KeyF + Mark (Need: Lines >5.0),-5%,67%,,5.5,3,1
+Mark,15,Lachie Ash,GWS,GCS,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),6%,50%,,6.5,4,1
+Mark,15,Josh Daicos,COL,STK,Des,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),-15%,75%,,6.5,6,1
+Mark,15,Dayne Zorko,BRL,GEE,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),1%,50%,,7,7,0
+Mark,15,Nic Martin,ESS,FRE,Des,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),10%,46%,,7,7,0
+Mark,15,Connor Idun,GWS,GCS,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),3%,50%,,6.5,10,-1
+Mark,15,Bailey Dale,WBD,RIC,Des,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),-29%,85%,,6.5,7,-1
+Mark,15,Nick Haynes,CAR,NTH,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),10%,46%,,8,11,-1
+Mark,15,Luke Ryan,FRE,ESS,Des,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),-7%,62%,,6.5,12,-1
+Mark,15,Jordan Clark,FRE,ESS,Des,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,🟢 AUTO-BET 🥉#3 - GenD + Mark (Need: Lines >6.0),-10%,92%,,6,8,-1
+Mark,14,Oscar Allen,WCE,CAR,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-1%,36%,,3.5,4,-1
+Mark,12,Xavier Duursma,ESS,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,14%,70%,,5,4,1
+Mark,14,Jesse Hogan,GWS,BRL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,20%,60%,,4,12,-1
+Mark,12,Jake Lloyd,SYD,ADE,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,11%,46%,,6.5,3,1
+Mark,12,Hayden McLean,SYD,ADE,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,6%,60%,,3.5,1,1
+Tackle,10,Rowan Marshall,STK,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,5%,33%,#REF!,3.5,5,-1
+Mark,12,Nic Martin,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,14%,40%,,7,7,0
+Tackle,12,James Rowbottom,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,11%,55%,,6.5,9,-1
+Disposal,12,Darcy Wilmot,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,0%,46%,,19.5,14,1
+Disposal,12,Corey Wagner,FRE,GCS,GenD,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 STRONG BET,6%,44%,,15,18,-1
+Disposal,12,Matt Guelfi,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,7%,50%,,11,10,1
+Mark,12,Darcy Wilmot,BRL,ESS,GenD,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,-9%,55%,,6,6,0
+Disposal,12,Jade Gresham,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,4%,63%,,12.5,13,-1
+Disposal,12,Isaac Kako,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,6%,50%,,9.5,11,-1
+Disposal,12,Nic Martin,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,0%,60%,,25.5,29,-1
+Disposal,12,Ben Hobbs,ESS,BRL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,3%,70%,,15,19,-1
+Tackle,12,Chad Warner,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,-5%,65%,,4,4,0
+Tackle,12,Lloyd Meek,HAW,COL,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,-10%,70%,,4,4,0
+Mark,12,Nathan Broad,RIC,GWS,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,14%,46%,,5.5,7,-1
+Mark,12,Mark Keane,ADE,SYD,KeyD,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟢 STRONG BET,-11%,46%,,4.5,10,-1
+Tackle,12,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,4%,64%,,3.5,3,1
+Tackle,10,Kade Chandler,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,5%,67%,#REF!,3.5,0,1
+Tackle,12,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,-2%,50%,,6,4,1
+Mark,12,Ben Miller,RIC,GWS,KeyD,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,16%,36%,,5,6,-1
+Mark,12,Brody Mihocek,COL,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟢 STRONG BET,33%,56%,,3,6,-1
+Disposal,12,Sam De Koning,GEE,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,-10%,73%,,15.5,12,1
+Tackle,12,Tom Atkins,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,17%,36%,,8.5,10,-1
+Disposal,12,Josh Treacy,FRE,GCS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 STRONG BET,-4%,55%,,11.5,15,-1
+Disposal,12,Eric Hipwood,BRL,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,-6%,55%,,11,12,-1
+Disposal,12,Logan Morris,BRL,ESS,KeyF,🟡 Slight (Short Break),✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,-15%,70%,,10,11,-1
+Disposal,12,Jye Amiss,FRE,GCS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 STRONG BET,-3%,79%,,8,9,-1
+Disposal,12,Patrick Voss,FRE,GCS,KeyF,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟡 Slight Unders,,,🟢 STRONG BET,16%,29%,,9,7,1
+Disposal,12,Todd Goldstein,ESS,BRL,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,3%,60%,,12,8,1
+Disposal,12,Luke Jackson,FRE,GCS,Ruck,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🔴 Strong Unders,,,🟢 STRONG BET,10%,38%,,16,27,-1
+Disposal,12,Jaspa Fletcher,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,-3%,46%,,20.5,21,-1
+Disposal,17,Lachlan McNeil,WBD,NTH,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-13%,57%,,12.5,0,1
+Mark,17,Jack Williams,WCE,GWS,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,2,🥇,,-11%,50%,,4.5,0,1
+Disposal,12,Zac Bailey,BRL,ESS,Wing,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,5%,55%,,16.5,20,-1
+Disposal,12,Xavier Duursma,ESS,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,🟢 STRONG BET,9%,50%,,19.5,12,1
+Disposal,12,Jeremy Sharp,FRE,GCS,Wing,🟠 Moderate (Long Travel),⚠️ Medium Unders Edge (Rain),🟠 Moderate Unders,,,🟢 STRONG BET,-3%,46%,,15,4,1
+Disposal,12,Oliver Dempsey,GEE,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,🟢 STRONG BET,-3%,55%,,17.5,14,1
+Disposal,12,Jake Lloyd,SYD,ADE,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,🟢 STRONG BET,6%,46%,,20,11,1
+Mark,17,Nasiah Wanganeen-Milera,STK,HAW,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,3,🥇,Des + Mark + Avg <-10%,-13%,53%,,6.5,6,1
+Mark,17,Daniel Rioli,GCS,ESS,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3,🥇,Des + Mark + Avg <-10%,-23%,86%,,5,3,1
+Mark,17,Bailey Dale,WBD,NTH,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,3,🥇,Des + Mark + Avg <-10%,-13%,73%,,5.5,2,1
+Tackle,17,Andrew Brayshaw,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,11%,47%,,6,3,1
+Tackle,17,Caleb Serong,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,5%,66%,,4.5,3,1
+Mark,17,Sam Banks,RIC,GEE,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,3,🥇,Des + Mark + Avg <-10%,-18%,71%,,4.5,6,-1
+Disposal,17,Andrew Brayshaw,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4,🥈,Disposal + Neutral Weather + Line >27,-1%,33%,,28.5,24,1
+Disposal,17,Caleb Serong,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4,🥈,Disposal + Neutral Weather + Line >27,-4%,47%,,27.5,11,1
+Disposal,17,Jye Caldwell,ESS,GCS,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4,🥈,Disposal + Neutral Weather + Line >27,-2%,50%,,27.5,15,1
+Disposal,17,Noah Anderson,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,4,🥈,Disposal + Neutral Weather + Line >27,0%,50%,,30.5,30,1
+Disposal,17,Harry Sheezel,NTH,WBD,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,4,🥈,Disposal + Neutral Weather + Line >27,5%,27%,,26.5,22,1
+Disposal,17,Bailey Dale,WBD,NTH,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,4,🥈,Disposal + Neutral Weather + Line >27,1%,47%,,28,13,1
+Disposal,17,Ed Richards,WBD,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4,🥈,Disposal + Neutral Weather + Line >27,-2%,40%,,26.5,26,1
+Disposal,17,George Hewett,CAR,COL,InsM,✅ Neutral,✅ Neutral,✅ Neutral,4,🥈,Disposal + Neutral Weather + Line >27,2%,47%,,27.5,18,1
+Disposal,17,Josh Daicos,COL,CAR,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,4,🥈,Disposal + Neutral Weather + Line >27,-2%,40%,,28.5,27,1
+Disposal,17,Colby McKercher,NTH,WBD,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,4,🥈,Disposal + Neutral Weather + Line >27,-4%,45%,,28.5,32,-1
+Disposal,17,Connor Rozee,PTA,BRL,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4,🥈,Disposal + Neutral Weather + Line >27,5%,40%,,27.5,31,-1
+Disposal,17,Finn Callaghan,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,4,🥈,Disposal + Neutral Weather + Line >27,-1%,60%,,27.5,37,-1
+Disposal,17,Lachie Ash,GWS,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4,🥈,Disposal + Neutral Weather + Line >27,-3%,60%,,30,29,-1
+Mark,17,Dayne Zorko,BRL,PTA,Des,✅ Neutral,✅ Neutral,🟠 Moderate Unders,7,🥉,,1%,53%,,7,5,1
+Disposal,17,Tom Green,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,4,🥈,Disposal + Neutral Weather + Line >27,0%,60%,,31,35,-1
+Mark,17,John Noble,GCS,ESS,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7,🥉,,-9%,64%,,5.5,4,1
+Disposal,17,Nick Daicos,COL,CAR,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4,🥈,Disposal + Neutral Weather + Line >27,0%,47%,,29.5,36,-1
+Disposal,17,Zach Merrett,ESS,GCS,Des,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4,🥈,Disposal + Neutral Weather + Line >27,-1%,50%,,27.5,40,-1
+Disposal,17,Nasiah Wanganeen-Milera,STK,HAW,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,4,🥈,Disposal + Neutral Weather + Line >27,2%,47%,,28.5,43,-1
+Mark,17,Wil Powell,GCS,ESS,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7,🥉,GenD + Mark + Avg <2%,-8%,93%,,6,5,1
+Mark,17,Nathan Broad,RIC,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,7,🥉,GenD + Mark + Avg <2%,-5%,60%,,6.5,6,1
+Mark,17,Sam Docherty,CAR,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,7,🥉,GenD + Mark + Avg <2%,-7%,64%,,7,6,1
+Mark,17,Josh Worrell,ADE,MEL,GenD,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-11%,80%,,6,5,1
+Mark,17,Mitchell Hinge,ADE,MEL,GenD,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-13%,72%,,6,2,1
+Mark,17,Jeremy Howe,COL,CAR,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,7,🥉,GenD + Mark + Avg <2%,-14%,64%,,6,0,1
+Mark,17,Rory Laird,ADE,MEL,Des,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-8%,57%,,6.5,4,1
+Mark,17,Josh Daicos,COL,CAR,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,7,🥉,GenD + Mark + Avg <2%,-3%,71%,,5.5,4,1
+Mark,17,Connor Idun,GWS,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7,🥉,GenD + Mark + Avg <2%,0%,57%,,7,10,-1
+Mark,17,Harry Himmelberg,GWS,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7,🥉,GenD + Mark + Avg <2%,1%,53%,,6,9,-1
+Disposal,17,Ben King,GCS,ESS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-9%,57%,,8,6,1
+Mark,17,Bodhi Uwland,GCS,ESS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7,🥉,GenD + Mark + Avg <2%,-13%,64%,,5.5,9,-1
+Disposal,17,Ben Long,GCS,ESS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-2%,62%,,11.5,8,1
+Disposal,17,Bodhi Uwland,GCS,ESS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-9%,71%,,17.5,16,1
+Disposal,17,Daniel Rioli,GCS,ESS,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-2%,57%,,20,19,1
+Disposal,17,Mac Andrew,GCS,ESS,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-3%,46%,,12.5,42,1
+Mark,17,Joel Jeffrey,GCS,ESS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7,🥉,GenD + Mark + Avg <2%,-4%,78%,,6,10,-1
+Mark,17,Ryan Maric,WCE,GWS,Des,✅ Neutral,✅ Neutral,🔴 Strong Unders,9,🥉,GenD + Mark + Strong DvP,-8%,67%,,4.5,2,1
+Mark,17,Liam Duggan,WCE,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,9,🥉,GenD + Mark + Strong DvP,0%,73%,,5,8,-1
+Disposal,17,Matt Rowell,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,-1%,50%,,25.5,15,1
+Disposal,17,Sam Clohesy,GCS,ESS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-4%,54%,,16.5,15,1
+Disposal,17,Touk Miller,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,3%,57%,,25.5,25,1
+Mark,17,Riley Thilthorpe,ADE,MEL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,1,🥇,KeyF + Mark + Line >5.0,-4%,50%,,5.5,5,1
+Mark,17,Peter Wright,ESS,GCS,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,1,🥇,KeyF + Mark + Line >5.0,-2%,60%,,5.5,1,1
+Mark,17,Jack Gunston,HAW,STK,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,1,🥇,KeyF + Mark + Line >5.0,2%,50%,,5.5,5,1
+Mark,17,Brennan Cox,FRE,SYD,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,,,,5%,53%,,5,2,1
+Mark,17,Jordan Clark,FRE,SYD,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-10%,80%,,6.5,2,1
+Mark,17,Sam Darcy,WBD,NTH,KeyF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,1,🥇,KeyF + Mark + Line >5.0,-11%,33%,,7.5,6,1
+Mark,17,Aaron Naughton,WBD,NTH,KeyF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,1,🥇,KeyF + Mark + Line >5.0,-7%,67%,,5.5,9,-1
+Disposal,17,Paul Curtis,NTH,WBD,GenF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,6%,58%,,12,7,1
+Disposal,17,Rhylee West,WBD,NTH,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,1%,47%,,14,13,1
+Mark,17,Aaron Cadman,GWS,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,1,🥇,KeyF + Mark + Line >5.0,-23%,78%,,6,7,-1
+Mark,17,Charlie Curnow,CAR,COL,KeyF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,1,🥇,KeyF + Mark + Line >5.0,4%,50%,,5.5,9,-1
+Disposal,17,Harry Rowston,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,8,🥉,Long Travel + Avg ≤-10%,-31%,67%,,19.5,12,1
+Mark,14,Nick Larkey,NTH,FRE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,6%,50%,,4,3,1
+Disposal,17,Jake Riccardi,GWS,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,8,🥉,Long Travel + Avg ≤-10%,-10%,46%,,14.5,12,1
+Disposal,17,Leek Aleer,GWS,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,8,🥉,Long Travel + Avg ≤-10%,-30%,80%,,10,9,1
+Disposal,17,Dante Visentini,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-1%,43%,,10,0,1
+Disposal,17,Esava Ratugolea,PTA,BRL,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-9%,75%,,13,0,1
+Disposal,17,Kieran Briggs,GWS,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,8,🥉,Long Travel + Avg ≤-10%,-17%,73%,,12.5,10,1
+Disposal,17,Hugh Jackson,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,8,🥉,Long Travel + Avg ≤-10%,-27%,75%,,14,12,1
+Disposal,17,Miles Bergman,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,8,🥉,Long Travel + Avg ≤-10%,-13%,53%,,21.5,17,1
+Disposal,17,Jase Burgoyne,PTA,BRL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,7%,40%,,19,15,1
+Disposal,17,Jason Horne-Francis,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,5%,30%,,19.5,19,1
+Disposal,17,Joe Richards,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,2%,57%,,15.5,14,1
+Disposal,17,Josh Sinn,PTA,BRL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-9%,54%,,13.5,10,1
+Disposal,17,Willie Rioli,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,14%,43%,,9.5,8,1
+Mark,17,Logan Morris,BRL,PTA,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,-16%,71%,,5,2,1
+Tackle,17,Jamie Cripps,WCE,GWS,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-6%,54%,,3.5,2,1
+Tackle,17,Liam Baker,WCE,GWS,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,9%,60%,,3,1,1
+Mark,17,Archie Roberts,ESS,GCS,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,16%,36%,,5,2,1
+Mark,17,Nic Martin,ESS,GCS,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,9%,50%,,7,4,1
+Mark,17,Connor O'Sullivan,GEE,RIC,GenD,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-14%,78%,,7,4,1
+Mark,17,Lawson Humphries,GEE,RIC,Des,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-17%,78%,,7,5,1
+Mark,17,Oisin Mullin,GEE,RIC,GenD,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-33%,86%,,5,1,1
+Mark,17,Tom Stewart,GEE,RIC,Des,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-10%,60%,,9,5,1
+Tackle,17,Willem Drew,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,7%,40%,,6.5,5,1
+Mark,17,Miles Bergman,PTA,BRL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,9%,40%,,5.5,2,1
+Mark,17,Nick Vlastuin,RIC,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,17%,67%,,5,4,1
+Mark,17,Tom Brown,RIC,GEE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,8%,57%,,4.5,4,1
+Mark,17,Jack Sinclair,STK,HAW,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,4%,53%,,4.5,4,1
+Disposal,17,Jake Stringer,GWS,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,8,🥉,Long Travel + Avg ≤-10%,-15%,75%,,11,14,-1
+Mark,17,Callum Mills,SYD,FRE,GenD,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,0%,50%,,6.5,5,1
+Mark,17,Harry Sheezel,NTH,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-4%,47%,,6,3,1
+Mark,17,Matt Roberts,SYD,FRE,GenD,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,12%,36%,,5.5,5,1
+Mark,17,Jake Riccardi,GWS,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,#7,🥇,,-13%,73%,,5,3,1
+Mark,17,Lachie Ash,GWS,WCE,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,#7,🥉,,3%,53%,,6.5,5,1
+Mark,17,Nick Haynes,CAR,COL,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,#7,🥉,,5%,47%,,8.5,6,1
+Tackle,17,Cooper Lord,CAR,COL,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-6%,64%,,3.5,2,1
+Disposal,17,Jack Buckley,GWS,WCE,KeyD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,-4%,60%,,13,12,1
+Disposal,17,Toby Greene,GWS,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-9%,71%,,18.5,18,1
+Disposal,17,Josh Treacy,FRE,SYD,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,3%,53%,,11,11,0
+Tackle,17,Bailey Humphrey,GCS,ESS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,13%,71%,,4,4,0
+Disposal,17,Ben Ainsworth,GCS,ESS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-1%,46%,,14,14,0
+Disposal,17,Joe Fonti,GWS,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,8,🥉,Long Travel + Avg ≤-10%,-19%,75%,,14,16,-1
+Disposal,17,Aliir Aliir,PTA,BRL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,5%,50%,,12,12,0
+Mark,17,Cooper Sharman,STK,HAW,KeyF,✅ Neutral,✅ Neutral,🔴 Strong Unders,,,,9%,54%,,5,5,0
+Mark,14,Jack Darling,NTH,FRE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,0%,42%,,3.5,5,-1
+Disposal,17,Cameron Zurhaar,NTH,WBD,GenF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,10%,53%,,10,10,0
+Mark,17,Luke Ryan,FRE,SYD,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-7%,80%,,7,7,0
+Mark,17,Xavier Duursma,ESS,GCS,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,14%,50%,,4.5,5,-1
+Disposal,17,Xavier O'Halloran,GWS,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,8,🥉,Long Travel + Avg ≤-10%,-21%,78%,,17,27,-1
+Disposal,17,Jed Walter,GCS,ESS,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,8,🥉,Long Travel + Avg ≤-10%,-15%,69%,,8.5,10,-1
+Disposal,17,Nathan O'Driscoll,FRE,SYD,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,8,🥉,Long Travel + Avg ≤-10%,-15%,67%,,18.5,26,-1
+Tackle,17,Christian Petracca,MEL,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,11%,53%,,4.5,2,1
+Tackle,17,Clayton Oliver,MEL,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,-6%,71%,,6,5,1
+Tackle,17,Tristan Xerri,NTH,WBD,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,2%,53%,,5.5,5,1
+Tackle,17,Adam Cerra,CAR,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,1%,67%,,5,3,1
+Tackle,17,Jesse Motlop,CAR,COL,GenF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,-7%,47%,,4.5,2,1
+Disposal,17,Darcy Byrne-Jones,PTA,BRL,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,5%,43%,,11.5,12,-1
+Disposal,17,Jordon Sweet,PTA,BRL,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,12%,36%,,8.5,13,-1
+Tackle,17,Patrick Cripps,CAR,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,4%,47%,,5.5,3,1
+Tackle,17,Brady Hough,WCE,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,-25%,64%,,4.5,4,1
+Tackle,17,Elijah Hewett,WCE,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,-20%,77%,,4,3,1
+Tackle,17,Jack Graham,WCE,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,11%,43%,,7,4,1
+Tackle,17,George Hewett,CAR,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,15%,33%,,5.5,7,-1
+Tackle,17,Jack Viney,MEL,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5,🥉,Strong/Moderate DvP + Tackle + Avg <18%,2%,70%,,5.5,9,-1
+Tackle,17,Matthew Johnson,FRE,SYD,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,2,🥇,Tackle + Moderate Travel + Avg <5%,-11%,60%,,3.5,1,1
+Tackle,17,Finn Callaghan,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,2,🥇,Tackle + Moderate Travel + Avg <5%,-10%,45%,,6,1,1
+Tackle,17,Harry Rowston,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,2,🥇,Tackle + Moderate Travel + Avg <5%,-10%,45%,,5,2,1
+Tackle,17,Toby Bedford,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,2,🥇,Tackle + Moderate Travel + Avg <5%,2%,64%,,6,3,1
+Tackle,17,Tom Green,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,2,🥇,Tackle + Moderate Travel + Avg <5%,-16%,71%,,4.5,0,1
+Tackle,17,Connor Rozee,PTA,BRL,Des,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,2,🥇,Tackle + Moderate Travel + Avg <5%,1%,40%,,3.5,3,1
+Tackle,17,Sam Powell-Pepper,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2,🥇,Tackle + Moderate Travel + Avg <5%,-4%,67%,,3,1,1
+Tackle,17,Joe Richards,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2,🥇,Tackle + Moderate Travel + Avg <5%,-5%,64%,,3,3,0
+Tackle,17,Darcy Jones,GWS,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,2,🥇,Tackle + Moderate Travel + Avg <5%,4%,50%,,3.5,4,-1
+Tackle,17,Matt Rowell,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2,🥇,Tackle + Moderate Travel + Avg <5%,-7%,71%,,9,17,-1
+Disposal,17,Kane Farrell,PTA,BRL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,6%,62%,,18.5,19,-1
+Tackle,17,Touk Miller,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2,🥇,Tackle + Moderate Travel + Avg <5%,-2%,64%,,4,7,-1
+Disposal,17,Laitham Vandermeer,WBD,NTH,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,,,,-6%,62%,,12,17,-1
+Disposal,17,Corey Wagner,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,4%,50%,,14.5,22,-1
+Disposal,17,Karl Worner,FRE,SYD,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,,,,-6%,50%,,14.5,16,-1
+Disposal,17,Matthew Johnson,FRE,SYD,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,8%,40%,,17.5,20,-1
+Disposal,17,Murphy Reid,FRE,SYD,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-5%,47%,,14.5,15,-1
+Tackle,17,Luke Jackson,FRE,SYD,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,2,🥇,Tackle + Moderate Travel + Avg <5%,-8%,67%,,4,5,-1
+Mark,17,Mason Wood,STK,HAW,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,6,🥉,Wing + Mark + Avg <20% + Line >4.5,1%,54%,,6,5,1
+Mark,17,Dylan Stephens,NTH,WBD,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,6,🥉,Wing + Mark + Avg <20% + Line >4.5,-6%,57%,,5,4,1
+Disposal,17,Sam Powell-Pepper,PTA,BRL,GenF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-3%,53%,,15,16,-1
+Mark,17,Jase Burgoyne,PTA,BRL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,6,🥉,Wing + Mark + Avg <20% + Line >4.5,9%,67%,,5,2,1
+Mark,17,Blake Acres,CAR,COL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,6,🥉,Wing + Mark + Avg <20% + Line >4.5,-17%,77%,,5,7,-1
+Mark,17,Jarrod Berry,BRL,PTA,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,6,🥉,Wing + Mark + Avg <20% + Line >4.5,-6%,57%,,6.5,7,-1
+Disposal,17,Travis Boak,PTA,BRL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,9%,25%,,19.5,27,-1
+Disposal,17,Bailey Humphrey,GCS,ESS,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-1%,50%,,16.5,18,-1
+Disposal,17,Willem Drew,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,5%,53%,,17,21,-1
+Disposal,17,Brayden Fiorini,GCS,ESS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,0%,71%,,19.5,20,-1
+Disposal,17,Joel Jeffrey,GCS,ESS,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-1%,64%,,18,32,-1
+Disposal,17,John Noble,GCS,ESS,Des,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,0%,43%,,25,29,-1
+Disposal,17,Lachie Weller,GCS,ESS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-7%,67%,,15,17,-1
+Disposal,17,Sam Flanders,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,10%,35%,,22,24,-1
+Disposal,17,Wil Powell,GCS,ESS,KeyD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-5%,50%,,16,20,-1
+Disposal,17,Max Holmes,GEE,RIC,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,-8%,60%,,28.5,36,-1
+Disposal,17,Zak Butters,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,3%,50%,,27,31,-1
+Mark,17,Jaspa Fletcher,BRL,PTA,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,6,🥉,Wing + Mark + Avg <20% + Line >4.5,8%,47%,,5.5,8,-1
+Tackle,17,Zak Butters,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,19%,50%,,4.5,6,-1
+Mark,17,Mitch Georgiades,PTA,BRL,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,,,,13%,53%,,5,7,-1
+Mark,17,Caleb Daniel,NTH,WBD,Des,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-3%,73%,,4,5,-1
+Mark,17,Eric Hipwood,BRL,PTA,KeyF,✅ Neutral,✅ Neutral,✅ Neutral,,,,8%,53%,,4.5,5,-1
+Mark,17,Harris Andrews,BRL,PTA,KeyD,✅ Neutral,✅ Neutral,✅ Neutral,,,,5%,53%,,7,10,-1
+Tackle,17,Tyler Brockman,WCE,GWS,GenF,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,-10%,58%,,3.5,4,-1
+Mark,17,Gryan Miers,GEE,RIC,GenF,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,-8%,54%,,7.5,5,-1
+Mark,17,Jeremy Cameron,GEE,RIC,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-8%,60%,,6,11,-1
+Mark,17,Shannon Neale,GEE,RIC,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,-16%,53%,,4.5,8,-1
+Mark,17,Zach Guthrie,GEE,RIC,KeyD,✅ Neutral,✅ Neutral,🔵 Strong Easy,,,,-13%,80%,,7,14,-1
+Mark,17,Harry Morrison,HAW,STK,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,6,🥉,Wing + Mark + Avg <20% + Line >4.5,-7%,73%,,5,8,-1
+Mark,17,Jarman Impey,HAW,STK,GenD,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,-10%,75%,,5,7,-1
+Mark,17,Josh Battle,HAW,STK,GenD,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,-8%,78%,,6,9,-1
+Mark,17,Karl Amon,HAW,STK,GenD,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,-11%,71%,,5,7,-1
+Tackle,17,Corey Wagner,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,29%,50%,,3.5,6,-1
+Mark,17,Errol Gulden,SYD,FRE,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,6,🥉,Wing + Mark + Avg <20% + Line >4.5,5%,58%,,5,7,-1
+Mark,17,Darcy Fogarty,ADE,MEL,KeyF,✅ Neutral,✅ Neutral,🔹 Slight Easy,,,,3%,50%,,4.5,6,-1
+Mark,17,Christian Salem,MEL,ADE,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,27%,33%,,6,10,-1
+Mark,17,Jake Bowey,MEL,ADE,Des,✅ Neutral,✅ Neutral,🟡 Slight Unders,,,,20%,40%,,4.5,5,-1
+Mark,17,Nick Blakey,SYD,FRE,GenD,✅ Neutral,✅ Neutral,🔷 Moderate Easy,,,,18%,36%,,4.5,7,-1
+Mark,17,Brody Mihocek,COL,CAR,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,#2,🥇,,12%,54%,,4,5,-1
+Mark,17,Tim Membrey,COL,CAR,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,#2,🥇,,11%,50%,,4,6,-1
+Mark,17,Isaac Quaynor,COL,CAR,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,#7,🥉,,3%,50%,,4.5,9,-1
+Disposal,17,Aaron Cadman,GWS,WCE,KeyF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-7%,80%,,10,11,-1
+Disposal,17,Callum Brown,GWS,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-7%,54%,,12.5,16,-1
+Disposal,17,Connor Idun,GWS,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,4%,47%,,18.5,20,-1
+Disposal,17,Darcy Jones,GWS,WCE,GenF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,,,,-1%,47%,,14.5,17,-1
+Disposal,17,Harry Himmelberg,GWS,WCE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,-1%,53%,,18.5,21,-1
+Disposal,17,Josh Kelly,GWS,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,,,,8%,45%,,21.5,27,-1
+Tackle,17,Josh Kelly,GWS,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,,,,16%,36%,,4,5,-1
