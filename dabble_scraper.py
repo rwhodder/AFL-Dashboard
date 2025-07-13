@@ -1,6 +1,7 @@
 import requests
 import urllib3
 import json
+import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -224,6 +225,79 @@ def get_all_pickem_lines() -> List[Dict]:
     
     return all_player_lines
 
+def get_pickem_data_for_dashboard(stat_type='disposals') -> Dict[str, float]:
+    """
+    Get pickem lines for dashboard integration - only returns disposals, marks, and tackles
+    Returns a dictionary mapping player names to their line values for the specified stat type
+    """
+    print(f"🎯 Getting pickem data for {stat_type}...")
+    
+    try:
+        # Get all pickem lines
+        all_lines = get_all_pickem_lines()
+        
+        if not all_lines:
+            print(f"⚠️ No pickem lines found for {stat_type}")
+            return {}
+        
+        # Filter for the specific stat type we want
+        stat_mapping = {
+            'disposals': 'Disposals',
+            'marks': 'Marks', 
+            'tackles': 'Tackles'
+        }
+        
+        target_stat = stat_mapping.get(stat_type.lower(), stat_type.title())
+        
+        # Filter lines for the target stat
+        filtered_lines = [line for line in all_lines if line['stat'] == target_stat]
+        
+        print(f"📊 Found {len(filtered_lines)} {target_stat} lines out of {len(all_lines)} total lines")
+        
+        # Create a mapping of player name to line value
+        player_lines = {}
+        
+        for line in filtered_lines:
+            player_name = line['player']
+            line_value = line['line']
+            
+            # Store the line value for this player
+            # If duplicate, keep the first one or could implement logic to pick best line
+            if player_name not in player_lines:
+                player_lines[player_name] = line_value
+                print(f"   📈 {player_name}: {line_value}")
+            else:
+                print(f"   ⚠️ Duplicate line for {player_name}: existing={player_lines[player_name]}, new={line_value}")
+        
+        print(f"✅ Returning {len(player_lines)} unique {target_stat} lines")
+        return player_lines
+        
+    except Exception as e:
+        print(f"❌ Error getting pickem data for {stat_type}: {e}")
+        import traceback
+        traceback.print_exc()
+        return {}
+
+def normalize_player_name(name: str) -> str:
+    """
+    Normalize player names for better matching between datasets
+    """
+    if not name:
+        return ""
+    
+    # Basic normalization
+    normalized = name.strip()
+    
+    # Common name variations that might need mapping
+    # You can expand this based on discrepancies you find
+    name_mappings = {
+        # Add specific mappings if you find mismatches
+        # "Dabble Name": "Dashboard Name"
+    }
+    
+    return name_mappings.get(normalized, normalized)
+
+# Keep the existing functions for standalone use
 def display_results(all_lines: List[Dict]):
     """Display the results in a readable format"""
     if not all_lines:

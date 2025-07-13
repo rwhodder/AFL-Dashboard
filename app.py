@@ -1,4 +1,3 @@
-# Score column - gradient coloring based on score value
 import pandas as pd
 import numpy as np
 import dash
@@ -11,8 +10,9 @@ from travel_fatigue import build_travel_log
 from stadium_locations import STADIUM_COORDS
 from stat_rules import apply_sensitivity
 from data_processor import load_and_prepare_data, calculate_dvp
+from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name  # NEW IMPORT
 
-# ===== CONSTANTS =====s
+# ===== CONSTANTS =====
 OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # From main.py
 POSITION_MAP = {
     "KeyF": ["FF", "CHF"],
@@ -318,13 +318,32 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     }
 
 def calculate_bet_flag(player_row, stat_type='disposals'):
-    """Calculate bet flag based on proven strategies with win rates - UPDATED VERSION"""
+    """Calculate bet flag based on proven strategies with win rates - ONLY THE 7 SPECIFIED STRATEGIES"""
     try:
         # Extract values from the row
         position = player_row.get('Position', player_row.get('position', ''))
         weather = player_row.get('Weather', player_row.get('weather', ''))
         dvp = player_row.get('DvP', player_row.get('dvp', ''))
         travel_fatigue = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
+        line_str = player_row.get('Line', '')
+        avg_vs_line_str = player_row.get('Avg vs Line', '')
+        
+        # Parse the line value
+        line_value = None
+        if line_str and line_str != "":
+            try:
+                line_value = float(line_str)
+            except (ValueError, TypeError):
+                line_value = None
+        
+        # Parse the Avg vs Line percentage
+        avg_vs_line_pct = None
+        if avg_vs_line_str and avg_vs_line_str != "":
+            try:
+                # Remove % and + signs, convert to float
+                avg_vs_line_pct = float(avg_vs_line_str.replace('%', '').replace('+', ''))
+            except (ValueError, TypeError):
+                avg_vs_line_pct = None
         
         # Parse travel and weather conditions
         has_long_travel = 'Long Travel' in travel_fatigue
@@ -340,50 +359,47 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
         has_easy_dvp = any(x in dvp for x in ['Strong Easy', 'Moderate Easy', 'Slight Easy'])
         
         # AUTO-SKIP RULES (CHECK FIRST - HIGHEST PRIORITY)
-        if position == 'KeyD':
-            return {"priority": "", "tier": "", "description": "SKIP - KeyD Position"}
+        # SKIP if no line available - RETURN BLANK VALUES
+        if line_value is None:
+            return {"priority": "", "tier": "", "description": ""}
         
-        if position == 'Ruck':
-            return {"priority": "", "tier": "", "description": "SKIP - Ruck Position"}
-        
-        # STRATEGY IMPLEMENTATION BY STAT TYPE
+        # ONLY THE 7 SPECIFIED STRATEGIES - NOW WITH AUTOMATED AVG CRITERIA
         
         # MARKS STRATEGIES
         if stat_type == 'marks':
             # Strategy #1: KeyF + Mark + Line >5.0 + No Easy DvP → 92% WR (13 bets)
-            if position == 'KeyF' and not has_easy_dvp:
+            if position == 'KeyF' and line_value > 5.0 and not has_easy_dvp:
                 return {"priority": "1", "tier": "🥇", "description": "KeyF + Mark + Line >5.0 + No Easy DvP"}
             
-            # Strategy #3: GenD + Mark + Avg <2% + No Easy DvP + Line ≥5.5 → 91.7% WR (12 bets)
-            if position == 'GenD' and not has_easy_dvp:
-                return {"priority": "3", "tier": "🥇", "description": "GenD + Mark + Avg <2% + No Easy DvP + Line ≥5.5"}
-            
-            # Strategy #4: Des + Mark + Avg <-10% + No Easy DvP → 87.5% WR (8 bets)
-            # Note: "Des" might refer to specific players or positions - interpreting as general strategy
-            if not has_easy_dvp:
-                return {"priority": "4", "tier": "🥈", "description": "Mark + Avg <-10% + No Easy DvP"}
+            # Strategy #3: GenD + Mark + Avg <0% + No Easy DvP + Line >5 → 91.7% WR (12 bets)
+            if (position == 'GenD' and line_value > 5 and not has_easy_dvp and 
+                avg_vs_line_pct is not None and avg_vs_line_pct < 0):
+                return {"priority": "3", "tier": "🥇", "description": "GenD + Mark + Avg <0% + No Easy DvP + Line >5"}
         
         # TACKLE STRATEGIES
         elif stat_type == 'tackles':
             # Strategy #2: Tackle + Strong Unders DvP + No Rain + Avg <15% → 93.3% WR (15 bets)
-            if has_strong_unders_dvp and not has_rain:
+            if (has_strong_unders_dvp and not has_rain and 
+                avg_vs_line_pct is not None and avg_vs_line_pct < 15):
                 return {"priority": "2", "tier": "🥇", "description": "Tackle + Strong Unders DvP + No Rain + Avg <15%"}
             
             # Strategy #5: Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 83.3% WR (17 bets)
-            if has_moderate_travel and not has_easy_dvp and not has_rain:
+            if (has_moderate_travel and not has_easy_dvp and not has_rain and 
+                avg_vs_line_pct is not None and avg_vs_line_pct < 5):
                 return {"priority": "5", "tier": "🥈", "description": "Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain"}
         
         # DISPOSAL STRATEGIES
         elif stat_type == 'disposals':
             # Strategy #6: Disposal + Line >27 + Strong/Moderate Unders DvP Only → 75.0% WR (8 bets)
-            if (has_strong_unders_dvp or has_moderate_unders_dvp) and not has_easy_dvp:
+            if line_value > 27 and (has_strong_unders_dvp or has_moderate_unders_dvp) and not has_easy_dvp:
                 return {"priority": "6", "tier": "🥉", "description": "Disposal + Line >27 + Strong/Moderate Unders DvP Only"}
             
             # Strategy #7: Long Travel + Disposal + Avg ≤-10% + No Easy DvP → 73.3% WR (15 bets)
-            if has_long_travel and not has_easy_dvp:
+            if (has_long_travel and not has_easy_dvp and 
+                avg_vs_line_pct is not None and avg_vs_line_pct <= -10):
                 return {"priority": "7", "tier": "🥉", "description": "Long Travel + Disposal + Avg ≤-10% + No Easy DvP"}
         
-        # Default skip for anything else
+        # Default skip for anything that doesn't match the 7 strategies
         return {"priority": "", "tier": "", "description": "SKIP - No Strategy"}
         
     except Exception as e:
@@ -418,6 +434,7 @@ def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposal
             rating = "Avoid"
             
         # Set the Score column to include both numeric score and rating
+        df[score_column] = df[score_column].astype(str)  # Ensure column is string type
         df.at[idx, score_column] = f"{score_value:.1f} - {rating}"
         df.at[idx, 'ScoreFactors'] = score_data["Factors"]
     
@@ -432,6 +449,279 @@ def add_bet_flag_to_dataframe(df, stat_type='disposals'):
     df['Bet_Flag'] = bet_results.apply(lambda x: x['description'])
     
     return df
+
+# NEW FUNCTION: Add pickem lines to dataframe
+def add_pickem_lines_to_dataframe(df, stat_type='disposals'):
+    """Add pickem line data to the dataframe with enhanced name matching"""
+    print(f"🎯 Adding pickem lines for {stat_type}...")
+    
+    try:
+        # Get pickem data for this stat type
+        pickem_data = get_pickem_data_for_dashboard(stat_type)
+        
+        if not pickem_data:
+            print(f"⚠️ No pickem data found for {stat_type}, adding empty Line column")
+            df['Line'] = ""
+            return df
+        
+        print(f"📊 Got {len(pickem_data)} pickem lines for {stat_type}")
+        
+        # Create a more robust mapping function
+        def get_player_line(player_name):
+            if not player_name or pd.isna(player_name):
+                return ""
+            
+            player_name = str(player_name).strip()
+            
+            # Method 1: Direct exact match (case insensitive)
+            for pickem_player, line_value in pickem_data.items():
+                if player_name.lower() == pickem_player.lower():
+                    print(f"  ✅ Direct match: '{player_name}' → {line_value}")
+                    return str(line_value)
+            
+            # Method 2: Try normalized versions
+            try:
+                normalized_name = normalize_player_name(player_name)
+                for pickem_player, line_value in pickem_data.items():
+                    normalized_pickem = normalize_player_name(pickem_player)
+                    if normalized_name.lower() == normalized_pickem.lower():
+                        print(f"  ✅ Normalized match: '{player_name}' → '{pickem_player}' → {line_value}")
+                        return str(line_value)
+            except Exception as e:
+                print(f"  ⚠️ Error in normalize_player_name: {e}")
+            
+            # Method 3: Remove spaces and compare
+            player_no_space = player_name.replace(" ", "").lower()
+            for pickem_player, line_value in pickem_data.items():
+                pickem_no_space = pickem_player.replace(" ", "").lower()
+                if player_no_space == pickem_no_space:
+                    print(f"  ✅ No-space match: '{player_name}' → '{pickem_player}' → {line_value}")
+                    return str(line_value)
+            
+            # Method 4: Last name + first initial matching
+            try:
+                player_parts = player_name.split()
+                if len(player_parts) >= 2:
+                    player_last = player_parts[-1].lower()
+                    player_first_initial = player_parts[0][0].lower()
+                    
+                    for pickem_player, line_value in pickem_data.items():
+                        pickem_parts = pickem_player.split()
+                        if len(pickem_parts) >= 2:
+                            pickem_last = pickem_parts[-1].lower()
+                            pickem_first_initial = pickem_parts[0][0].lower()
+                            
+                            if (player_last == pickem_last and 
+                                player_first_initial == pickem_first_initial):
+                                print(f"  ✅ Initial match: '{player_name}' → '{pickem_player}' → {line_value}")
+                                return str(line_value)
+            except (IndexError, AttributeError):
+                pass
+            
+            # Method 5: Partial name matching (for nicknames, etc.)
+            for pickem_player, line_value in pickem_data.items():
+                # Check if either name contains the other (for cases like "Sam" vs "Samuel")
+                if (player_name.lower() in pickem_player.lower() or 
+                    pickem_player.lower() in player_name.lower()):
+                    # Make sure it's not a substring match that's too short
+                    if min(len(player_name), len(pickem_player)) >= 4:
+                        print(f"  ✅ Partial match: '{player_name}' → '{pickem_player}' → {line_value}")
+                        return str(line_value)
+            
+            # No match found
+            return ""
+        
+        # Apply the mapping to add Line column
+        print(f"🔍 Attempting to match {len(df)} players...")
+        df['Line'] = df['player'].apply(get_player_line)
+        
+        # Count successful matches
+        matched_count = sum(1 for line in df['Line'] if line != "")
+        total_players = len(df)
+        
+        print(f"✅ Successfully matched {matched_count}/{total_players} players with pickem lines")
+        
+        # Show some examples of successful and failed matches
+        matched_players = df[df['Line'] != ""][['player', 'Line']].head(5)
+        unmatched_players = df[df['Line'] == ""][['player']].head(5)
+        
+        if not matched_players.empty:
+            print("📋 Sample successful matches:")
+            for _, row in matched_players.iterrows():
+                print(f"   ✅ {row['player']}: {row['Line']}")
+        
+        if not unmatched_players.empty:
+            print("📋 Sample unmatched players:")
+            for _, row in unmatched_players.iterrows():
+                print(f"   ❌ {row['player']}")
+            
+            # Show what pickem players we have for comparison
+            print("📋 Sample available pickem players:")
+            for player in list(pickem_data.keys())[:5]:
+                print(f"   📊 {player}")
+        
+        return df
+        
+    except Exception as e:
+        print(f"❌ Error adding pickem lines for {stat_type}: {e}")
+        import traceback
+        traceback.print_exc()
+        df['Line'] = ""
+        return df
+
+
+def add_line_analysis_columns(df, stat_type='disposals'):
+    """Add Avg vs Line and Line Consistency columns to the dataframe"""
+    print(f"📊 Adding line analysis columns for {stat_type}...")
+    
+    try:
+        # Load the full season stats
+        stats_df = pd.read_csv("afl_player_stats.csv", skiprows=3)
+        stats_df = stats_df.fillna(0)
+        
+        # Ensure we have the stat column
+        if stat_type not in stats_df.columns:
+            if stat_type == 'disposals' and 'kicks' in stats_df.columns and 'handballs' in stats_df.columns:
+                stats_df[stat_type] = stats_df['kicks'] + stats_df['handballs']
+            else:
+                print(f"⚠️ Warning: {stat_type} column not found in stats data")
+                df['Avg vs Line'] = ""
+                df['Line Consistency'] = ""
+                return df
+        
+        # Initialize the new columns
+        df['Avg vs Line'] = ""
+        df['Line Consistency'] = ""
+        
+        print(f"🔍 Processing {len(df)} players for line analysis...")
+        
+        # Process each player in the dataframe
+        for idx, row in df.iterrows():
+            player_name = row.get('Player', row.get('player', ''))
+            line_str = row.get('Line', '')
+            
+            # Skip if no line available
+            if not line_str or line_str == "":
+                df.at[idx, 'Avg vs Line'] = ""
+                df.at[idx, 'Line Consistency'] = ""
+                continue
+            
+            # Parse line value
+            try:
+                line_value = float(line_str)
+            except (ValueError, TypeError):
+                df.at[idx, 'Avg vs Line'] = ""
+                df.at[idx, 'Line Consistency'] = ""
+                continue
+            
+            # Find player's season stats
+            player_stats = stats_df[stats_df['player'].str.lower() == player_name.lower()]
+            
+            if player_stats.empty:
+                # Try fuzzy matching if exact match fails
+                for stats_player in stats_df['player'].unique():
+                    if (stats_player.lower().replace(" ", "") == player_name.lower().replace(" ", "") or
+                        (len(player_name.split()) >= 2 and len(stats_player.split()) >= 2 and
+                         player_name.split()[-1].lower() == stats_player.split()[-1].lower() and
+                         player_name.split()[0][0].lower() == stats_player.split()[0][0].lower())):
+                        player_stats = stats_df[stats_df['player'] == stats_player]
+                        break
+            
+            if player_stats.empty:
+                print(f"   ⚠️ No stats found for {player_name}")
+                df.at[idx, 'Avg vs Line'] = ""
+                df.at[idx, 'Line Consistency'] = ""
+                continue
+            
+            # Calculate season average
+            stat_values = player_stats[stat_type].values
+            season_avg = stat_values.mean()
+            
+            # 1. Calculate Avg vs Line: (Line / Avg) - 1
+            if season_avg > 0:
+                avg_vs_line_ratio = (line_value / season_avg) - 1
+                avg_vs_line_pct = avg_vs_line_ratio * 100
+                df.at[idx, 'Avg vs Line'] = f"{avg_vs_line_pct:+.1f}%"
+            else:
+                df.at[idx, 'Avg vs Line'] = ""
+            
+            # 2. Calculate Line Consistency: % of games below the line
+            games_below_line = sum(1 for value in stat_values if value < line_value)
+            total_games = len(stat_values)
+            
+            if total_games > 0:
+                consistency_pct = (games_below_line / total_games) * 100
+                df.at[idx, 'Line Consistency'] = f"{consistency_pct:.1f}%"
+            else:
+                df.at[idx, 'Line Consistency'] = ""
+            
+            # Log some examples for verification
+            if idx < 5:  # Log first 5 for debugging
+                print(f"   ✅ {player_name}: Line={line_value}, Avg={season_avg:.1f}, "
+                      f"Avg vs Line={df.at[idx, 'Avg vs Line']}, "
+                      f"Below Line={games_below_line}/{total_games} = {df.at[idx, 'Line Consistency']}")
+        
+        # Count successful calculations
+        successful_avg = sum(1 for val in df['Avg vs Line'] if val != "")
+        successful_consistency = sum(1 for val in df['Line Consistency'] if val != "")
+        
+        print(f"✅ Successfully calculated:")
+        print(f"   - Avg vs Line: {successful_avg}/{len(df)} players")
+        print(f"   - Line Consistency: {successful_consistency}/{len(df)} players")
+        
+        return df
+        
+    except Exception as e:
+        print(f"❌ Error adding line analysis columns: {e}")
+        import traceback
+        traceback.print_exc()
+        df['Avg vs Line'] = ""
+        df['Line Consistency'] = ""
+        return df
+
+
+def interpret_line_analysis(avg_vs_line_str, consistency_str):
+    """Helper function to interpret the line analysis values"""
+    interpretation = []
+    
+    # Interpret Avg vs Line
+    if avg_vs_line_str and avg_vs_line_str != "":
+        try:
+            avg_vs_line = float(avg_vs_line_str.replace('%', '').replace('+', ''))
+            
+            if avg_vs_line > 10:
+                interpretation.append("🔴 Line Much Higher Than Avg (Strong Unders)")
+            elif avg_vs_line > 5:
+                interpretation.append("🟠 Line Higher Than Avg (Unders)")
+            elif avg_vs_line > -5:
+                interpretation.append("🟡 Line Close To Avg (Neutral)")
+            elif avg_vs_line > -10:
+                interpretation.append("🔵 Line Lower Than Avg (Overs)")
+            else:
+                interpretation.append("🟢 Line Much Lower Than Avg (Strong Overs)")
+        except:
+            pass
+    
+    # Interpret Line Consistency
+    if consistency_str and consistency_str != "":
+        try:
+            consistency = float(consistency_str.replace('%', ''))
+            
+            if consistency >= 70:
+                interpretation.append("🎯 Very Consistent Unders (70%+ below line)")
+            elif consistency >= 60:
+                interpretation.append("📈 Consistent Unders (60%+ below line)")
+            elif consistency >= 40:
+                interpretation.append("⚖️ Balanced (40-60% below line)")
+            elif consistency >= 30:
+                interpretation.append("📉 Consistent Overs (30%+ above line)")
+            else:
+                interpretation.append("🚀 Very Consistent Overs (70%+ above line)")
+        except:
+            pass
+    
+    return " | ".join(interpretation) if interpretation else ""
+
 
 # Process dashboard data for a specific stat type
 def process_data_for_dashboard(stat_type='disposals'):
@@ -650,6 +940,9 @@ def process_data_for_dashboard(stat_type='disposals'):
             # Adelaide → Perth
             ("ADE", "WCE"), ("ADE", "FRE"), ("PTA", "WCE"), ("PTA", "FRE"),
 
+            # Perth → Adelaide
+            ("WCE", "ADE"), ("FRE", "ADE"), ("WCE", "PTA"), ("FRE", "PTA"),
+
             # QLD → Victoria
             ("BRL", "MEL"), ("BRL", "GEE"), ("BRL", "COL"), ("BRL", "HAW"),
             ("BRL", "CAR"), ("BRL", "ESS"), ("BRL", "NTH"), ("BRL", "RIC"),
@@ -838,9 +1131,15 @@ def process_data_for_dashboard(stat_type='disposals'):
         
         next_round_players['dvp'] = next_round_players.apply(get_dvp_rating, axis=1)
         
-        # Step 13: Clean up and select final columns for display
-        result_df = next_round_players[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
-                                        'weather', 'dvp']].copy()
+        # Step 13: Add pickem lines (NEW STEP)
+        result_df = add_pickem_lines_to_dataframe(next_round_players, stat_type)
+        
+        # Step 13.5: Add line analysis columns (NEW STEP)
+        result_df = add_line_analysis_columns(result_df, stat_type)
+
+        # Step 14: Clean up and select final columns for display (UPDATED to include Line)
+        result_df = result_df[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
+                      'weather', 'dvp', 'Line', 'Avg vs Line', 'Line Consistency']].copy()
         
         # Calculate the Unders Score for each player (for bet flag calculation only)
         result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
@@ -848,29 +1147,59 @@ def process_data_for_dashboard(stat_type='disposals'):
         # Add bet flag based on filtering criteria
         result_df = add_bet_flag_to_dataframe(result_df, stat_type)
         
-        # Final columns for display (ADDED Bet Priority and Bet Tier columns)
+        # Final columns for display (ADDED Line column)
+        # This selects 13 columns to match your 13-item mapping
         display_df = result_df[['player', 'team', 'opponent', 'position', 
-                                'travel_fatigue', 'weather', 'dvp', 'Bet_Priority', 'Bet_Tier', 'Bet_Flag']]
+                        'travel_fatigue', 'weather', 'dvp', 'Line', 
+                        'Avg vs Line', 'Line Consistency',
+                        'Bet_Priority', 'Bet_Tier', 'Bet_Flag']].copy()
         
-        # Rename columns for display (ADDED new columns)
+        # Rename columns for display (ADDED Line column)
         column_mapping = {
-            'player': 'Player', 
-            'team': 'Team', 
-            'opponent': 'Opponent', 
-            'position': 'Position',
-            'travel_fatigue': 'Travel Fatigue', 
-            'weather': 'Weather', 
-            'dvp': 'DvP',
-            'Bet_Priority': 'Bet Priority',
-            'Bet_Tier': 'Bet Tier',
-            'Bet_Flag': 'Bet Flag'
-        }
+    'player': 'Player', 
+    'team': 'Team', 
+    'opponent': 'Opponent', 
+    'position': 'Position',
+    'travel_fatigue': 'Travel Fatigue', 
+    'weather': 'Weather', 
+    'dvp': 'DvP',
+    'Line': 'Line',
+    'Avg vs Line': 'Avg vs Line',
+    'Line Consistency': 'Line Consistency',
+    'Bet_Priority': 'Bet Priority',
+    'Bet_Tier': 'Bet Tier',
+    'Bet_Flag': 'Bet Flag'
+}
+        # Apply the column renaming
         display_df.columns = list(column_mapping.values())
         
-        # Sort by team and player (no score-based sorting)
-        display_df = display_df.sort_values(['Team', 'Player'], ascending=[True, True])
+        # Filter out rows with no line data
+        display_df = display_df[display_df['Line'] != ""].copy()
+        print(f"After filtering out players with no lines: {len(display_df)} rows remaining")
+        
+        # Sort by Bet Priority (ascending) then by Team (ascending)
+        # First, handle the sorting properly for Bet Priority column
+        def sort_bet_priority(priority_str):
+            """Convert bet priority to numeric for proper sorting"""
+            if pd.isna(priority_str) or priority_str == "" or priority_str == "SKIP":
+                return 999  # Put non-priorities at the end
+            try:
+                return int(priority_str)
+            except (ValueError, TypeError):
+                return 999  # Put invalid values at the end
+        
+        # Create a temporary column for sorting
+        display_df['_sort_priority'] = display_df['Bet Priority'].apply(sort_bet_priority)
+        
+        # Sort by priority first (ascending), then by team (ascending)
+        display_df = display_df.sort_values(['_sort_priority', 'Team'], ascending=[True, True])
+        
+        # Remove the temporary sorting column
+        display_df = display_df.drop('_sort_priority', axis=1)
         
         print(f"Final dashboard data for {stat_type} has {len(display_df)} rows")
+        print(f"Filtered to show only players with betting lines available")
+        print(f"Sorted by: Bet Priority (ascending), then Team (ascending)")
         return display_df
         
     except Exception as e:
@@ -887,6 +1216,7 @@ def process_data_for_dashboard(stat_type='disposals'):
             'Travel Fatigue': 'Error',
             'Weather': 'Error', 
             'DvP': 'Error',
+            'Line': 'Error',
             'Bet Priority': 'Error',
             'Bet Tier': 'Error',
             'Bet Flag': 'Error'
@@ -1078,6 +1408,7 @@ def load_data(data):
                         'Travel Fatigue': '✅ Neutral',
                         'Weather': '✅ Neutral',
                         'DvP': '✅ Neutral',
+                        'Line': '25.5',
                         'Bet Priority': '#1',
                         'Bet Tier': '🥇',
                         'Bet Flag': 'Tackle + Moderate Travel + Avg <5%'
@@ -1174,6 +1505,12 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
              
+            # Line column - highlight based on whether line exists (NEW)
+            {'if': {'column_id': 'Line', 'filter_query': '{Line} != ""'},
+             'backgroundColor': '#e8f5e8', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Line', 'filter_query': '{Line} = ""'},
+             'backgroundColor': '#f8f9fa', 'color': '#6c757d'},
+             
             # Bet Tier colors - UPDATED FOR NEW TIER SYSTEM
             {'if': {'column_id': 'Bet Tier', 'filter_query': '{Bet Tier} contains "🥇"'},
              'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
@@ -1205,12 +1542,72 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             'Travel Fatigue': 'N/A',
             'Weather': 'N/A', 
             'DvP': 'N/A',
+            'Line': 'N/A',
             'Bet Priority': 'N/A',
             'Bet Tier': 'N/A',
             'Bet Flag': 'N/A'
         }])
         columns = [{"name": i, "id": i} for i in error_df.columns]
         return error_df.to_dict('records'), columns, [], [], f"Error filtering {stat_type} data: {str(e)}"
+
+# Add this debug code temporarily to your app.py to test what's happening
+def debug_pickem_matching(stat_type='disposals'):
+    """Debug function to see what's happening with pickem data"""
+    print(f"\n=== DEBUGGING PICKEM DATA FOR {stat_type.upper()} ===")
+    
+    try:
+        # Test 1: Check if get_pickem_data_for_dashboard works
+        from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name
+        pickem_data = get_pickem_data_for_dashboard(stat_type)
+        
+        print(f"1. Pickem data retrieved: {len(pickem_data) if pickem_data else 0} players")
+        if pickem_data:
+            print(f"   Sample pickem players: {list(pickem_data.keys())[:5]}")
+            print(f"   Sample pickem lines: {list(pickem_data.values())[:5]}")
+        else:
+            print("   ❌ No pickem data returned!")
+            return
+        
+        # Test 2: Check dataframe player names
+        try:
+            df = pd.read_csv("afl_player_stats.csv", skiprows=3)
+            latest_round = df['round'].max()
+            recent_players = df[df['round'] == latest_round]['player'].unique()[:5]
+            print(f"2. Sample dataframe players: {recent_players.tolist()}")
+        except Exception as e:
+            print(f"   ❌ Error reading dataframe: {e}")
+            return
+        
+        # Test 3: Test normalize_player_name function
+        test_names = ["Patrick Cripps", "Marcus Bontempelli", "Lachie Neale"]
+        print("3. Testing normalize_player_name:")
+        for name in test_names:
+            normalized = normalize_player_name(name)
+            print(f"   '{name}' → '{normalized}'")
+        
+        # Test 4: Try manual matching
+        print("4. Testing manual matching:")
+        for df_player in recent_players[:3]:
+            normalized_df = normalize_player_name(df_player)
+            found_match = False
+            
+            for pickem_player in list(pickem_data.keys())[:10]:  # Check first 10
+                normalized_pickem = normalize_player_name(pickem_player)
+                
+                if normalized_df.lower() == normalized_pickem.lower():
+                    print(f"   ✅ MATCH: '{df_player}' ↔ '{pickem_player}'")
+                    found_match = True
+                    break
+            
+            if not found_match:
+                print(f"   ❌ NO MATCH: '{df_player}' (normalized: '{normalized_df}')")
+        
+        print("=== END DEBUG ===\n")
+        
+    except Exception as e:
+        print(f"❌ Debug error: {e}")
+        import traceback
+        traceback.print_exc()
 
 # Export data callback
 @app.callback(
@@ -1242,6 +1639,10 @@ def export_data(n_clicks, active_tab):
     
     return dash.no_update
 
+debug_pickem_matching('disposals')
+debug_pickem_matching('marks') 
+debug_pickem_matching('tackles')
+
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)# Score column - gradient coloring based on score value
