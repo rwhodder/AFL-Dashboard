@@ -318,7 +318,7 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
     }
 
 def calculate_bet_flag(player_row, stat_type='disposals'):
-    """Calculate bet flag based on proven strategies with win rates - ONLY THE 7 SPECIFIED STRATEGIES"""
+    """Calculate bet flag based on the 6 specified strategies with updated win rates"""
     try:
         # Extract values from the row
         position = player_row.get('Position', player_row.get('position', ''))
@@ -327,6 +327,7 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
         travel_fatigue = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
         line_str = player_row.get('Line', '')
         avg_vs_line_str = player_row.get('Avg vs Line', '')
+        line_consistency_str = player_row.get('Line Consistency', '')
         
         # Parse the line value
         line_value = None
@@ -345,6 +346,14 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
             except (ValueError, TypeError):
                 avg_vs_line_pct = None
         
+        # Parse the Line Consistency percentage
+        line_consistency_pct = None
+        if line_consistency_str and line_consistency_str != "":
+            try:
+                line_consistency_pct = float(line_consistency_str.replace('%', ''))
+            except (ValueError, TypeError):
+                line_consistency_pct = None
+        
         # Parse travel and weather conditions
         has_long_travel = 'Long Travel' in travel_fatigue
         has_moderate_travel = 'Moderate' in travel_fatigue
@@ -353,7 +362,7 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
         has_rain = 'Rain' in weather and 'Neutral' not in weather
         has_neutral_weather = 'Neutral' in weather
         
-        # Check DvP levels - UPDATED TO EXCLUDE EASY DVP
+        # Check DvP levels
         has_moderate_unders_dvp = 'Moderate Unders' in dvp
         has_strong_unders_dvp = 'Strong Unders' in dvp
         has_easy_dvp = any(x in dvp for x in ['Strong Easy', 'Moderate Easy', 'Slight Easy'])
@@ -361,52 +370,54 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
         # AUTO-SKIP RULES (CHECK FIRST - HIGHEST PRIORITY)
         # SKIP if no line available - RETURN BLANK VALUES
         if line_value is None:
-            return {"priority": "", "tier": "", "description": ""}
+            return {"priority": "", "description": ""}
         
-        # ONLY THE 7 SPECIFIED STRATEGIES - NOW WITH AUTOMATED AVG CRITERIA
+        # THE 6 SPECIFIED STRATEGIES
         
-        # MARKS STRATEGIES
-        if stat_type == 'marks':
-            # Strategy #1: KeyF + Mark + Line >5.0 + No Easy DvP → 92% WR (13 bets)
-            if position == 'KeyF' and line_value > 5.0 and not has_easy_dvp:
-                return {"priority": "1", "tier": "🥇", "description": "KeyF + Mark + Line >5.0 + No Easy DvP"}
-            
-            # Strategy #3: GenD + Mark + Avg <0% + No Easy DvP + Line >5 → 91.7% WR (12 bets)
-            if (position == 'GenD' and line_value > 5 and not has_easy_dvp and 
-                avg_vs_line_pct is not None and avg_vs_line_pct < 0):
-                return {"priority": "3", "tier": "🥇", "description": "GenD + Mark + Avg <0% + No Easy DvP + Line >5"}
+        # TOP TIER STRATEGIES
         
-        # TACKLE STRATEGIES
-        elif stat_type == 'tackles':
-            # Strategy #2: Tackle + Strong Unders DvP + No Rain + Avg <15% → 93.3% WR (15 bets)
-            if (has_strong_unders_dvp and not has_rain and 
-                avg_vs_line_pct is not None and avg_vs_line_pct < 15):
-                return {"priority": "2", "tier": "🥇", "description": "Tackle + Strong Unders DvP + No Rain + Avg <15%"}
-            
-            # Strategy #5: Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 83.3% WR (17 bets)
-            if (has_moderate_travel and not has_easy_dvp and not has_rain and 
-                avg_vs_line_pct is not None and avg_vs_line_pct < 5):
-                return {"priority": "5", "tier": "🥈", "description": "Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain"}
+        # Strategy #1: KeyF + Mark + Line > 5 + No Easy DvP → 94% WR (16 bets)
+        if (stat_type == 'marks' and position == 'KeyF' and line_value > 5 and not has_easy_dvp):
+            return {"priority": "1", "description": "KeyF + Mark + Line > 5 + No Easy DvP → 94% WR (16 bets)"}
         
-        # DISPOSAL STRATEGIES
-        elif stat_type == 'disposals':
-            # Strategy #6: Disposal + Line >27 + Strong/Moderate Unders DvP Only → 75.0% WR (8 bets)
-            if line_value > 27 and (has_strong_unders_dvp or has_moderate_unders_dvp) and not has_easy_dvp:
-                return {"priority": "6", "tier": "🥉", "description": "Disposal + Line >27 + Strong/Moderate Unders DvP Only"}
-            
-            # Strategy #7: Long Travel + Disposal + Avg ≤-10% + No Easy DvP → 73.3% WR (15 bets)
-            if (has_long_travel and not has_easy_dvp and 
-                avg_vs_line_pct is not None and avg_vs_line_pct <= -10):
-                return {"priority": "7", "tier": "🥉", "description": "Long Travel + Disposal + Avg ≤-10% + No Easy DvP"}
+        # Strategy #2: Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets)
+        if (stat_type == 'tackles' and has_strong_unders_dvp and not has_rain and 
+            avg_vs_line_pct is not None and avg_vs_line_pct < 15):
+            return {"priority": "2", "description": "Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets)"}
         
-        # Default skip for anything that doesn't match the 7 strategies
-        return {"priority": "", "tier": "", "description": "SKIP - No Strategy"}
+        # MEDIUM TIER STRATEGIES
+        
+        # Strategy #3: Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets)
+        if (stat_type == 'tackles' and has_moderate_travel and not has_easy_dvp and not has_rain and 
+            avg_vs_line_pct is not None and avg_vs_line_pct < 5):
+            return {"priority": "3", "description": "Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets)"}
+        
+        # Strategy #4: Disposal + Line >27 + Strong or Moderate Unders DvP → 75.0% WR (8 bets)
+        if (stat_type == 'disposals' and line_value > 27 and 
+            (has_strong_unders_dvp or has_moderate_unders_dvp)):
+            return {"priority": "4", "description": "Disposal + Line >27 + Strong or Moderate Unders DvP → 75.0% WR (8 bets)"}
+        
+        # LOW TIER STRATEGIES
+        
+        # Strategy #5: GenD + Mark + Avg <0% + No Easy DvP + Line >5 + Line Consistency > 45% → 72% WR (32 bets)
+        if (stat_type == 'marks' and position == 'GenD' and line_value > 5 and not has_easy_dvp and 
+            avg_vs_line_pct is not None and avg_vs_line_pct < 0 and
+            line_consistency_pct is not None and line_consistency_pct > 45):
+            return {"priority": "5", "description": "GenD + Mark + Avg <0% + No Easy DvP + Line >5 + Line Consistency > 45% → 72% WR (32 bets)"}
+        
+        # Strategy #6: Disposal + Moderate Travel + Avg ≤-10% + No Easy DvP → 69% WR (16 bets)
+        if (stat_type == 'disposals' and has_moderate_travel and not has_easy_dvp and 
+            avg_vs_line_pct is not None and avg_vs_line_pct <= -10):
+            return {"priority": "6", "description": "Disposal + Moderate Travel + Avg ≤-10% + No Easy DvP → 69% WR (16 bets)"}
+        
+        # Default skip for anything that doesn't match the 6 strategies
+        return {"priority": "", "description": ""}
         
     except Exception as e:
         print(f"ERROR in calculate_bet_flag: {e}")
         import traceback
         traceback.print_exc()
-        return {"priority": "", "tier": "", "description": "ERROR"}
+        return {"priority": "", "description": "ERROR"}
 
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
     """Add a score to the dataframe based on the specific stat type"""
@@ -445,7 +456,6 @@ def add_bet_flag_to_dataframe(df, stat_type='disposals'):
     bet_results = df.apply(lambda row: calculate_bet_flag(row, stat_type), axis=1)
     
     df['Bet_Priority'] = bet_results.apply(lambda x: x['priority'])
-    df['Bet_Tier'] = bet_results.apply(lambda x: x['tier'])
     df['Bet_Flag'] = bet_results.apply(lambda x: x['description'])
     
     return df
@@ -1147,29 +1157,28 @@ def process_data_for_dashboard(stat_type='disposals'):
         # Add bet flag based on filtering criteria
         result_df = add_bet_flag_to_dataframe(result_df, stat_type)
         
-        # Final columns for display (ADDED Line column)
-        # This selects 13 columns to match your 13-item mapping
+        # Final columns for display (REMOVED Bet_Tier column)
+        # This selects 12 columns to match your updated mapping
         display_df = result_df[['player', 'team', 'opponent', 'position', 
                         'travel_fatigue', 'weather', 'dvp', 'Line', 
                         'Avg vs Line', 'Line Consistency',
-                        'Bet_Priority', 'Bet_Tier', 'Bet_Flag']].copy()
+                        'Bet_Priority', 'Bet_Flag']].copy()
         
-        # Rename columns for display (ADDED Line column)
+        # Rename columns for display (REMOVED Bet Tier column)
         column_mapping = {
-    'player': 'Player', 
-    'team': 'Team', 
-    'opponent': 'Opponent', 
-    'position': 'Position',
-    'travel_fatigue': 'Travel Fatigue', 
-    'weather': 'Weather', 
-    'dvp': 'DvP',
-    'Line': 'Line',
-    'Avg vs Line': 'Avg vs Line',
-    'Line Consistency': 'Line Consistency',
-    'Bet_Priority': 'Bet Priority',
-    'Bet_Tier': 'Bet Tier',
-    'Bet_Flag': 'Bet Flag'
-}
+            'player': 'Player', 
+            'team': 'Team', 
+            'opponent': 'Opponent', 
+            'position': 'Position',
+            'travel_fatigue': 'Travel Fatigue', 
+            'weather': 'Weather', 
+            'dvp': 'DvP',
+            'Line': 'Line',
+            'Avg vs Line': 'Avg vs Line',
+            'Line Consistency': 'Line Consistency',
+            'Bet_Priority': 'Bet Priority',
+            'Bet_Flag': 'Bet Flag'
+        }
         # Apply the column renaming
         display_df.columns = list(column_mapping.values())
         
@@ -1218,7 +1227,6 @@ def process_data_for_dashboard(stat_type='disposals'):
             'DvP': 'Error',
             'Line': 'Error',
             'Bet Priority': 'Error',
-            'Bet Tier': 'Error',
             'Bet Flag': 'Error'
         }])
 
@@ -1233,7 +1241,7 @@ processed_data_by_stat = {
     'tackles': None
 }
 
-# Define the layout with Export to CSV feature (UPDATED TRAVEL FATIGUE LEGEND)
+# Define the layout with Export to CSV feature (UPDATED TRAVEL FATIGUE LEGEND AND REMOVED BET TIER)
 app.layout = dbc.Container([
     html.H1("AFL Player Dashboard - Next Round", className="text-center my-4"),
     
@@ -1252,7 +1260,6 @@ app.layout = dbc.Container([
     
     # Rest of the layout
     dbc.Row([
-        # Left column - filters
         dbc.Col([
             html.Div([
                 html.H5("Filter by Team:"),
@@ -1288,7 +1295,7 @@ app.layout = dbc.Container([
             ], className="mb-4")
         ], width=3),
         
-        # Legend cards - simplified layout
+        # Legend cards - simplified layout (REMOVED BET TIER LEGEND)
         dbc.Col([
             dbc.Row([
                 dbc.Col([
@@ -1334,15 +1341,15 @@ app.layout = dbc.Container([
                 
                 dbc.Col([
                     html.Div([
-                        html.H4("Bet Tier", className="text-center"),
+                        html.H4("Bet Strategies", className="text-center"),
                         html.Div([
-                            html.Span("🥇 Tier 1 (90%+)", className="badge bg-success me-2"),
-                            html.Span("🥈 Tier 2 (80-90%)", className="badge bg-warning text-dark me-2"),
-                            html.Span("🥉 Tier 3 (65-80%)", className="badge bg-info")
+                            html.Span("Top Tier: 94% WR", className="badge bg-success me-2"),
+                            html.Span("Medium Tier: 75-79% WR", className="badge bg-warning text-dark me-2"),
+                            html.Span("Low Tier: 69-72% WR", className="badge bg-info")
                         ], className="d-flex justify-content-center flex-wrap")
                     ], className="border rounded p-2 mb-3",
-                    id="bet-tier-legend",
-                    title="Bet tiers based on win rates: 🥇 Tier 1 (90%+), 🥈 Tier 2 (80-90%), 🥉 Tier 3 (65-80%). Higher tiers have better historical performance.")
+                    id="bet-strategy-legend",
+                    title="Bet strategies based on win rates: Top Tier (94% WR), Medium Tier (75-79% WR), Low Tier (69-72% WR). Higher win rates indicate more reliable betting opportunities.")
                 ], width=6),
             ])
         ], width=9)
@@ -1409,9 +1416,8 @@ def load_data(data):
                         'Weather': '✅ Neutral',
                         'DvP': '✅ Neutral',
                         'Line': '25.5',
-                        'Bet Priority': '#1',
-                        'Bet Tier': '🥇',
-                        'Bet Flag': 'Tackle + Moderate Travel + Avg <5%'
+                        'Bet Priority': '1',
+                        'Bet Flag': 'KeyF + Mark + Line > 5 + No Easy DvP → 94% WR (16 bets)'
                     }])
                     print(f"Created test data row for {stat_type}.")
                 
@@ -1426,7 +1432,7 @@ def load_data(data):
             return "Error loading data"
     return data
 
-# Callback to filter and display data based on stat type
+# Callback to filter and display data based on stat type (UPDATED FOR REMOVED BET TIER)
 @app.callback(
     [Output('player-table', 'data'),
      Output('player-table', 'columns'),
@@ -1477,7 +1483,7 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         # Define columns
         columns = [{"name": i, "id": i} for i in df.columns]
         
-        # Create the conditional styling (UPDATED FOR NEW COLUMNS)
+        # Create the conditional styling (UPDATED FOR NEW COLUMNS AND REMOVED BET TIER)
         style_data_conditional = [
             # Travel Fatigue - UPDATED
             {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Neutral"'},
@@ -1505,25 +1511,37 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
              
-            # Line column - highlight based on whether line exists (NEW)
+            # Line column - highlight based on whether line exists
             {'if': {'column_id': 'Line', 'filter_query': '{Line} != ""'},
              'backgroundColor': '#e8f5e8', 'color': 'black', 'fontWeight': 'bold'},
             {'if': {'column_id': 'Line', 'filter_query': '{Line} = ""'},
              'backgroundColor': '#f8f9fa', 'color': '#6c757d'},
              
-            # Bet Tier colors - UPDATED FOR NEW TIER SYSTEM
-            {'if': {'column_id': 'Bet Tier', 'filter_query': '{Bet Tier} contains "🥇"'},
+            # Bet Priority colors - UPDATED FOR NEW PRIORITY SYSTEM
+            {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "1"'},
              'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Tier', 'filter_query': '{Bet Tier} contains "🥈"'},
+            {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "2"'},
+             'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "3"'},
              'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Tier', 'filter_query': '{Bet Tier} contains "🥉"'},
-             'backgroundColor': '#cd7f32', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "4"'},
+             'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "5"'},
+             'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "6"'},
+             'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
              
-            # Bet Flag colors - UPDATED FOR COMBO STRATEGIES
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "COMBO"'},
-             'backgroundColor': '#e6ccff', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "SKIP"'},
-             'backgroundColor': '#f8d7da', 'color': 'black'},
+            # Bet Flag colors - UPDATED FOR NEW STRATEGY DESCRIPTIONS
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "94% WR"'},
+             'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "79% WR"'},
+             'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "75% WR"'},
+             'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "72% WR"'},
+             'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "69% WR"'},
+             'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
         ]
         
         return df.to_dict('records'), columns, style_data_conditional, team_options, ""
@@ -1533,7 +1551,7 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
         import traceback
         traceback.print_exc()
         
-        # Return error data
+        # Return error data (UPDATED FOR REMOVED BET TIER)
         error_df = pd.DataFrame([{
             'Player': f'Error: {str(e)}',
             'Team': 'N/A',
@@ -1544,7 +1562,6 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
             'DvP': 'N/A',
             'Line': 'N/A',
             'Bet Priority': 'N/A',
-            'Bet Tier': 'N/A',
             'Bet Flag': 'N/A'
         }])
         columns = [{"name": i, "id": i} for i in error_df.columns]
@@ -1645,4 +1662,4 @@ debug_pickem_matching('tackles')
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)# Score column - gradient coloring based on score value
+    app.run(debug=True)
