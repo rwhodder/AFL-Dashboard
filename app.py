@@ -8,12 +8,23 @@ import dash_bootstrap_components as dbc
 from fixture_scraper import scrape_next_round_fixture
 from travel_fatigue import build_travel_log
 from stadium_locations import STADIUM_COORDS
-from stat_rules import apply_sensitivity
 from data_processor import load_and_prepare_data, calculate_dvp
-from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name  # NEW IMPORT
+from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name
 
 # ===== CONSTANTS =====
-OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # From main.py
+OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"
+
+# ── Google Sheets config ───────────────────────────────────────────────────────
+# 1. Go to https://console.cloud.google.com
+# 2. Create a project → enable "Google Sheets API" + "Google Drive API"
+# 3. Create credentials → Service Account → download JSON → save as
+#    "google_credentials.json" in the same folder as app.py
+# 4. Open your Google Sheet → Share → add the service account email as Editor
+GOOGLE_SHEET_ID          = "10GNqW9nE2fmacbdRQZtga3u8nGQlXch066GYQ9JgX7w"
+GOOGLE_CREDENTIALS_FILE  = "google_credentials.json"
+GOOGLE_SHEET_TAB         = "Bet Log"   # change if your tab has a different name
+# ──────────────────────────────────────────────────────────────────────────────
+
 POSITION_MAP = {
     "KeyF": ["FF", "CHF"],
     "GenF": ["HFFR", "HFFL", "FPL", "FPR"],
@@ -24,7 +35,6 @@ POSITION_MAP = {
     "KeyD": ["CHB", "FB"]
 }
 
-# Team name mapping (CSV abbreviation to full name used in fixture)
 TEAM_NAME_MAP = {
     "ADE": "Adelaide Crows",
     "BRL": "Brisbane Lions",
@@ -46,14 +56,146 @@ TEAM_NAME_MAP = {
     "WCE": "West Coast Eagles",
 }
 
+# ===== GOOGLE SHEETS HELPERS =====
+def get_sheets_client():
+    """Return an authorised gspread client, or None if credentials missing."""
+    try:
+        import gspread
+        from google.oauth2.service_account import Credentials
+
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive",
+        ]
+        creds  = Credentials.from_service_account_file(GOOGLE_CREDENTIALS_FILE, scopes=scopes)
+        client = gspread.authorize(creds)
+        return client
+    except FileNotFoundError:
+        print(f"⚠️  {GOOGLE_CREDENTIALS_FILE} not found — Sheets sync disabled.")
+        return None
+    except Exception as e:
+        print(f"⚠️  Sheets auth error: {e}")
+        return None
+
+
+def get_existing_sheet_keys(worksheet):
+    """
+    Return a set of (Type, Round, Player, Line) tuples already in the sheet.
+
+    Keying on Line (not just Player) means:
+    - A player pushed Thursday with 5 markets won't block new markets on Saturday
+      for the same player if the line is different.
+    - If a bookmaker updates a line between sessions the new line pushes as a
+      fresh row (useful for tracking line movement).
+    - Same player + same line in the same round is still treated as a duplicate
+      and skipped, so no double-ups.
+    """
+    try:
+        records = worksheet.get_all_records()
+        keys = set()
+        for row in records:
+            t = str(row.get("Type",   "")).strip()
+            r = str(row.get("Round",  "")).strip()
+            p = str(row.get("Player", "")).strip()
+            l = str(row.get("Line",   "")).strip()
+            if t and r and p:
+                keys.add((t, r, p, l))
+        return keys
+    except Exception as e:
+        print(f"⚠️  Could not read existing sheet keys: {e}")
+        return set()
+
+
+def push_to_google_sheets(disposals_df, marks_df, tackles_df, current_round):
+    """
+    Append new bet rows from all three stat-type dataframes to the master sheet.
+    All rows with a Line are pushed (not just flagged strategies).
+    Rows already present (same Type + Round + Player + Line) are skipped automatically.
+
+    Returns (rows_added, message).
+    """
+    client = get_sheets_client()
+    if client is None:
+        return 0, "❌ Google Sheets not configured — see GOOGLE_CREDENTIALS_FILE in app.py"
+
+    try:
+        sheet     = client.open_by_key(GOOGLE_SHEET_ID)
+        worksheet = sheet.worksheet(GOOGLE_SHEET_TAB)
+    except Exception as e:
+        return 0, f"❌ Could not open sheet: {e}"
+
+    # Master column order — matches your sheet exactly
+    COLUMNS = [
+        "Type", "Year", "Round", "Player", "Team", "Opponent", "Position",
+        "Travel Fatigue", "Weather", "DvP", "Line", "Avg vs Line",
+        "Line Consistency", "Bet Priority", "Bet Flag", "Actual", "W/L"
+    ]
+
+    # If sheet is empty write the header row first
+    existing_data = worksheet.get_all_values()
+    if not existing_data:
+        worksheet.append_row(COLUMNS)
+
+    existing_keys = get_existing_sheet_keys(worksheet)
+
+    import datetime
+    current_year = datetime.datetime.now().year
+
+    rows_to_add = []
+
+    for stat_label, df in [("Disposal", disposals_df),
+                            ("Mark",     marks_df),
+                            ("Tackle",   tackles_df)]:
+        if df is None or df.empty:
+            continue
+
+        for _, row in df.iterrows():
+            player   = str(row.get("Player", "")).strip()
+            line_val = str(row.get("Line",   "")).strip()
+            key      = (stat_label, str(current_round), player, line_val)
+
+            if key in existing_keys:
+                continue   # same player + same line already in sheet — skip
+
+            new_row = [
+                stat_label,                              # Type
+                current_year,                            # Year
+                current_round,                           # Round
+                player,                                  # Player
+                str(row.get("Team",             "")),
+                str(row.get("Opponent",         "")),
+                str(row.get("Position",         "")),
+                str(row.get("Travel Fatigue",   "")),
+                str(row.get("Weather",          "")),
+                str(row.get("DvP",              "")),
+                line_val,                                # Line
+                str(row.get("Avg vs Line",      "")),
+                str(row.get("Line Consistency", "")),
+                str(row.get("Bet Priority",     "")),
+                str(row.get("Bet Flag",         "")),
+                "",   # Actual  — filled mid-week by update_results.py
+                "",   # W/L     — filled mid-week by update_results.py
+            ]
+            rows_to_add.append(new_row)
+            existing_keys.add(key)   # prevent same-session dupes
+
+    if not rows_to_add:
+        return 0, "✅ Nothing new to push — all flagged bets already in sheet."
+
+    # Batch append for speed
+    worksheet.append_rows(rows_to_add, value_input_option="USER_ENTERED")
+    return len(rows_to_add), f"✅ {len(rows_to_add)} new bet row(s) pushed to Google Sheets."
+
+
 # ===== WEATHER FUNCTIONS =====
-# Imported from main.py
 import requests
 from datetime import datetime, timedelta
 import pytz
+import plotly.graph_objects as go
 
 def get_forecast(lat, lon):
-    url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&units=metric&appid={OPENWEATHER_API_KEY}"
+    url = (f"https://api.openweathermap.org/data/2.5/forecast"
+           f"?lat={lat}&lon={lon}&units=metric&appid={OPENWEATHER_API_KEY}")
     try:
         res = requests.get(url)
         res.raise_for_status()
@@ -63,190 +205,121 @@ def get_forecast(lat, lon):
         return []
 
 def extract_weather_for_datetime(forecast_list, target_datetime):
-    closest = None
+    closest  = None
     min_diff = timedelta(hours=3)
     for entry in forecast_list:
-        dt_txt = entry["dt_txt"]
-        dt = datetime.strptime(dt_txt, "%Y-%m-%d %H:%M:%S")
+        dt   = datetime.strptime(entry["dt_txt"], "%Y-%m-%d %H:%M:%S")
         diff = abs(dt - target_datetime.replace(tzinfo=None))
         if diff < min_diff:
             min_diff = diff
-            closest = entry
-
+            closest  = entry
     if not closest:
         return None
-
-    rain = closest.get("rain", {}).get("3h", 0.0)
-    wind = closest.get("wind", {}).get("speed", 0.0)
-    humid = closest.get("main", {}).get("humidity", 0.0)
-    return {"rain": rain, "wind": wind, "humidity": humid}
+    return {
+        "rain":     closest.get("rain",  {}).get("3h", 0.0),
+        "wind":     closest.get("wind",  {}).get("speed", 0.0),
+        "humidity": closest.get("main",  {}).get("humidity", 0.0),
+    }
 
 def categorize_weather_for_stat(weather, stat_type='disposals'):
-    # Get rain and wind values (no humidity)
     rain = float(weather.get('rain', 0)) if weather else 0
     wind = float(weather.get('wind', 0)) if weather else 0
-    
-    # Categorize rain
-    if rain < 1.2:
-        rain_value = 0
-    elif rain < 3.0:
-        rain_value = 1
-    elif rain <= 6.0:
-        rain_value = 2
-    else:
-        rain_value = 3
-        
-    # Categorize wind
-    if wind < 15:
-        wind_value = 0
-    elif wind <= 25:
-        wind_value = 1
-    else:
-        wind_value = 2
-    
-    # Calculate weather severity (rain + wind, no humidity)
-    severity_score = rain_value + wind_value
-    
-    if severity_score >= 3:
-        weather_severity = 2  # Strong
-    elif severity_score >= 1:
-        weather_severity = 1  # Medium
-    else:
-        weather_severity = 0  # Neutral
-    
-    # Apply stat-specific scoring
+
+    rain_value = 0 if rain < 1.2 else (1 if rain < 3.0 else (2 if rain <= 6.0 else 3))
+    wind_value = 0 if wind < 15  else (1 if wind <= 25 else 2)
+    severity   = rain_value + wind_value
+
+    weather_severity = 2 if severity >= 3 else (1 if severity >= 1 else 0)
+
     if stat_type in ['disposals', 'marks']:
         if weather_severity == 2:
-            flag_count = 3.0  # Strong
-            rating_text = "Strong"
+            flag_count, rating_text = 3.0, "Strong"
         elif weather_severity == 1:
-            flag_count = 2.0 if stat_type == 'marks' else 1.5  # Medium
-            rating_text = "Medium"
+            flag_count, rating_text = (2.0 if stat_type == 'marks' else 1.5), "Medium"
         else:
-            flag_count = 0  # Neutral
-            rating_text = "Neutral"
-            
-    elif stat_type == 'tackles':
-        # Only rain matters for tackles
-        if rain_value > 0:  # Any rain ≥1.2mm
-            flag_count = -999  # Avoid
-            rating_text = "Avoid"
+            flag_count, rating_text = 0, "Neutral"
+    else:  # tackles
+        if rain_value > 0:
+            flag_count, rating_text = -999, "Avoid"
         else:
-            flag_count = 0  # Neutral
-            rating_text = "Neutral"
-    
-    # Build display with both rain and wind
-    weather_factors = []
-    if rain_value > 0:
-        weather_factors.append("Rain")
-    if wind_value > 0:
-        weather_factors.append("Wind")
-    
-    weather_values_str = ', '.join(weather_factors) if weather_factors else "Clear conditions"
-    
-    # Create rating display
+            flag_count, rating_text = 0, "Neutral"
+
+    factors = []
+    if rain_value > 0: factors.append("Rain")
+    if wind_value > 0: factors.append("Wind")
+    factors_str = ', '.join(factors) if factors else "Clear conditions"
+
     if stat_type == 'tackles' and rain_value > 0:
-        rating = f"🔵 AVOID RAIN ({weather_values_str})"
+        rating = f"🔵 AVOID RAIN ({factors_str})"
     elif flag_count == 0:
         rating = "✅ Neutral"
     elif rating_text == "Medium":
-        rating = f"⚠️ Medium Unders Edge ({weather_values_str})"
-    elif rating_text == "Strong":
-        rating = f"🔴 Strong Unders Edge ({weather_values_str})"
-    
+        rating = f"⚠️ Medium Unders Edge ({factors_str})"
+    else:
+        rating = f"🔴 Strong Unders Edge ({factors_str})"
+
     return {
-        "Rating": rating,
+        "Rating":    rating,
         "FlagCount": flag_count,
-        "RawValues": f"Rain: {rain:.1f}mm, Wind: {wind:.1f}km/h"
+        "RawValues": f"Rain: {rain:.1f}mm, Wind: {wind:.1f}km/h",
     }
 
 
-# Function to calculate DvP for different stat types
 def calculate_dvp_for_stat(processed_df, stat_type='disposals'):
-    """Calculate DvP for a specific stat type (disposals, marks, or tackles)"""
     simplified_dvp = {}
-    
-    # Ensure the stat column exists
+
     if stat_type not in processed_df.columns:
         if stat_type == 'disposals' and 'kicks' in processed_df.columns and 'handballs' in processed_df.columns:
             processed_df[stat_type] = processed_df['kicks'] + processed_df['handballs']
         else:
-            print(f"Warning: {stat_type} column not found. Using zeros.")
             processed_df[stat_type] = 0
-            
-    # Handle column name differences
+
     if "opponentTeam" not in processed_df.columns and "opponent" in processed_df.columns:
         processed_df["opponentTeam"] = processed_df["opponent"]
-        
-    # Calculate role averages
-    role_averages = {}
-    for role in processed_df['role'].unique():
-        role_data = processed_df[processed_df['role'] == role]
-        if not role_data.empty:
-            role_averages[role] = role_data[stat_type].mean()
-    
-    # Calculate team-role averages and DvP
+
+    role_averages = {
+        role: processed_df[processed_df['role'] == role][stat_type].mean()
+        for role in processed_df['role'].unique()
+        if not processed_df[processed_df['role'] == role].empty
+    }
+
     for team in processed_df['opponentTeam'].unique():
         simplified_dvp[team] = {}
-        
         for role in processed_df['role'].unique():
-            team_role_data = processed_df[(processed_df['opponentTeam'] == team) & 
-                                        (processed_df['role'] == role)]
-            
-            if not team_role_data.empty and role in role_averages:
-                team_role_avg = team_role_data[stat_type].mean()
-                dvp = team_role_avg - role_averages[role]
-                
-                # Define thresholds based on stat type
-                if stat_type == 'disposals':
-                    strong_threshold = 2.0  # Strong Easy/Unders threshold
-                    moderate_threshold = 1.0  # Moderate Easy/Unders threshold
-                    slight_threshold = 0.1  # Slight Easy/Unders threshold
-                elif stat_type in ['marks', 'tackles']:
-                    strong_threshold = 1.0  # Lower thresholds for marks/tackles
-                    moderate_threshold = 0.5
-                    slight_threshold = 0.05
-                
-                # Categorize DvP (both positive and negative)
-                if dvp >= strong_threshold:
-                    strength = "Strong Easy"  # Strong positive DvP = Easy overs
-                elif dvp >= moderate_threshold:
-                    strength = "Moderate Easy"  # Moderate positive DvP
-                elif dvp >= slight_threshold:
-                    strength = "Slight Easy"  # Slight positive DvP
-                elif dvp <= -strong_threshold:
-                    strength = "Strong Unders"  # Strong negative DvP = Unders
-                elif dvp <= -moderate_threshold:
-                    strength = "Moderate Unders"  # Moderate negative DvP
-                elif dvp <= -slight_threshold:
-                    strength = "Slight Unders"  # Slight negative DvP
-                else:
-                    strength = "Neutral"  # Between -slight and +slight thresholds
-                
-                # Only store if it's not neutral (to keep the dictionary smaller)
-                if strength != "Neutral":
-                    simplified_dvp[team][role] = {
-                        "dvp": dvp,
-                        "strength": strength
-                    }
-    
+            subset = processed_df[(processed_df['opponentTeam'] == team) & (processed_df['role'] == role)]
+            if subset.empty or role not in role_averages:
+                continue
+            dvp = subset[stat_type].mean() - role_averages[role]
+
+            if stat_type == 'disposals':
+                st, mt, slt = 2.0, 1.0, 0.1
+            else:
+                st, mt, slt = 1.0, 0.5, 0.05
+
+            if   dvp >=  st:  strength = "Strong Easy"
+            elif dvp >=  mt:  strength = "Moderate Easy"
+            elif dvp >=  slt: strength = "Slight Easy"
+            elif dvp <= -st:  strength = "Strong Unders"
+            elif dvp <= -mt:  strength = "Moderate Unders"
+            elif dvp <= -slt: strength = "Slight Unders"
+            else:             strength = "Neutral"
+
+            if strength != "Neutral":
+                simplified_dvp[team][role] = {"dvp": dvp, "strength": strength}
+
     return simplified_dvp
 
 
 def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposals'):
-    score_value = 0
+    score_value  = 0
     score_factors = []
-    
-    # 1. TRAVEL FATIGUE IMPACTS (0 to 3.0 points)
+
     travel_fatigue = player_row.get('travel_fatigue', '')
-    travel_points = 0
+    travel_points  = 0
     travel_details = []
 
     if '(' in travel_fatigue:
-        flags_part = travel_fatigue.split('(')[1].split(')')[0]
-        flags = [flag.strip() for flag in flags_part.split(',')]
-        
-        # Calculate points based ONLY on flags, ignore fatigue_score
+        flags = [f.strip() for f in travel_fatigue.split('(')[1].split(')')[0].split(',')]
         for flag in flags:
             if "Long Travel" in flag:
                 travel_points += 2.0
@@ -254,1243 +327,1240 @@ def calculate_score(player_row, team_weather, simplified_dvp, stat_type='disposa
             elif "Short Break" in flag:
                 travel_points += 1.0
                 travel_details.append("Short Break: +1.0")
-            else:
-                # Don't add points for other flags
-                travel_details.append(f"{flag}: +0.0")
-
-        # Cap at 3.0 (Long Travel + Short Break = 2.0 + 1.0 = 3.0)
         travel_points = min(travel_points, 3.0)
-
-        # Apply travel points if any
         if travel_points > 0:
             score_factors.append(f"Travel: +{travel_points:.1f} ({', '.join(travel_details)})")
             score_value += travel_points
-    
-    # 2. WEATHER IMPACTS
-    team = player_row.get('team', '')
-    weather_points = 0
-    
-    if team in team_weather:
-        weather_data = team_weather[team]
-        flag_count = weather_data.get('FlagCount', 0)
-        
-        # Use the flag_count directly (already calculated per stat type in categorize_weather_for_stat)
-        weather_points = flag_count
-    
+
+    team          = player_row.get('team', '')
+    weather_points = team_weather.get(team, {}).get('FlagCount', 0)
     if weather_points > 0:
         score_factors.append(f"Weather: +{weather_points:.1f}")
-        score_value += weather_points
     elif weather_points < 0:
         score_factors.append(f"Weather: {weather_points:.1f}")
-        score_value += weather_points
-    
-    # 3. DVP IMPACTS (-1 to 4 points)
-    dvp_text = player_row.get('dvp', '')
-    dvp_points = 0
-    
-    if 'Strong' in dvp_text:
-        dvp_points = 4
-    elif 'Moderate' in dvp_text:
-        dvp_points = 2
-    elif 'Slight' in dvp_text:
-        dvp_points = 1
-    else:
-        dvp_points = -1  # Penalty for Neutral
-    
-    # Extract the numeric value if available for display
-    dvp_value = ""
-    if '(' in dvp_text and ')' in dvp_text:
-        dvp_value = dvp_text.split('(')[1].split(')')[0]
-    
-    if dvp_points > 0:
-        score_factors.append(f"DvP: +{dvp_points} ({dvp_value})")
-    else:
-        score_factors.append(f"DvP: {dvp_points} (Neutral)")
-    
-    score_value += dvp_points
-    
-    # Create a summary of all factors
-    factors_summary = " | ".join(score_factors)
-    
-    return {
-        "ScoreValue": score_value,
-        "Factors": factors_summary
-    }
+    score_value += weather_points
 
+    dvp_text = player_row.get('dvp', '')
+    dvp_pts  = 4 if 'Strong' in dvp_text else (2 if 'Moderate' in dvp_text else (1 if 'Slight' in dvp_text else -1))
+    score_factors.append(f"DvP: {'+' if dvp_pts > 0 else ''}{dvp_pts}")
+    score_value += dvp_pts
+
+    return {"ScoreValue": score_value, "Factors": " | ".join(score_factors)}
+
+
+# =============================================================================
+# CORE STRATEGY LOGIC — 6 finalised strategies
+# =============================================================================
 def calculate_bet_flag(player_row, stat_type='disposals'):
-    """Calculate bet flag based on the 6 specified strategies with updated win rates"""
+    """
+    Priority / Strategy / Win Rate / n
+      1  Tackle + Mod Travel + Avg <5%  + Slight Unders or Neutral DvP   95.7%  23
+      2  Mark   + Avg <-5%  + No Easy  + Line >5 + LC >60%               90.0%  20
+      3  KeyF Mark + Line >5 + No Easy DvP                               85.0%  20
+      4  Tackle + Strong Unders DvP + Avg <15%                           79.3%  29
+      5  Mark   + Strong Unders DvP + Line >4.5                          73.3%  30
+      6  GenF Tackle + exclude Slight Unders DvP                         69.8%  53
+
+    Global kill-switch: Short Break travel → skip all (overs signal, not unders).
+    """
     try:
-        # Extract values from the row
-        position = player_row.get('Position', player_row.get('position', ''))
-        weather = player_row.get('Weather', player_row.get('weather', ''))
-        dvp = player_row.get('DvP', player_row.get('dvp', ''))
-        travel_fatigue = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
-        line_str = player_row.get('Line', '')
-        avg_vs_line_str = player_row.get('Avg vs Line', '')
+        position             = player_row.get('Position',         player_row.get('position',          ''))
+        dvp                  = player_row.get('DvP',              player_row.get('dvp',                ''))
+        travel_fatigue       = player_row.get('Travel Fatigue',   player_row.get('travel_fatigue',     ''))
+        line_str             = player_row.get('Line',             '')
+        avg_vs_line_str      = player_row.get('Avg vs Line',      '')
         line_consistency_str = player_row.get('Line Consistency', '')
-        
-        # Parse the line value
-        line_value = None
-        if line_str and line_str != "":
-            try:
-                line_value = float(line_str)
-            except (ValueError, TypeError):
-                line_value = None
-        
-        # Parse the Avg vs Line percentage
+
+        if not line_str or line_str == "":
+            return {"priority": "", "description": ""}
+        try:
+            line_value = float(line_str)
+        except (ValueError, TypeError):
+            return {"priority": "", "description": ""}
+
         avg_vs_line_pct = None
-        if avg_vs_line_str and avg_vs_line_str != "":
+        if avg_vs_line_str:
             try:
-                # Remove % and + signs, convert to float
                 avg_vs_line_pct = float(avg_vs_line_str.replace('%', '').replace('+', ''))
             except (ValueError, TypeError):
-                avg_vs_line_pct = None
-        
-        # Parse the Line Consistency percentage
+                pass
+
         line_consistency_pct = None
-        if line_consistency_str and line_consistency_str != "":
+        if line_consistency_str:
             try:
                 line_consistency_pct = float(line_consistency_str.replace('%', ''))
             except (ValueError, TypeError):
-                line_consistency_pct = None
-        
-        # Parse travel and weather conditions
-        has_long_travel = 'Long Travel' in travel_fatigue
-        has_moderate_travel = 'Moderate' in travel_fatigue
-        
-        # Check rain and weather conditions
-        has_rain = 'Rain' in weather and 'Neutral' not in weather
-        has_neutral_weather = 'Neutral' in weather
-        
-        # Check DvP levels
-        has_moderate_unders_dvp = 'Moderate Unders' in dvp
-        has_strong_unders_dvp = 'Strong Unders' in dvp
-        has_easy_dvp = any(x in dvp for x in ['Strong Easy', 'Moderate Easy', 'Slight Easy'])
-        
-        # AUTO-SKIP RULES (CHECK FIRST - HIGHEST PRIORITY)
-        # SKIP if no line available - RETURN BLANK VALUES
-        if line_value is None:
+                pass
+
+        # travel
+        has_short_break     = 'Short Break'   in travel_fatigue
+        has_moderate_travel = 'Moderate'      in travel_fatigue
+
+        # DvP
+        has_slight_unders_dvp = 'Slight Unders'   in dvp
+        has_strong_unders_dvp = 'Strong Unders'   in dvp
+        has_neutral_dvp       = 'Neutral' in dvp and 'Unknown' not in dvp
+        has_easy_dvp          = any(x in dvp for x in ['Strong Easy', 'Moderate Easy', 'Slight Easy'])
+
+        # Global kill-switch
+        if has_short_break:
             return {"priority": "", "description": ""}
-        
-        # THE 6 SPECIFIED STRATEGIES
-        
-        # TOP TIER STRATEGIES
-        
-        # Strategy #1: KeyF + Mark + Line > 5 + No Easy DvP → 94% WR (16 bets)
-        if (stat_type == 'marks' and position == 'KeyF' and line_value > 5 and not has_easy_dvp):
-            return {"priority": "1", "description": "KeyF + Mark + Line > 5 + No Easy DvP → 94% WR (16 bets)"}
-        
-        # Strategy #2: Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets)
-        if (stat_type == 'tackles' and has_strong_unders_dvp and not has_rain and 
-            avg_vs_line_pct is not None and avg_vs_line_pct < 15):
-            return {"priority": "2", "description": "Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets)"}
-        
-        # MEDIUM TIER STRATEGIES
-        
-        # Strategy #3: Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets)
-        if (stat_type == 'tackles' and has_moderate_travel and not has_easy_dvp and not has_rain and 
-            avg_vs_line_pct is not None and avg_vs_line_pct < 5):
-            return {"priority": "3", "description": "Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets)"}
-        
-        # Strategy #4: Disposal + Line >27 + Strong or Moderate Unders DvP → 75.0% WR (8 bets)
-        if (stat_type == 'disposals' and line_value > 27 and 
-            (has_strong_unders_dvp or has_moderate_unders_dvp)):
-            return {"priority": "4", "description": "Disposal + Line >27 + Strong or Moderate Unders DvP → 75.0% WR (8 bets)"}
-        
-        # LOW TIER STRATEGIES
-        
-        # Strategy #5: GenD + Mark + Avg <0% + No Easy DvP + Line >5 + Line Consistency > 45% → 72% WR (32 bets)
-        if (stat_type == 'marks' and position == 'GenD' and line_value > 5 and not has_easy_dvp and 
-            avg_vs_line_pct is not None and avg_vs_line_pct < 0 and
-            line_consistency_pct is not None and line_consistency_pct > 45):
-            return {"priority": "5", "description": "GenD + Mark + Avg <0% + No Easy DvP + Line >5 + Line Consistency > 45% → 72% WR (32 bets)"}
-        
-        # Strategy #6: Disposal + Moderate Travel + Avg ≤-10% + No Easy DvP → 69% WR (16 bets)
-        if (stat_type == 'disposals' and has_moderate_travel and not has_easy_dvp and 
-            avg_vs_line_pct is not None and avg_vs_line_pct <= -10):
-            return {"priority": "6", "description": "Disposal + Moderate Travel + Avg ≤-10% + No Easy DvP → 69% WR (16 bets)"}
-        
-        # Default skip for anything that doesn't match the 6 strategies
+
+        # ── Strategy 1 ────────────────────────────────────────────────────────
+        if (stat_type == 'tackles'
+                and has_moderate_travel
+                and (has_slight_unders_dvp or has_neutral_dvp)
+                and avg_vs_line_pct is not None and avg_vs_line_pct < 5):
+            return {"priority": "1",
+                    "description": "Tackle + Mod Travel + Avg <5% + Slight Unders/Neutral DvP → 95.7% WR (22/23)"}
+
+        # ── Strategy 2 ────────────────────────────────────────────────────────
+        if (stat_type == 'marks'
+                and line_value > 5
+                and not has_easy_dvp
+                and avg_vs_line_pct      is not None and avg_vs_line_pct      < -5
+                and line_consistency_pct is not None and line_consistency_pct > 60):
+            return {"priority": "2",
+                    "description": "Mark + Avg <-5% + No Easy DvP + Line >5 + LC >60% → 90.0% WR (18/20)"}
+
+        # ── Strategy 3 ────────────────────────────────────────────────────────
+        if (stat_type == 'marks'
+                and position == 'KeyF'
+                and line_value > 5
+                and not has_easy_dvp):
+            return {"priority": "3",
+                    "description": "KeyF Mark + Line >5 + No Easy DvP → 85.0% WR (17/20)"}
+
+        # ── Strategy 4 ────────────────────────────────────────────────────────
+        if (stat_type == 'tackles'
+                and has_strong_unders_dvp
+                and avg_vs_line_pct is not None and avg_vs_line_pct < 15):
+            return {"priority": "4",
+                    "description": "Tackle + Strong Unders DvP + Avg <15% → 79.3% WR (23/29)"}
+
+        # ── Strategy 5 ────────────────────────────────────────────────────────
+        if (stat_type == 'marks'
+                and has_strong_unders_dvp
+                and line_value > 4.5):
+            return {"priority": "5",
+                    "description": "Mark + Strong Unders DvP + Line >4.5 → 73.3% WR (22/30)"}
+
+        # ── Strategy 6 ────────────────────────────────────────────────────────
+        if (stat_type == 'tackles'
+                and position == 'GenF'
+                and not has_slight_unders_dvp):
+            return {"priority": "6",
+                    "description": "GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53)"}
+
         return {"priority": "", "description": ""}
-        
+
     except Exception as e:
         print(f"ERROR in calculate_bet_flag: {e}")
-        import traceback
-        traceback.print_exc()
         return {"priority": "", "description": "ERROR"}
 
+
 def add_score_to_dataframe(df, team_weather, simplified_dvp, stat_type='disposals'):
-    """Add a score to the dataframe based on the specific stat type"""
-    score_column = 'Score'
-    
-    # Create new columns for the score
-    df[score_column] = 0
+    df['Score']        = ""
     df['ScoreFactors'] = ""
-    
-    # Calculate scores for each player
     for idx, row in df.iterrows():
-        score_data = calculate_score(row, team_weather, simplified_dvp, stat_type)
-        score_value = score_data["ScoreValue"]
-        
-        # Add a descriptive rating based on score thresholds
-        if score_value >= 9:
-            rating = "Strong Play"
-        elif score_value >= 6:
-            rating = "Good Play"
-        elif score_value >= 3:
-            rating = "Consider"
-        elif score_value >= 0:
-            rating = "Weak"
-        else:
-            rating = "Avoid"
-            
-        # Set the Score column to include both numeric score and rating
-        df[score_column] = df[score_column].astype(str)  # Ensure column is string type
-        df.at[idx, score_column] = f"{score_value:.1f} - {rating}"
-        df.at[idx, 'ScoreFactors'] = score_data["Factors"]
-    
+        sd    = calculate_score(row, team_weather, simplified_dvp, stat_type)
+        sv    = sd["ScoreValue"]
+        label = ("Strong Play" if sv >= 9 else "Good Play" if sv >= 6
+                 else "Consider" if sv >= 3 else "Weak" if sv >= 0 else "Avoid")
+        df.at[idx, 'Score']        = f"{sv:.1f} - {label}"
+        df.at[idx, 'ScoreFactors'] = sd["Factors"]
     return df
+
+
+STAKING_UNITS = {
+    "1": "3 units", "2": "3 units",
+    "3": "2 units", "4": "2 units",
+    "5": "1 unit",  "6": "1 unit",
+}
 
 def add_bet_flag_to_dataframe(df, stat_type='disposals'):
-    """Add bet flag columns to the dataframe"""
-    bet_results = df.apply(lambda row: calculate_bet_flag(row, stat_type), axis=1)
-    
-    df['Bet_Priority'] = bet_results.apply(lambda x: x['priority'])
-    df['Bet_Flag'] = bet_results.apply(lambda x: x['description'])
-    
+    results            = df.apply(lambda row: calculate_bet_flag(row, stat_type), axis=1)
+    df['Bet_Priority'] = results.apply(lambda x: x['priority'])
+    df['Bet_Flag']     = results.apply(lambda x: x['description'])
+    df['Units']        = df['Bet_Priority'].apply(lambda p: STAKING_UNITS.get(str(p), ""))
     return df
 
-# NEW FUNCTION: Add pickem lines to dataframe
+
 def add_pickem_lines_to_dataframe(df, stat_type='disposals'):
-    """Add pickem line data to the dataframe with enhanced name matching"""
     print(f"🎯 Adding pickem lines for {stat_type}...")
-    
     try:
-        # Get pickem data for this stat type
         pickem_data = get_pickem_data_for_dashboard(stat_type)
-        
         if not pickem_data:
-            print(f"⚠️ No pickem data found for {stat_type}, adding empty Line column")
             df['Line'] = ""
             return df
-        
-        print(f"📊 Got {len(pickem_data)} pickem lines for {stat_type}")
-        
-        # Create a more robust mapping function
+
         def get_player_line(player_name):
             if not player_name or pd.isna(player_name):
                 return ""
-            
             player_name = str(player_name).strip()
-            
-            # Method 1: Direct exact match (case insensitive)
-            for pickem_player, line_value in pickem_data.items():
-                if player_name.lower() == pickem_player.lower():
-                    print(f"  ✅ Direct match: '{player_name}' → {line_value}")
-                    return str(line_value)
-            
-            # Method 2: Try normalized versions
+
+            for pp, lv in pickem_data.items():
+                if player_name.lower() == pp.lower():
+                    return str(lv)
             try:
-                normalized_name = normalize_player_name(player_name)
-                for pickem_player, line_value in pickem_data.items():
-                    normalized_pickem = normalize_player_name(pickem_player)
-                    if normalized_name.lower() == normalized_pickem.lower():
-                        print(f"  ✅ Normalized match: '{player_name}' → '{pickem_player}' → {line_value}")
-                        return str(line_value)
-            except Exception as e:
-                print(f"  ⚠️ Error in normalize_player_name: {e}")
-            
-            # Method 3: Remove spaces and compare
-            player_no_space = player_name.replace(" ", "").lower()
-            for pickem_player, line_value in pickem_data.items():
-                pickem_no_space = pickem_player.replace(" ", "").lower()
-                if player_no_space == pickem_no_space:
-                    print(f"  ✅ No-space match: '{player_name}' → '{pickem_player}' → {line_value}")
-                    return str(line_value)
-            
-            # Method 4: Last name + first initial matching
-            try:
-                player_parts = player_name.split()
-                if len(player_parts) >= 2:
-                    player_last = player_parts[-1].lower()
-                    player_first_initial = player_parts[0][0].lower()
-                    
-                    for pickem_player, line_value in pickem_data.items():
-                        pickem_parts = pickem_player.split()
-                        if len(pickem_parts) >= 2:
-                            pickem_last = pickem_parts[-1].lower()
-                            pickem_first_initial = pickem_parts[0][0].lower()
-                            
-                            if (player_last == pickem_last and 
-                                player_first_initial == pickem_first_initial):
-                                print(f"  ✅ Initial match: '{player_name}' → '{pickem_player}' → {line_value}")
-                                return str(line_value)
-            except (IndexError, AttributeError):
+                nn = normalize_player_name(player_name)
+                for pp, lv in pickem_data.items():
+                    if nn.lower() == normalize_player_name(pp).lower():
+                        return str(lv)
+            except Exception:
                 pass
-            
-            # Method 5: Partial name matching (for nicknames, etc.)
-            for pickem_player, line_value in pickem_data.items():
-                # Check if either name contains the other (for cases like "Sam" vs "Samuel")
-                if (player_name.lower() in pickem_player.lower() or 
-                    pickem_player.lower() in player_name.lower()):
-                    # Make sure it's not a substring match that's too short
-                    if min(len(player_name), len(pickem_player)) >= 4:
-                        print(f"  ✅ Partial match: '{player_name}' → '{pickem_player}' → {line_value}")
-                        return str(line_value)
-            
-            # No match found
+            pns = player_name.replace(" ", "").lower()
+            for pp, lv in pickem_data.items():
+                if pns == pp.replace(" ", "").lower():
+                    return str(lv)
+            try:
+                parts = player_name.split()
+                if len(parts) >= 2:
+                    for pp, lv in pickem_data.items():
+                        pp_parts = pp.split()
+                        if (len(pp_parts) >= 2
+                                and parts[-1].lower() == pp_parts[-1].lower()
+                                and parts[0][0].lower() == pp_parts[0][0].lower()):
+                            return str(lv)
+            except Exception:
+                pass
+            for pp, lv in pickem_data.items():
+                if (player_name.lower() in pp.lower() or pp.lower() in player_name.lower()):
+                    if min(len(player_name), len(pp)) >= 4:
+                        return str(lv)
             return ""
-        
-        # Apply the mapping to add Line column
-        print(f"🔍 Attempting to match {len(df)} players...")
+
         df['Line'] = df['player'].apply(get_player_line)
-        
-        # Count successful matches
-        matched_count = sum(1 for line in df['Line'] if line != "")
-        total_players = len(df)
-        
-        print(f"✅ Successfully matched {matched_count}/{total_players} players with pickem lines")
-        
-        # Show some examples of successful and failed matches
-        matched_players = df[df['Line'] != ""][['player', 'Line']].head(5)
-        unmatched_players = df[df['Line'] == ""][['player']].head(5)
-        
-        if not matched_players.empty:
-            print("📋 Sample successful matches:")
-            for _, row in matched_players.iterrows():
-                print(f"   ✅ {row['player']}: {row['Line']}")
-        
-        if not unmatched_players.empty:
-            print("📋 Sample unmatched players:")
-            for _, row in unmatched_players.iterrows():
-                print(f"   ❌ {row['player']}")
-            
-            # Show what pickem players we have for comparison
-            print("📋 Sample available pickem players:")
-            for player in list(pickem_data.keys())[:5]:
-                print(f"   📊 {player}")
-        
+        matched = sum(1 for l in df['Line'] if l != "")
+        print(f"✅ Matched {matched}/{len(df)} players")
         return df
-        
     except Exception as e:
-        print(f"❌ Error adding pickem lines for {stat_type}: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f"❌ Error adding pickem lines: {e}")
         df['Line'] = ""
         return df
 
 
 def add_line_analysis_columns(df, stat_type='disposals'):
-    """Add Avg vs Line and Line Consistency columns to the dataframe"""
-    print(f"📊 Adding line analysis columns for {stat_type}...")
-    
+    print(f"📊 Adding line analysis for {stat_type}...")
     try:
-        # Load the full season stats
-        stats_df = pd.read_csv("afl_player_stats.csv", skiprows=3)
-        stats_df = stats_df.fillna(0)
-        
-        # Ensure we have the stat column
+        stats_df = pd.read_csv("afl_player_stats.csv", skiprows=3).fillna(0)
+
         if stat_type not in stats_df.columns:
-            if stat_type == 'disposals' and 'kicks' in stats_df.columns and 'handballs' in stats_df.columns:
+            if stat_type == 'disposals' and 'kicks' in stats_df.columns:
                 stats_df[stat_type] = stats_df['kicks'] + stats_df['handballs']
             else:
-                print(f"⚠️ Warning: {stat_type} column not found in stats data")
-                df['Avg vs Line'] = ""
+                df['Avg vs Line']     = ""
                 df['Line Consistency'] = ""
                 return df
-        
-        # Initialize the new columns
-        df['Avg vs Line'] = ""
+
+        df['Avg vs Line']     = ""
         df['Line Consistency'] = ""
-        
-        print(f"🔍 Processing {len(df)} players for line analysis...")
-        
-        # Process each player in the dataframe
+
         for idx, row in df.iterrows():
             player_name = row.get('Player', row.get('player', ''))
-            line_str = row.get('Line', '')
-            
-            # Skip if no line available
-            if not line_str or line_str == "":
-                df.at[idx, 'Avg vs Line'] = ""
-                df.at[idx, 'Line Consistency'] = ""
+            line_str    = row.get('Line', '')
+            if not line_str:
                 continue
-            
-            # Parse line value
             try:
                 line_value = float(line_str)
             except (ValueError, TypeError):
-                df.at[idx, 'Avg vs Line'] = ""
-                df.at[idx, 'Line Consistency'] = ""
                 continue
-            
-            # Find player's season stats
-            player_stats = stats_df[stats_df['player'].str.lower() == player_name.lower()]
-            
-            if player_stats.empty:
-                # Try fuzzy matching if exact match fails
-                for stats_player in stats_df['player'].unique():
-                    if (stats_player.lower().replace(" ", "") == player_name.lower().replace(" ", "") or
-                        (len(player_name.split()) >= 2 and len(stats_player.split()) >= 2 and
-                         player_name.split()[-1].lower() == stats_player.split()[-1].lower() and
-                         player_name.split()[0][0].lower() == stats_player.split()[0][0].lower())):
-                        player_stats = stats_df[stats_df['player'] == stats_player]
+
+            ps = stats_df[stats_df['player'].str.lower() == player_name.lower()]
+            if ps.empty:
+                for sp in stats_df['player'].unique():
+                    if (sp.lower().replace(" ", "") == player_name.lower().replace(" ", "")
+                            or (len(player_name.split()) >= 2 and len(sp.split()) >= 2
+                                and player_name.split()[-1].lower() == sp.split()[-1].lower()
+                                and player_name.split()[0][0].lower() == sp.split()[0][0].lower())):
+                        ps = stats_df[stats_df['player'] == sp]
                         break
-            
-            if player_stats.empty:
-                print(f"   ⚠️ No stats found for {player_name}")
-                df.at[idx, 'Avg vs Line'] = ""
-                df.at[idx, 'Line Consistency'] = ""
+            if ps.empty:
                 continue
-            
-            # Calculate season average
-            stat_values = player_stats[stat_type].values
-            season_avg = stat_values.mean()
-            
-            # 1. Calculate Avg vs Line: (Line / Avg) - 1
-            if season_avg > 0:
-                avg_vs_line_ratio = (line_value / season_avg) - 1
-                avg_vs_line_pct = avg_vs_line_ratio * 100
-                df.at[idx, 'Avg vs Line'] = f"{avg_vs_line_pct:+.1f}%"
-            else:
-                df.at[idx, 'Avg vs Line'] = ""
-            
-            # 2. Calculate Line Consistency: % of games below the line
-            games_below_line = sum(1 for value in stat_values if value < line_value)
-            total_games = len(stat_values)
-            
-            if total_games > 0:
-                consistency_pct = (games_below_line / total_games) * 100
-                df.at[idx, 'Line Consistency'] = f"{consistency_pct:.1f}%"
-            else:
-                df.at[idx, 'Line Consistency'] = ""
-            
-            # Log some examples for verification
-            if idx < 5:  # Log first 5 for debugging
-                print(f"   ✅ {player_name}: Line={line_value}, Avg={season_avg:.1f}, "
-                      f"Avg vs Line={df.at[idx, 'Avg vs Line']}, "
-                      f"Below Line={games_below_line}/{total_games} = {df.at[idx, 'Line Consistency']}")
-        
-        # Count successful calculations
-        successful_avg = sum(1 for val in df['Avg vs Line'] if val != "")
-        successful_consistency = sum(1 for val in df['Line Consistency'] if val != "")
-        
-        print(f"✅ Successfully calculated:")
-        print(f"   - Avg vs Line: {successful_avg}/{len(df)} players")
-        print(f"   - Line Consistency: {successful_consistency}/{len(df)} players")
-        
+
+            vals = ps[stat_type].values
+            avg  = vals.mean()
+            if avg > 0:
+                df.at[idx, 'Avg vs Line'] = f"{((line_value / avg) - 1) * 100:+.1f}%"
+            below = sum(1 for v in vals if v < line_value)
+            if len(vals) > 0:
+                df.at[idx, 'Line Consistency'] = f"{(below / len(vals)) * 100:.1f}%"
+
         return df
-        
     except Exception as e:
-        print(f"❌ Error adding line analysis columns: {e}")
-        import traceback
-        traceback.print_exc()
-        df['Avg vs Line'] = ""
+        print(f"❌ Error adding line analysis: {e}")
+        df['Avg vs Line']     = ""
         df['Line Consistency'] = ""
         return df
 
 
-def interpret_line_analysis(avg_vs_line_str, consistency_str):
-    """Helper function to interpret the line analysis values"""
-    interpretation = []
-    
-    # Interpret Avg vs Line
-    if avg_vs_line_str and avg_vs_line_str != "":
-        try:
-            avg_vs_line = float(avg_vs_line_str.replace('%', '').replace('+', ''))
-            
-            if avg_vs_line > 10:
-                interpretation.append("🔴 Line Much Higher Than Avg (Strong Unders)")
-            elif avg_vs_line > 5:
-                interpretation.append("🟠 Line Higher Than Avg (Unders)")
-            elif avg_vs_line > -5:
-                interpretation.append("🟡 Line Close To Avg (Neutral)")
-            elif avg_vs_line > -10:
-                interpretation.append("🔵 Line Lower Than Avg (Overs)")
-            else:
-                interpretation.append("🟢 Line Much Lower Than Avg (Strong Overs)")
-        except:
-            pass
-    
-    # Interpret Line Consistency
-    if consistency_str and consistency_str != "":
-        try:
-            consistency = float(consistency_str.replace('%', ''))
-            
-            if consistency >= 70:
-                interpretation.append("🎯 Very Consistent Unders (70%+ below line)")
-            elif consistency >= 60:
-                interpretation.append("📈 Consistent Unders (60%+ below line)")
-            elif consistency >= 40:
-                interpretation.append("⚖️ Balanced (40-60% below line)")
-            elif consistency >= 30:
-                interpretation.append("📉 Consistent Overs (30%+ above line)")
-            else:
-                interpretation.append("🚀 Very Consistent Overs (70%+ above line)")
-        except:
-            pass
-    
-    return " | ".join(interpretation) if interpretation else ""
-
-
-# Process dashboard data for a specific stat type
 def process_data_for_dashboard(stat_type='disposals'):
+    global dvp_data_by_stat
     try:
-        print("🔴🔴🔴 UPDATED CODE IS RUNNING - VERSION 2.0 🔴🔴🔴")
-        print(f"Starting process_data_for_dashboard for {stat_type}...")
-        
-        # Step 1: Get next round fixtures
+        print(f"▶ process_data_for_dashboard({stat_type})")
+
+        # fixtures
         try:
             fixtures = scrape_next_round_fixture()
             if not fixtures:
-                print("⚠️ No fixture data found. Using test data.")
-                fixtures = [
-                    {
-                        "match": "Team A vs Team B",
-                        "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
-                        "stadium": "MCG"
-                    }
-                ]
+                fixtures = [{"match": "Team A vs Team B",
+                             "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
+                             "stadium": "MCG"}]
         except Exception as e:
-            print(f"Error fetching fixtures: {e}. Using test data.")
-            fixtures = [
-                {
-                    "match": "Team A vs Team B",
-                    "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
-                    "stadium": "MCG"
-                }
-            ]
-        
-        print(f"Got {len(fixtures)} fixtures")
-        
-        # Step 2: Get weather data for each match
+            print(f"Fixtures error: {e}")
+            fixtures = [{"match": "Team A vs Team B",
+                         "datetime": datetime.now(pytz.timezone('Australia/Melbourne')),
+                         "stadium": "MCG"}]
+
+        # weather
         weather_data = {}
         for match in fixtures:
             stadium = match["stadium"]
-            latlon = STADIUM_COORDS.get(stadium)
-            
+            latlon  = STADIUM_COORDS.get(stadium)
             if not latlon:
                 for key in STADIUM_COORDS:
                     if key.lower() in stadium.lower():
                         latlon = STADIUM_COORDS[key]
                         break
-                if not latlon:
-                    print(f"⚠️ Unknown venue: {stadium}. Using default coordinates.")
-                    latlon = (-37.8199, 144.9834)  # Default to MCG
-            
+                latlon = latlon or (-37.8199, 144.9834)
             try:
-                forecast_list = get_forecast(*latlon)
-                weather = extract_weather_for_datetime(forecast_list, match["datetime"])
-                
-                match_key = match["match"]
-                if weather:
-                    weather_data[match_key] = weather
-                else:
-                    print(f"⚠️ No forecast found for {match['match']} at {stadium}. Using default values.")
-                    weather_data[match_key] = {"rain": 0, "wind": 0, "humidity": 50}
+                forecast  = get_forecast(*latlon)
+                weather   = extract_weather_for_datetime(forecast, match["datetime"])
+                weather_data[match["match"]] = weather or {"rain": 0, "wind": 0, "humidity": 50}
             except Exception as e:
-                print(f"Error fetching weather: {e}. Using default values.")
                 weather_data[match["match"]] = {"rain": 0, "wind": 0, "humidity": 50}
-        
-        print(f"Processed weather data for {len(weather_data)} matches")
-        print("Weather information for each match:")
-        for match_key, weather in weather_data.items():
-            weather_rating = categorize_weather_for_stat(weather, stat_type)
-            
-            try:
-                home_team, away_team = match_key.split(" vs ")
-            except:
-                home_team = "Unknown"
-                away_team = "Unknown"
-            
-            rating = weather_rating.get('Rating', '✅ Neutral')
-            raw_values = weather_rating.get('RawValues', 'No data')
-            flag_count = weather_rating.get('FlagCount', 0)
-            
-            print(f" - {match_key}: {raw_values}")
-            print(f"   Rating: {rating} (Impact Score: {flag_count:.1f})")
-            print("   ---")
 
-        # Step 3: Process travel fatigue data
+        # travel log (used for build only — real fatigue via hardcoded pairs)
         try:
-            travel_log = build_travel_log()
-            print(f"Built travel log with {len(travel_log)} entries")
-            # The print statements we're seeing are coming from build_travel_log() itself
-            # We need to process the data here without relying on its output
-        except Exception as e:
-            print(f"Error building travel log: {e}. Using empty log.")
-            travel_log = []
-        
-        # Step 4: Load player stats
+            build_travel_log()
+        except Exception:
+            pass
+
+        # player stats
         try:
-            df = pd.read_csv("afl_player_stats.csv", skiprows=3)
-            df = df.fillna(0)
-            print(f"Loaded player stats with {len(df)} rows")
+            df = pd.read_csv("afl_player_stats.csv", skiprows=3).fillna(0)
         except Exception as e:
-            print(f"Error loading player stats: {e}. Creating test data.")
+            print(f"Stats load error: {e}")
             df = pd.DataFrame([
-                {
-                    "player": "Test Player 1", 
-                    "team": "Team A",
-                    "opponent": "Team B", 
-                    "round": 10,
-                    "namedPosition": "CHF",
-                    "disposals": 20,
-                    "marks": 5,
-                    "tackles": 4
-                },
-                {
-                    "player": "Test Player 2", 
-                    "team": "Team B",
-                    "opponent": "Team A", 
-                    "round": 10,
-                    "namedPosition": "RK",
-                    "disposals": 15,
-                    "marks": 3,
-                    "tackles": 6
-                }
+                {"player": "Test Player 1", "team": "Team A", "opponent": "Team B",
+                 "round": 10, "namedPosition": "CHF", "disposals": 20, "marks": 5, "tackles": 4},
             ])
-        
-        # Step 5: Generate DvP data for the specific stat type
+
+        # DvP
         try:
-            processed_df = load_and_prepare_data("afl_player_stats.csv")
-            
-            if stat_type not in processed_df.columns:
-                if stat_type == 'disposals' and 'kicks' in processed_df.columns and 'handballs' in processed_df.columns:
-                    processed_df[stat_type] = processed_df['kicks'] + processed_df['handballs']
-                else:
-                    if 'disposals' in processed_df.columns:
-                        if stat_type == 'marks':
-                            processed_df[stat_type] = processed_df['disposals'] * 0.2
-                        elif stat_type == 'tackles':
-                            processed_df[stat_type] = processed_df['disposals'] * 0.15
-                    else:
-                        processed_df[stat_type] = 0
-                    print(f"Warning: {stat_type} column created with fallback values")
-            
-            simplified_dvp = calculate_dvp_for_stat(processed_df, stat_type)
-            print(f"Created {stat_type}-specific DvP data with {len(simplified_dvp)} teams")
+            proc = load_and_prepare_data("afl_player_stats.csv")
+            if stat_type not in proc.columns:
+                proc[stat_type] = proc.get('kicks', 0) + proc.get('handballs', 0) \
+                    if stat_type == 'disposals' else 0
+            simplified_dvp = calculate_dvp_for_stat(proc, stat_type)
+            dvp_data_by_stat[stat_type] = simplified_dvp
         except Exception as e:
-            print(f"Warning in {stat_type} DvP calculation: {e}")
+            print(f"DvP error: {e}")
             simplified_dvp = {}
-        
-        # Step 6: Extract team matchups for next round
-        team_weather = {}
+            dvp_data_by_stat[stat_type] = {}
+
+        # team weather + opponents
+        team_weather   = {}
         team_opponents = {}
-        
-        print("Next round fixtures:")
         for match in fixtures:
-            match_str = match["match"]
-            print(f" - {match_str}")
             try:
-                home_team, away_team = match_str.split(" vs ")
-                
-                weather = weather_data.get(match_str)
-                if weather:
-                    weather_rating = categorize_weather_for_stat(weather, stat_type)
-                    team_weather[home_team] = weather_rating
-                    team_weather[away_team] = weather_rating
-                    
-                    # Also store by abbreviation for each team
-                    for abbr, name in TEAM_NAME_MAP.items():
-                        if name == home_team:
-                            team_weather[abbr] = weather_rating
-                        if name == away_team:
-                            team_weather[abbr] = weather_rating
-                
-                team_opponents[home_team] = away_team
-                team_opponents[away_team] = home_team
-            except Exception as e:
-                print(f"Error processing match {match_str}: {e}")
-        
-        # Step 7: Filter for players - include teams with byes
+                home, away = match["match"].split(" vs ")
+                wr = categorize_weather_for_stat(weather_data.get(match["match"], {}), stat_type)
+                for name in [home, away]:
+                    team_weather[name] = wr
+                    for abbr, full in TEAM_NAME_MAP.items():
+                        if full == name:
+                            team_weather[abbr] = wr
+                team_opponents[home] = away
+                team_opponents[away] = home
+            except Exception:
+                pass
+
+        # recent players
         try:
-            latest_round = df['round'].max()
-            print(f"Latest round in data: {latest_round}")
-            
-            # Get players from the last 2 rounds to catch teams that had byes
-            recent_rounds = [latest_round, latest_round - 1]
-            recent_data = df[df['round'].isin(recent_rounds)].copy()
-            print(f"Players from rounds {recent_rounds}: {len(recent_data)}")
-            
-            # Get the most recent game for each player (handles byes)
-            player_teams = recent_data.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
-            print(f"Unique players after including bye teams: {len(player_teams)}")
-            
-            if len(player_teams) == 0:
-                print("No players found in recent rounds. Using all players.")
-                player_teams = df.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
-            
-            next_round_players = player_teams.copy()
-            print(f"Using {len(next_round_players)} players for the dashboard")
+            latest = df['round'].max()
+            recent = df[df['round'].isin([latest, latest - 1])].copy()
+            players = recent.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
+            if players.empty:
+                players = df.sort_values('round', ascending=False).groupby(['player', 'team']).first().reset_index()
         except Exception as e:
-            print(f"Error filtering players: {e}. Using full dataset.")
-            next_round_players = df.sort_values('round', ascending=False).groupby('player').first().reset_index()
-        
-        # Step 8: Add travel fatigue using hardcoded long travel pairs
-        travel_dict = {}
+            players = df.sort_values('round', ascending=False).groupby('player').first().reset_index()
 
-        print("\n" + "="*80)
-        print("PROCESSING TRAVEL FATIGUE USING HARDCODED PAIRS ONLY:")
-        print("="*80)
-
+        # travel fatigue — hardcoded long-distance pairs
         long_distance_pairs = set([
-            # WA → Victoria
-            ("WCE", "MEL"), ("WCE", "GEE"), ("WCE", "COL"), ("WCE", "HAW"),
-            ("WCE", "CAR"), ("WCE", "ESS"), ("WCE", "NTH"), ("WCE", "RIC"),
-            ("WCE", "STK"), ("WCE", "WBD"),
-            ("FRE", "MEL"), ("FRE", "GEE"), ("FRE", "COL"), ("FRE", "HAW"),
-            ("FRE", "CAR"), ("FRE", "ESS"), ("FRE", "NTH"), ("FRE", "RIC"),
-            ("FRE", "STK"), ("FRE", "WBD"),
-
-            # WA → East coast
-            ("WCE", "SYD"), ("WCE", "GWS"), ("WCE", "BRL"), ("WCE", "GCS"),
-            ("FRE", "SYD"), ("FRE", "GWS"), ("FRE", "BRL"), ("FRE", "GCS"),
-
-            # Adelaide → Perth
-            ("ADE", "WCE"), ("ADE", "FRE"), ("PTA", "WCE"), ("PTA", "FRE"),
-
-            # Perth → Adelaide
-            ("WCE", "ADE"), ("FRE", "ADE"), ("WCE", "PTA"), ("FRE", "PTA"),
-
-            # QLD → Victoria
-            ("BRL", "MEL"), ("BRL", "GEE"), ("BRL", "COL"), ("BRL", "HAW"),
-            ("BRL", "CAR"), ("BRL", "ESS"), ("BRL", "NTH"), ("BRL", "RIC"),
-            ("BRL", "STK"), ("BRL", "WBD"),
-            ("GCS", "MEL"), ("GCS", "GEE"), ("GCS", "COL"), ("GCS", "HAW"),
-            ("GCS", "CAR"), ("GCS", "ESS"), ("GCS", "NTH"), ("GCS", "RIC"),
-            ("GCS", "STK"), ("GCS", "WBD"),
-
-            # QLD → Adelaide
-            ("BRL", "ADE"), ("BRL", "PTA"), ("GCS", "ADE"), ("GCS", "PTA"),
-
-            # East coast → WA
-            ("SYD", "WCE"), ("SYD", "FRE"), ("GWS", "WCE"), ("GWS", "FRE"),
-            ("BRL", "WCE"), ("BRL", "FRE"), ("GCS", "WCE"), ("GCS", "FRE"),
-
-            # Victoria → WA
-            ("MEL", "WCE"), ("GEE", "WCE"), ("COL", "WCE"), ("HAW", "WCE"),
-            ("CAR", "WCE"), ("ESS", "WCE"), ("NTH", "WCE"), ("RIC", "WCE"),
-            ("STK", "WCE"), ("WBD", "WCE"),
-            ("MEL", "FRE"), ("GEE", "FRE"), ("COL", "FRE"), ("HAW", "FRE"),
-            ("CAR", "FRE"), ("ESS", "FRE"), ("NTH", "FRE"), ("RIC", "FRE"),
-            ("STK", "FRE"), ("WBD", "FRE"),
-
-            # Victoria → QLD
-            ("MEL", "BRL"), ("GEE", "BRL"), ("COL", "BRL"), ("HAW", "BRL"),
-            ("CAR", "BRL"), ("ESS", "BRL"), ("NTH", "BRL"), ("RIC", "BRL"),
-            ("STK", "BRL"), ("WBD", "BRL"),
-            ("MEL", "GCS"), ("GEE", "GCS"), ("COL", "GCS"), ("HAW", "GCS"),
-            ("CAR", "GCS"), ("ESS", "GCS"), ("NTH", "GCS"), ("RIC", "GCS"),
-            ("STK", "GCS"), ("WBD", "GCS"),
-
-            # Adelaide → QLD
-            ("ADE", "BRL"), ("ADE", "GCS"), ("PTA", "BRL"), ("PTA", "GCS")
+            ("WCE","MEL"),("WCE","GEE"),("WCE","COL"),("WCE","HAW"),("WCE","CAR"),
+            ("WCE","ESS"),("WCE","NTH"),("WCE","RIC"),("WCE","STK"),("WCE","WBD"),
+            ("FRE","MEL"),("FRE","GEE"),("FRE","COL"),("FRE","HAW"),("FRE","CAR"),
+            ("FRE","ESS"),("FRE","NTH"),("FRE","RIC"),("FRE","STK"),("FRE","WBD"),
+            ("WCE","SYD"),("WCE","GWS"),("WCE","BRL"),("WCE","GCS"),
+            ("FRE","SYD"),("FRE","GWS"),("FRE","BRL"),("FRE","GCS"),
+            ("ADE","WCE"),("ADE","FRE"),("PTA","WCE"),("PTA","FRE"),
+            ("WCE","ADE"),("FRE","ADE"),("WCE","PTA"),("FRE","PTA"),
+            ("BRL","MEL"),("BRL","GEE"),("BRL","COL"),("BRL","HAW"),("BRL","CAR"),
+            ("BRL","ESS"),("BRL","NTH"),("BRL","RIC"),("BRL","STK"),("BRL","WBD"),
+            ("GCS","MEL"),("GCS","GEE"),("GCS","COL"),("GCS","HAW"),("GCS","CAR"),
+            ("GCS","ESS"),("GCS","NTH"),("GCS","RIC"),("GCS","STK"),("GCS","WBD"),
+            ("BRL","ADE"),("BRL","PTA"),("GCS","ADE"),("GCS","PTA"),
+            ("SYD","WCE"),("SYD","FRE"),("GWS","WCE"),("GWS","FRE"),
+            ("BRL","WCE"),("BRL","FRE"),("GCS","WCE"),("GCS","FRE"),
+            ("MEL","WCE"),("GEE","WCE"),("COL","WCE"),("HAW","WCE"),("CAR","WCE"),
+            ("ESS","WCE"),("NTH","WCE"),("RIC","WCE"),("STK","WCE"),("WBD","WCE"),
+            ("MEL","FRE"),("GEE","FRE"),("COL","FRE"),("HAW","FRE"),("CAR","FRE"),
+            ("ESS","FRE"),("NTH","FRE"),("RIC","FRE"),("STK","FRE"),("WBD","FRE"),
+            ("MEL","BRL"),("GEE","BRL"),("COL","BRL"),("HAW","BRL"),("CAR","BRL"),
+            ("ESS","BRL"),("NTH","BRL"),("RIC","BRL"),("STK","BRL"),("WBD","BRL"),
+            ("MEL","GCS"),("GEE","GCS"),("COL","GCS"),("HAW","GCS"),("CAR","GCS"),
+            ("ESS","GCS"),("NTH","GCS"),("RIC","GCS"),("STK","GCS"),("WBD","GCS"),
+            ("ADE","BRL"),("ADE","GCS"),("PTA","BRL"),("PTA","GCS"),
         ])
 
-        latest_round = df['round'].max()
-
-        # Build travel fatigue for teams playing in next round
-        # First, determine home/away teams from fixture data
-        home_away_mapping = {}
+        home_away = {}
         for match in fixtures:
-            match_str = match["match"]
             try:
-                home_team_full, away_team_full = match_str.split(" vs ")
-                
-                # Find abbreviations
-                home_abbr = None
-                away_abbr = None
+                hf, af = match["match"].split(" vs ")
+                ha = ab = None
                 for abbr, name in TEAM_NAME_MAP.items():
-                    if name == home_team_full:
-                        home_abbr = abbr
-                    if name == away_team_full:
-                        away_abbr = abbr
-                
-                if home_abbr and away_abbr:
-                    home_away_mapping[home_abbr] = {'opponent': away_abbr, 'is_home': True}
-                    home_away_mapping[away_abbr] = {'opponent': home_abbr, 'is_home': False}
-                    
-            except Exception as e:
-                print(f"Error parsing match for home/away: {match_str}")
+                    if name == hf: ha = abbr
+                    if name == af: ab = abbr
+                if ha and ab:
+                    home_away[ha] = {'opponent': ab, 'is_home': True}
+                    home_away[ab] = {'opponent': ha, 'is_home': False}
+            except Exception:
+                pass
 
-        # Now process travel fatigue - only flag away teams that are traveling long distance
-        for team_abbr in next_round_players['team'].unique():
-            full_name = TEAM_NAME_MAP.get(team_abbr, team_abbr)
-            
-            # Get opponent and home/away status
-            team_info = home_away_mapping.get(team_abbr, {})
-            opponent_abbr = team_info.get('opponent')
-            is_home = team_info.get('is_home', True)  # Default to home if unknown
-            
-            # Only check travel fatigue for away teams
-            if not is_home and opponent_abbr:
-                pair = (team_abbr, opponent_abbr)
-                flagged = pair in long_distance_pairs
-                
-                # DEBUG: print exactly what's being checked
-                print(f"Checking travel for: {team_abbr} (AWAY) vs {opponent_abbr} (HOME) → Flagged: {flagged}")
-                
-                emoji = "🟠 Moderate (Long Travel)" if flagged else "✅ Neutral"
+        travel_dict = {}
+        for team in players['team'].unique():
+            info     = home_away.get(team, {})
+            opp      = info.get('opponent')
+            is_home  = info.get('is_home', True)
+            if not is_home and opp and (team, opp) in long_distance_pairs:
+                travel_dict[team] = "🟠 Moderate (Long Travel)"
             else:
-                # Home teams don't get travel fatigue
-                flagged = False
-                status = "HOME" if is_home else "UNKNOWN"
-                print(f"Checking travel for: {team_abbr} ({status}) vs {opponent_abbr} → Flagged: {flagged}")
-                emoji = "✅ Neutral"
-            
-            travel_dict[team_abbr] = emoji
-            print(f" - {full_name} ({team_abbr}): {emoji}")
+                travel_dict[team] = "✅ Neutral"
 
-        # Map travel fatigue to players
-        next_round_players['travel_fatigue'] = next_round_players['team'].map(
-            lambda x: travel_dict.get(x, "✅ Neutral")
-        )
+        players['travel_fatigue'] = players['team'].map(lambda x: travel_dict.get(x, "✅ Neutral"))
+        players['weather']        = players['team'].map(
+            lambda x: team_weather.get(x, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral"))
 
-        # Add travel fatigue with fallback for missing teams
-        next_round_players['travel_fatigue'] = next_round_players['team'].map(
-            lambda x: travel_dict.get(x, "✅ Neutral")
-        )
-        
-        # Step 9: Add weather data with fallback for all teams
-        next_round_players['weather'] = next_round_players['team'].map(
-            lambda x: team_weather.get(x, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
-        )
+        def get_opp(team):
+            full = TEAM_NAME_MAP.get(team, team)
+            opp  = team_opponents.get(full, "Unknown")
+            for a, n in TEAM_NAME_MAP.items():
+                if n == opp:
+                    return a
+            return opp
 
-        print("\nTeam weather mapping check:")
-        for team_abbr in next_round_players['team'].unique():
-            team_full = TEAM_NAME_MAP.get(team_abbr, team_abbr)
-            weather_rating = team_weather.get(team_abbr, {"Rating": "✅ Neutral"}).get('Rating', "✅ Neutral")
-            print(f" - {team_abbr} ({team_full}): {weather_rating}")
-        
-        # Step 10: Add opponent for DvP with fallback
-        def get_team_full_name(team_abbr):
-            return TEAM_NAME_MAP.get(team_abbr, team_abbr)
-        
-        def get_team_opponent(team_abbr):
-            full_name = get_team_full_name(team_abbr)
-            opponent_full_name = team_opponents.get(full_name, "Unknown")
-            
-            # Find the abbreviation for the opponent if possible
-            for abbr, name in TEAM_NAME_MAP.items():
-                if name == opponent_full_name:
-                    return abbr
-            
-            return opponent_full_name
-        
-        # Apply the mapping
-        next_round_players['opponent'] = next_round_players['team'].apply(get_team_opponent)
-        
-        # If we still have "Unknown" opponents, log them
-        unknown_opponents = next_round_players[next_round_players['opponent'] == "Unknown"]['team'].unique()
-        if len(unknown_opponents) > 0:
-            print(f"Warning: {len(unknown_opponents)} teams have unknown opponents:")
-            for team in unknown_opponents:
-                print(f" - {team}: No opponent found in fixture (full name: {get_team_full_name(team)})")
-        
-        # Step 11: Add role positions with default for unknown
-        def map_position(pos):
+        players['opponent'] = players['team'].apply(get_opp)
+
+        def map_pos(pos):
             if pd.isna(pos) or pos == "":
                 return "Unknown"
             for role, tags in POSITION_MAP.items():
                 if pos in tags:
                     return role
             return "Unknown"
-        
-        if 'namedPosition' in next_round_players.columns:
-            next_round_players["position"] = next_round_players["namedPosition"].apply(map_position)
-        else:
-            print("Warning: namedPosition column missing. Using default positions.")
-            next_round_players["position"] = "Unknown"
-            
-        print("Added position mapping")
-        
-        # Step 12: Add DvP indicators with better error handling
-        def get_dvp_rating(row):
-            try:
-                team = row['opponent'] if 'opponent' in row else "Unknown"
-                pos = row['position'] if 'position' in row else "Unknown"
-                
-                # Handle missing or None values
-                if team is None or pos is None or team == "Unknown" or pos == "Unknown":
-                    return "⚠️ Unknown"
-                    
-                # Use the simplified_dvp dictionary instead of dataframe lookups
-                if team in simplified_dvp and pos in simplified_dvp[team]:
-                    dvp_info = simplified_dvp[team][pos]
-                    strength = dvp_info["strength"]
-                    
-                    # Return DvP rating with blue icons for Easy and red for Unders
-                    if strength == "Strong Unders":
-                        return "🔴 Strong Unders"
-                    elif strength == "Moderate Unders":
-                        return "🟠 Moderate Unders"
-                    elif strength == "Slight Unders":
-                        return "🟡 Slight Unders"
-                    elif strength == "Strong Easy":
-                        return "🔵 Strong Easy"
-                    elif strength == "Moderate Easy":
-                        return "🔷 Moderate Easy"
-                    elif strength == "Slight Easy":
-                        return "🔹 Slight Easy"
-                
-                return "✅ Neutral"
-            except Exception as e:
-                print(f"Error in DvP rating: {e}")
-                return "⚠️ Unknown"
-        
-        next_round_players['dvp'] = next_round_players.apply(get_dvp_rating, axis=1)
-        
-        # Step 13: Add pickem lines (NEW STEP)
-        result_df = add_pickem_lines_to_dataframe(next_round_players, stat_type)
-        
-        # Step 13.5: Add line analysis columns (NEW STEP)
-        result_df = add_line_analysis_columns(result_df, stat_type)
 
-        # Step 14: Clean up and select final columns for display (UPDATED to include Line)
-        result_df = result_df[['player', 'team', 'opponent', 'position', 'travel_fatigue', 
-                      'weather', 'dvp', 'Line', 'Avg vs Line', 'Line Consistency']].copy()
-        
-        # Calculate the Unders Score for each player (for bet flag calculation only)
-        result_df = add_score_to_dataframe(result_df, team_weather, simplified_dvp, stat_type)
-        
-        # Add bet flag based on filtering criteria
-        result_df = add_bet_flag_to_dataframe(result_df, stat_type)
-        
-        # Final columns for display (REMOVED Bet_Tier column)
-        # This selects 12 columns to match your updated mapping
-        display_df = result_df[['player', 'team', 'opponent', 'position', 
-                        'travel_fatigue', 'weather', 'dvp', 'Line', 
-                        'Avg vs Line', 'Line Consistency',
-                        'Bet_Priority', 'Bet_Flag']].copy()
-        
-        # Rename columns for display (REMOVED Bet Tier column)
-        column_mapping = {
-            'player': 'Player', 
-            'team': 'Team', 
-            'opponent': 'Opponent', 
-            'position': 'Position',
-            'travel_fatigue': 'Travel Fatigue', 
-            'weather': 'Weather', 
-            'dvp': 'DvP',
-            'Line': 'Line',
-            'Avg vs Line': 'Avg vs Line',
-            'Line Consistency': 'Line Consistency',
-            'Bet_Priority': 'Bet Priority',
-            'Bet_Flag': 'Bet Flag'
-        }
-        # Apply the column renaming
-        display_df.columns = list(column_mapping.values())
-        
-        # Filter out rows with no line data
-        display_df = display_df[display_df['Line'] != ""].copy()
-        print(f"After filtering out players with no lines: {len(display_df)} rows remaining")
-        
-        # Sort by Bet Priority (ascending) then by Team (ascending)
-        # First, handle the sorting properly for Bet Priority column
-        def sort_bet_priority(priority_str):
-            """Convert bet priority to numeric for proper sorting"""
-            if pd.isna(priority_str) or priority_str == "" or priority_str == "SKIP":
-                return 999  # Put non-priorities at the end
+        players["position"] = players.get("namedPosition", pd.Series(["Unknown"] * len(players))).apply(map_pos)
+
+        # ── Fallback: fill Unknown positions from historical stats data ───────
+        # If a player's position is Unknown this round (missing namedPosition),
+        # look up their most recently recorded namedPosition from the full CSV
+        # and use that instead. Players rarely change position roles mid-season.
+        unknown_mask = players["position"] == "Unknown"
+        if unknown_mask.any():
             try:
-                return int(priority_str)
-            except (ValueError, TypeError):
-                return 999  # Put invalid values at the end
-        
-        # Create a temporary column for sorting
-        display_df['_sort_priority'] = display_df['Bet Priority'].apply(sort_bet_priority)
-        
-        # Sort by priority first (ascending), then by team (ascending)
-        display_df = display_df.sort_values(['_sort_priority', 'Team'], ascending=[True, True])
-        
-        # Remove the temporary sorting column
-        display_df = display_df.drop('_sort_priority', axis=1)
-        
-        print(f"Final dashboard data for {stat_type} has {len(display_df)} rows")
-        print(f"Filtered to show only players with betting lines available")
-        print(f"Sorted by: Bet Priority (ascending), then Team (ascending)")
-        return display_df
-        
+                # Build a lookup: player name → most recent known role
+                hist = df[["player", "round", "namedPosition"]].copy()
+                hist = hist[hist["namedPosition"].notna() & (hist["namedPosition"] != "")]
+                hist = hist.sort_values("round", ascending=False)
+                hist["role"] = hist["namedPosition"].apply(map_pos)
+                hist = hist[hist["role"] != "Unknown"]
+                # Keep most recent known role per player
+                hist_lookup = (
+                    hist.groupby("player")["role"]
+                    .first()
+                    .to_dict()
+                )
+
+                def fill_position(row):
+                    if row["position"] != "Unknown":
+                        return row["position"]
+                    # Try exact match
+                    name = row["player"]
+                    if name in hist_lookup:
+                        return hist_lookup[name]
+                    # Try case-insensitive match
+                    name_lower = name.lower()
+                    for hist_name, role in hist_lookup.items():
+                        if hist_name.lower() == name_lower:
+                            return role
+                    return "Unknown"
+
+                players["position"] = players.apply(fill_position, axis=1)
+                filled = unknown_mask.sum() - (players["position"] == "Unknown").sum()
+                if filled > 0:
+                    print(f"✅ Filled {filled} Unknown positions from historical data")
+                still_unknown = (players["position"] == "Unknown").sum()
+                if still_unknown > 0:
+                    print(f"⚠️  {still_unknown} players still have Unknown position (new players or data gap)")
+            except Exception as e:
+                print(f"⚠️  Position fallback failed: {e}")
+        # ─────────────────────────────────────────────────────────────────────
+
+        DVP_MAP = {
+            "Strong Unders":   "🔴 Strong Unders",
+            "Moderate Unders": "🟠 Moderate Unders",
+            "Slight Unders":   "🟡 Slight Unders",
+            "Strong Easy":     "🔵 Strong Easy",
+            "Moderate Easy":   "🔷 Moderate Easy",
+            "Slight Easy":     "🔹 Slight Easy",
+        }
+
+        def get_dvp(row):
+            team = row.get('opponent', 'Unknown')
+            pos  = row.get('position', 'Unknown')
+            if team == 'Unknown' or pos == 'Unknown':
+                return "⚠️ Unknown"
+            if team in simplified_dvp and pos in simplified_dvp[team]:
+                return DVP_MAP.get(simplified_dvp[team][pos]["strength"], "✅ Neutral")
+            return "✅ Neutral"
+
+        players['dvp'] = players.apply(get_dvp, axis=1)
+
+        result = add_pickem_lines_to_dataframe(players, stat_type)
+        result = add_line_analysis_columns(result, stat_type)
+
+        result = result[['player', 'team', 'opponent', 'position', 'travel_fatigue',
+                          'weather', 'dvp', 'Line', 'Avg vs Line', 'Line Consistency']].copy()
+
+        result = add_score_to_dataframe(result, team_weather, simplified_dvp, stat_type)
+        result = add_bet_flag_to_dataframe(result, stat_type)
+
+        display = result[['player', 'team', 'opponent', 'position', 'travel_fatigue',
+                           'weather', 'dvp', 'Line', 'Avg vs Line', 'Line Consistency',
+                           'Bet_Priority', 'Bet_Flag', 'Units']].copy()
+
+        display.columns = ['Player', 'Team', 'Opponent', 'Position', 'Travel Fatigue',
+                           'Weather', 'DvP', 'Line', 'Avg vs Line', 'Line Consistency',
+                           'Bet Priority', 'Bet Flag', 'Units']
+
+        display = display[display['Line'] != ""].copy()
+
+        def sort_priority(p):
+            try:
+                return int(p)
+            except Exception:
+                return 999
+
+        display['_sort'] = display['Bet Priority'].apply(sort_priority)
+        display = display.sort_values(['_sort', 'Team']).drop('_sort', axis=1)
+
+        print(f"✅ {stat_type}: {len(display)} rows")
+        return display
+
     except Exception as e:
-        print(f"CRITICAL ERROR in process_data_for_dashboard for {stat_type}: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        # Return a minimal valid dataframe
+        print(f"CRITICAL ERROR ({stat_type}): {e}")
+        import traceback; traceback.print_exc()
         return pd.DataFrame([{
-            'Player': f'Error: {str(e)}',
-            'Team': 'Error',
-            'Opponent': 'Error',
-            'Position': 'Error',
-            'Travel Fatigue': 'Error',
-            'Weather': 'Error', 
-            'DvP': 'Error',
-            'Line': 'Error',
-            'Bet Priority': 'Error',
-            'Bet Flag': 'Error'
+            'Player': f'Error: {e}', 'Team': '', 'Opponent': '', 'Position': '',
+            'Travel Fatigue': '', 'Weather': '', 'DvP': '', 'Line': '',
+            'Avg vs Line': '', 'Line Consistency': '', 'Bet Priority': '', 'Bet Flag': ''
         }])
 
+
+# ===== MULTI BUILDER =====
+
+STRATEGY_WR_MAP = {
+    "1": 95.7, "2": 90.0, "3": 85.0,
+    "4": 79.3,  "5": 73.3, "6": 69.8,
+}
+MULTI_PAYOUT = 3.20
+
+
+def generate_pairings(all_bets):
+    """
+    Generate all two-leg pairings from a list of flagged bets.
+    Scores each pairing by EV at $3.20, adjusted for correlation.
+    Returns top 60 pairings sorted by EV descending.
+    """
+    pairings = []
+
+    for i in range(len(all_bets)):
+        for j in range(i + 1, len(all_bets)):
+            a, b = all_bets[i], all_bets[j]
+
+            wr_a = STRATEGY_WR_MAP.get(str(a.get('Bet Priority', '')), 70) / 100
+            wr_b = STRATEGY_WR_MAP.get(str(b.get('Bet Priority', '')), 70) / 100
+
+            # Skip same-team pairings (not allowed)
+            if a['Team'] == b['Team']:
+                continue
+
+            game_a = frozenset([a['Team'], a['Opponent']])
+            game_b = frozenset([b['Team'], b['Opponent']])
+            same_game = game_a == game_b
+
+            stat_a = str(a.get('Stat', '')).lower()
+            stat_b = str(b.get('Stat', '')).lower()
+
+            # Correlation scoring
+            corr_bonus = 0.0
+            warning    = ""
+            if same_game:
+                if stat_a == stat_b:
+                    corr_bonus  = 0.08
+                    corr_label  = "✅ Same game · same stat"
+                elif stat_a in ('disposals', 'marks') and stat_b in ('disposals', 'marks'):
+                    corr_bonus  = 0.06
+                    corr_label  = "✅ Same game · disposal+mark"
+                else:
+                    corr_bonus  = -0.05
+                    corr_label  = "⚠️ Same game · mixed stats"
+                    warning     = "⚠️"
+            else:
+                corr_label = "— Different games"
+
+            adj_wr = min(wr_a * wr_b + corr_bonus, 0.99)
+            ev_pct = round((adj_wr * MULTI_PAYOUT - 1) * 100, 1)
+
+            pairings.append({
+                'Flag':        warning,
+                'Leg 1':       f"{a['Player']} ({a['Team']}) {a.get('Stat','?')} U{a['Line']}",
+                'P1':          f"P{a['Bet Priority']}",
+                'Leg 2':       f"{b['Player']} ({b['Team']}) {b.get('Stat','?')} U{b['Line']}",
+                'P2':          f"P{b['Bet Priority']}",
+                'Correlation': corr_label,
+                'Combined WR': f"{adj_wr * 100:.1f}%",
+                'EV at $3.20': f"{ev_pct:+.1f}%",
+                '_ev':         adj_wr * MULTI_PAYOUT - 1,
+                '_p1':         a['Player'],
+                '_p2':         b['Player'],
+                '_units':      max(
+                    int(STAKING_UNITS.get(str(a.get('Bet Priority','')), '1 unit').split()[0]),
+                    int(STAKING_UNITS.get(str(b.get('Bet Priority','')), '1 unit').split()[0]),
+                ),
+            })
+
+    pairings.sort(key=lambda x: x['_ev'], reverse=True)
+    return pairings[:60]
+
+
+def build_portfolio(pairings):
+    """
+    Greedy selection of non-overlapping pairings — no player used twice.
+    Returns the best set of multis for the round.
+    """
+    used = set()
+    portfolio = []
+    for pair in pairings:   # already sorted by EV descending
+        p1, p2 = pair['_p1'], pair['_p2']
+        if p1 not in used and p2 not in used:
+            portfolio.append(pair)
+            used.add(p1)
+            used.add(p2)
+    return portfolio
+
+
+def build_multi_builder_layout():
+    # Collect all flagged bets across all stat types
+    all_bets = []
+    for stat_type, label in [('disposals', 'Disposals'), ('marks', 'Marks'), ('tackles', 'Tackles')]:
+        df = processed_data_by_stat.get(stat_type)
+        if df is None or df.empty:
+            continue
+        flagged = df[df['Bet Priority'].astype(str).str.strip() != ''].copy()
+        flagged['Stat'] = label
+        all_bets.append(flagged)
+
+    if not all_bets:
+        return dbc.Alert(
+            "No flagged bets found. Load data first or check that Dabble markets are open.",
+            color="warning", className="mt-3"
+        )
+
+    combined = pd.concat(all_bets, ignore_index=True)
+
+    # ── Individual legs table ────────────────────────────────────────────────
+    legs_display = combined[['Bet Priority', 'Units', 'Stat', 'Player', 'Team',
+                              'Opponent', 'Position', 'Line', 'DvP',
+                              'Avg vs Line', 'Bet Flag']].copy()
+
+    priority_colours = {
+        "1": "#28a745", "2": "#28a745",
+        "3": "#ffc107", "4": "#ffc107",
+        "5": "#17a2b8", "6": "#17a2b8",
+    }
+    units_colours = {
+        "3 units": "#28a745", "2 units": "#ffc107", "1 unit": "#17a2b8",
+    }
+
+    legs_style = []
+    for p, col in priority_colours.items():
+        legs_style.append({
+            'if': {'column_id': 'Bet Priority', 'filter_query': f'{{Bet Priority}} = "{p}"'},
+            'backgroundColor': col, 'color': 'white' if p in ('1','2','5','6') else 'black',
+            'fontWeight': 'bold',
+        })
+    for u, col in units_colours.items():
+        legs_style.append({
+            'if': {'column_id': 'Units', 'filter_query': f'{{Units}} = "{u}"'},
+            'backgroundColor': col, 'color': 'white' if u in ('3 units', '1 unit') else 'black',
+            'fontWeight': 'bold', 'textAlign': 'center',
+        })
+
+    legs_table = dash_table.DataTable(
+        data=legs_display.to_dict('records'),
+        columns=[{"name": c, "id": c} for c in legs_display.columns],
+        style_table={"overflowX": "auto"},
+        style_cell={"textAlign": "left", "padding": "7px 10px", "fontFamily": "Arial", "fontSize": "13px"},
+        style_header={"backgroundColor": "#343a40", "color": "white", "fontWeight": "bold"},
+        style_data_conditional=legs_style,
+        sort_action="native",
+        page_size=25,
+    )
+
+    # ── Pairings table ───────────────────────────────────────────────────────
+    bets_list = combined.to_dict('records')
+    pairings  = generate_pairings(bets_list)
+
+    if not pairings:
+        pairings_section = dbc.Alert("Not enough flagged bets to build pairings.", color="info")
+    else:
+        pairs_df = pd.DataFrame([{k: v for k, v in p.items() if not k.startswith('_')} for p in pairings])
+
+        pair_style = [
+            # Green EV
+            {'if': {'filter_query': '{EV at $3.20} contains "+"', 'column_id': 'EV at $3.20'},
+             'color': '#28a745', 'fontWeight': 'bold'},
+            # Red EV
+            {'if': {'filter_query': '{EV at $3.20} contains "-"', 'column_id': 'EV at $3.20'},
+             'color': '#dc3545', 'fontWeight': 'bold'},
+            # Warning rows
+            {'if': {'filter_query': '{Flag} = "⚠️"'},
+             'backgroundColor': '#fff3cd'},
+            # P1-2 priority colouring
+            {'if': {'filter_query': '{P1} = "P1" || {P1} = "P2"', 'column_id': 'P1'},
+             'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{P2} = "P1" || {P2} = "P2"', 'column_id': 'P2'},
+             'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{P1} = "P3" || {P1} = "P4"', 'column_id': 'P1'},
+             'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{P2} = "P3" || {P2} = "P4"', 'column_id': 'P2'},
+             'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{P1} = "P5" || {P1} = "P6"', 'column_id': 'P1'},
+             'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'filter_query': '{P2} = "P5" || {P2} = "P6"', 'column_id': 'P2'},
+             'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
+        ]
+
+        pairings_section = dash_table.DataTable(
+            data=pairs_df.to_dict('records'),
+            columns=[{"name": c, "id": c} for c in pairs_df.columns],
+            style_table={"overflowX": "auto"},
+            style_cell={"textAlign": "left", "padding": "7px 10px", "fontFamily": "Arial", "fontSize": "13px"},
+            style_header={"backgroundColor": "#343a40", "color": "white", "fontWeight": "bold"},
+            style_data_conditional=pair_style,
+            sort_action="native",
+            page_size=20,
+        )
+
+    # ── Portfolio (non-overlapping multis) ──────────────────────────────────
+    portfolio     = build_portfolio(pairings) if pairings else []
+    total_units   = sum(p['_units'] for p in portfolio)
+    total_ev_pct  = round(sum(p['_ev'] for p in portfolio) / max(len(portfolio), 1) * 100, 1) if portfolio else 0
+
+    priority_badge = {
+        'P1': 'success', 'P2': 'success',
+        'P3': 'warning',  'P4': 'warning',
+        'P5': 'info',     'P6': 'info',
+    }
+
+    portfolio_cards = []
+    for idx, p in enumerate(portfolio, 1):
+        portfolio_cards.append(
+            dbc.Card([
+                dbc.CardHeader(
+                    dbc.Row([
+                        dbc.Col(html.Strong(f"Multi {idx}"), width="auto"),
+                        dbc.Col(
+                            html.Span(f"EV {p['EV at $3.20']}",
+                                      className=f"badge bg-{'success' if '+' in p['EV at $3.20'] else 'danger'}"),
+                            width="auto"
+                        ),
+                        dbc.Col(
+                            html.Span(f"{p['_units']} unit{'s' if p['_units'] != 1 else ''}",
+                                      className=f"badge bg-{'success' if p['_units']==3 else 'warning' if p['_units']==2 else 'info'} text-{'dark' if p['_units']==2 else 'white'}"),
+                            width="auto"
+                        ),
+                        dbc.Col(
+                            html.Small(p['Correlation'], className="text-muted"),
+                            width="auto"
+                        ),
+                    ], align="center", className="g-2")
+                ),
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            html.Span(p['P1'], className=f"badge bg-{priority_badge.get(p['P1'],'secondary')} me-2"),
+                            html.Strong(p['Leg 1']),
+                        ], className="mb-1"),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            html.Span(p['P2'], className=f"badge bg-{priority_badge.get(p['P2'],'secondary')} me-2"),
+                            html.Strong(p['Leg 2']),
+                        ]),
+                    ]),
+                ], className="py-2"),
+            ], className="mb-2 shadow-sm",
+               color="warning" if p['Flag'] == '⚠️' else "light",
+               outline=True)
+        )
+
+    portfolio_section = html.Div([
+        dbc.Alert([
+            html.Strong(f"📋 Round portfolio — {len(portfolio)} multis · {total_units} total units · avg EV {total_ev_pct:+.1f}%"),
+            html.Span("  No player appears twice. Place these as separate two-leg multis.",
+                      className="text-muted small ms-2"),
+        ], color="success" if portfolio else "secondary", className="mb-3"),
+        html.Div(portfolio_cards) if portfolio_cards else
+            dbc.Alert("Not enough flagged bets to build a portfolio.", color="info"),
+    ])
+
+    # ── Staking legend ───────────────────────────────────────────────────────
+    staking_legend = dbc.Alert([
+        html.Strong("Staking guide: "),
+        html.Span("3 units — P1/P2 (90–96% WR)  ", className="badge bg-success me-2"),
+        html.Span("2 units — P3/P4 (79–85% WR)  ", className="badge bg-warning text-dark me-2"),
+        html.Span("1 unit  — P5/P6 (70–73% WR)  ", className="badge bg-info me-2"),
+        "  ·  EV calculated at $3.20 payout  ·  ⚠️ yellow = avoid (mixed stat types same game)",
+    ], color="light", className="mb-3 small")
+
+    return html.Div([
+        staking_legend,
+        html.H5("🎯 Recommended multi portfolio", className="mb-2 mt-2"),
+        portfolio_section,
+        html.Hr(),
+        html.H5(f"All flagged legs ({len(combined)})", className="mb-2 mt-3"),
+        legs_table,
+        html.Hr(),
+        html.H5(f"All valid pairings (top {len(pairings)}, ranked by EV)", className="mb-2 mt-3"),
+        pairings_section,
+    ])
+
+
 # ===== DASH APP =====
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app    = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 server = app.server
 
-# Store separate processed data for each stat type
-processed_data_by_stat = {
-    'disposals': None,
-    'marks': None,
-    'tackles': None
-}
+processed_data_by_stat = {'disposals': None, 'marks': None, 'tackles': None}
 
-# Define the layout with Export to CSV feature (UPDATED TRAVEL FATIGUE LEGEND AND REMOVED BET TIER)
+# Stores simplified_dvp per stat type so edits can recalculate DvP
+dvp_data_by_stat = {'disposals': {}, 'marks': {}, 'tackles': {}}
+
+# Tracks when each stat type was last pulled from Dabble
+last_pulled_at = {'disposals': None, 'marks': None, 'tackles': None}
+current_round_number   = None   # set when data loads, used by Sheets push
+
 app.layout = dbc.Container([
     html.H1("AFL Player Dashboard - Next Round", className="text-center my-4"),
-    
-    # Hidden div to store the loaded data
-    html.Div(id='loaded-data', style={'display': 'none'}),
-    
-    # Add Download component for CSV export
+
+    html.Div(id='loaded-data',        style={'display': 'none'}),
+    html.Div(id='sheets-push-status', style={'display': 'none'}),
     dcc.Download(id="download-csv"),
-    
-    # Add tabs for stat selection
+
+    # Auto-refresh performance tracker every 5 minutes
+    dcc.Interval(id='perf-interval', interval=5*60*1000, n_intervals=0),
+
     dbc.Tabs([
-        dbc.Tab(label="Disposals", tab_id="tab-disposals", labelClassName="fw-bold"),
-        dbc.Tab(label="Marks", tab_id="tab-marks", labelClassName="fw-bold"),
-        dbc.Tab(label="Tackles", tab_id="tab-tackles", labelClassName="fw-bold"),
+        dbc.Tab(label="Disposals",            tab_id="tab-disposals",    labelClassName="fw-bold"),
+        dbc.Tab(label="Marks",                tab_id="tab-marks",        labelClassName="fw-bold"),
+        dbc.Tab(label="Tackles",              tab_id="tab-tackles",      labelClassName="fw-bold"),
+        dbc.Tab(label="🎯 Multi Builder",     tab_id="tab-multi",        labelClassName="fw-bold text-success"),
+        dbc.Tab(label="📊 Performance",       tab_id="tab-performance",  labelClassName="fw-bold text-primary"),
     ], id="stat-tabs", active_tab="tab-disposals", className="mb-3"),
-    
-    # Rest of the layout
+
     dbc.Row([
+        # ── filters ──────────────────────────────────────────────────────────
         dbc.Col([
             html.Div([
                 html.H5("Filter by Team:"),
-                dcc.Dropdown(
-                    id="team-filter",
-                    placeholder="Select team(s)...",
-                    clearable=True,
-                    multi=True
-                ),
-                html.Button(
-                    "Clear Team Filter", 
-                    id="clear-team-filter", 
-                    className="btn btn-outline-secondary btn-sm mt-1"
-                )
+                dcc.Dropdown(id="team-filter", placeholder="Select team(s)...",
+                             clearable=True, multi=True),
+                html.Button("Clear Team Filter", id="clear-team-filter",
+                            className="btn btn-outline-secondary btn-sm mt-1"),
             ], className="mb-4"),
-            
             html.Div([
                 html.H5("Filter by Position:"),
-                dcc.Dropdown(
-                    id="position-filter",
-                    options=[
-                        {"label": "Key Forward", "value": "KeyF"},
-                        {"label": "General Forward", "value": "GenF"},
-                        {"label": "Ruck", "value": "Ruck"},
-                        {"label": "Inside Mid", "value": "InsM"},
-                        {"label": "Wing", "value": "Wing"},
-                        {"label": "General Defender", "value": "GenD"},
-                        {"label": "Key Defender", "value": "KeyD"}
-                    ],
-                    placeholder="Select a position...",
-                    clearable=True
-                )
-            ], className="mb-4")
+                dcc.Dropdown(id="position-filter", clearable=True, options=[
+                    {"label": "Key Forward",     "value": "KeyF"},
+                    {"label": "General Forward", "value": "GenF"},
+                    {"label": "Ruck",            "value": "Ruck"},
+                    {"label": "Inside Mid",      "value": "InsM"},
+                    {"label": "Wing",            "value": "Wing"},
+                    {"label": "General Defender","value": "GenD"},
+                    {"label": "Key Defender",    "value": "KeyD"},
+                ], placeholder="Select a position..."),
+            ], className="mb-4"),
         ], width=3),
-        
-        # Legend cards - simplified layout (REMOVED BET TIER LEGEND)
+
+        # ── legend cards ─────────────────────────────────────────────────────
         dbc.Col([
             dbc.Row([
                 dbc.Col([
                     html.Div([
                         html.H4("Travel Fatigue", className="text-center"),
                         html.Div([
-                            html.Span("✅ Neutral", className="badge bg-success me-2"),
-                            html.Span("🟠 Long Travel", className="badge bg-warning me-2")
+                            html.Span("✅ Neutral",     className="badge bg-success me-2"),
+                            html.Span("🟠 Long Travel", className="badge bg-warning me-2"),
                         ], className="d-flex justify-content-center")
-                    ], className="border rounded p-2 mb-3", 
-                    id="travel-fatigue-legend",
-                    title="Travel fatigue now only considers long-distance travel (>1500km). Teams traveling across the country get the Long Travel flag.")
+                    ], className="border rounded p-2 mb-3", id="travel-fatigue-legend",
+                    title="Long travel (>1500 km away) = fatigue flag. Short Break = kill-switch, overs signal."),
                 ], width=6),
-                
                 dbc.Col([
                     html.Div([
                         html.H4("Weather", className="text-center"),
                         html.Div([
-                            html.Span("✅ Neutral", className="badge bg-success me-2"),
+                            html.Span("✅ Neutral",            className="badge bg-success me-2"),
                             html.Span("⚠️ Medium Unders Edge", className="badge bg-warning me-2"),
                             html.Span("🔴 Strong Unders Edge", className="badge bg-danger me-2"),
-                            html.Span("🔵 Avoid", className="badge bg-primary")
-                        ], className="d-flex justify-content-center")
-                    ], className="border rounded p-2 mb-3",
-                    id="weather-legend",
-                    title="Weather impacts: Rain + Wind affect disposals/marks negatively, but rain increases tackles (avoid tackles unders in rain).")
+                            html.Span("🔵 Avoid",              className="badge bg-primary"),
+                        ], className="d-flex justify-content-center flex-wrap")
+                    ], className="border rounded p-2 mb-3", id="weather-legend",
+                    title="Rain+Wind suppress disposals/marks. Rain on tackles = Avoid (rain boosts tackle counts)."),
                 ], width=6),
             ]),
-            
             dbc.Row([
                 dbc.Col([
                     html.Div([
                         html.H4("DvP", className="text-center"),
                         html.Div([
-                            html.Span("✅ Neutral", className="badge bg-success me-2"),
-                            html.Span("🟡🟠🔴 Unders", className="badge bg-warning text-dark me-2"),
-                            html.Span("🔹🔷🔵 Easy", className="badge bg-info me-2")
+                            html.Span("✅ Neutral",       className="badge bg-success me-2"),
+                            html.Span("🟡🟠🔴 Unders",   className="badge bg-warning text-dark me-2"),
+                            html.Span("🔹🔷🔵 Easy",     className="badge bg-info me-2"),
                         ], className="d-flex justify-content-center flex-wrap")
-                    ], className="border rounded p-2 mb-3",
-                    id="dvp-legend",
-                    title="Defense vs Position shows historical matchup difficulty. 🔴🟠🟡 Unders = opponent allows fewer stats than average (good for unders bets). 🔵🔷🔹 Easy = opponent allows more stats than average (good for overs bets). Intensity shows strength: Slight < Moderate < Strong.")
+                    ], className="border rounded p-2 mb-3", id="dvp-legend",
+                    title="Defence vs Position. Unders = opponent suppresses the role. Easy = opponent leaks stats. Slight < Moderate < Strong."),
                 ], width=6),
-                
                 dbc.Col([
                     html.Div([
                         html.H4("Bet Strategies", className="text-center"),
                         html.Div([
-                            html.Span("Top Tier: 94% WR", className="badge bg-success me-2"),
-                            html.Span("Medium Tier: 75-79% WR", className="badge bg-warning text-dark me-2"),
-                            html.Span("Low Tier: 69-72% WR", className="badge bg-info")
+                            html.Span("P1–2: 90–96% WR", className="badge bg-success me-2"),
+                            html.Span("P3–4: 79–85% WR", className="badge bg-warning text-dark me-2"),
+                            html.Span("P5–6: 70–73% WR", className="badge bg-info"),
                         ], className="d-flex justify-content-center flex-wrap")
-                    ], className="border rounded p-2 mb-3",
-                    id="bet-strategy-legend",
-                    title="Bet strategies based on win rates: Top Tier (94% WR), Medium Tier (75-79% WR), Low Tier (69-72% WR). Higher win rates indicate more reliable betting opportunities.")
+                    ], className="border rounded p-2 mb-3", id="bet-strategy-legend",
+                    title=(
+                        "P1: Tackle Mod Travel 95.7% | "
+                        "P2: Mark multi-confirm 90.0% | "
+                        "P3: KeyF Mark 85.0% | "
+                        "P4: Tackle Strong Unders 79.3% | "
+                        "P5: Mark Strong Unders 73.3% | "
+                        "P6: GenF Tackle 69.8% | "
+                        "Short Break suppresses all."
+                    )),
                 ], width=6),
-            ])
-        ], width=9)
+            ]),
+        ], width=9),
     ], className="mb-4"),
-    
+
     html.Hr(),
-    
-    # Export to CSV button row
+
     dbc.Row([
         dbc.Col([
-            html.Div(id="loading-message", children="Loading player data...", className="text-center fs-4")
-        ], width=8),
+            html.Div(id="loading-message", children="Loading player data...",
+                     className="text-center fs-4"),
+            # ── Last pulled indicator ─────────────────────────────────────────
+            html.Div(id="last-pulled-message",
+                     className="text-center text-muted small mt-1"),
+        ], width=6),
         dbc.Col([
-            html.Button(
-                "Export to CSV",
-                id="export-button",
-                className="btn btn-success float-end"
-            )
-        ], width=4)
+            dbc.Row([
+                dbc.Col([
+                    # ── Check for new markets button ──────────────────────────
+                    html.Button(
+                        "🔄 Check for New Markets",
+                        id="refresh-markets-button",
+                        className="btn btn-warning w-100",
+                        title="Re-scrapes Dabble for updated lines across all 3 stat types. Use this Thu–Sun when new markets open without restarting the dashboard.",
+                    ),
+                ], width=4),
+                dbc.Col([
+                    # ── Push to Sheets button ─────────────────────────────────
+                    html.Button(
+                        "📤 Push to Google Sheets",
+                        id="push-sheets-button",
+                        className="btn btn-primary w-100",
+                        title="Appends all flagged bets (all 3 stat types) to your master Google Sheet. Already-pushed rows are skipped automatically.",
+                    ),
+                ], width=4),
+                dbc.Col([
+                    html.Button(
+                        "⬇ Export CSV",
+                        id="export-button",
+                        className="btn btn-success w-100",
+                    ),
+                ], width=4),
+            ]),
+            # status messages
+            html.Div(id="refresh-markets-message", className="text-center mt-2 small"),
+            html.Div(id="sheets-push-message",     className="text-center mt-1 small"),
+        ], width=6),
     ], className="mb-3"),
-    
-    dash_table.DataTable(
-        id='player-table',
-        style_table={'overflowX': 'auto'},
-        style_cell={
-            'textAlign': 'left',
-            'padding': '8px',
-            'fontFamily': 'Arial'
-        },
-        style_header={
-            'backgroundColor': '#343a40',
-            'color': 'white',
-            'fontWeight': 'bold',
-            'textAlign': 'center'
-        },
-        style_data_conditional=[],  # Will be updated dynamically
-        page_size=20,
-        sort_action='native',
-        filter_action='native',
-    ),
+
+    # ── Bet dashboard (shown for Disposals / Marks / Tackles tabs) ──────────
+    html.Div(id="bet-dashboard-content", children=[
+        dbc.Alert(
+            [
+                html.Strong("✏️  Validation step: "),
+                "Position and Line cells are editable — click any cell to correct it. ",
+                "Bet Priority and Bet Flag recalculate instantly. ",
+                "Edited rows are highlighted in ",
+                html.Strong("blue", style={"color": "#0d6efd"}),
+                ". Validate before pushing to Sheets.",
+            ],
+            color="info",
+            className="mb-2 py-2 small",
+        ),
+        dash_table.DataTable(
+            id="player-table",
+            data=[],
+            columns=[],
+            style_table={"overflowX": "auto"},
+            style_cell={"textAlign": "left", "padding": "8px", "fontFamily": "Arial"},
+            style_header={"backgroundColor": "#343a40", "color": "white",
+                          "fontWeight": "bold", "textAlign": "center"},
+            style_data_conditional=[],
+            dropdown={
+                "Position": {
+                    "options": [
+                        {"label": "KeyF — Key Forward",      "value": "KeyF"},
+                        {"label": "GenF — General Forward",  "value": "GenF"},
+                        {"label": "Ruck",                    "value": "Ruck"},
+                        {"label": "InsM — Inside Mid",       "value": "InsM"},
+                        {"label": "Wing",                    "value": "Wing"},
+                        {"label": "GenD — General Defender", "value": "GenD"},
+                        {"label": "KeyD — Key Defender",     "value": "KeyD"},
+                        {"label": "Unknown",                 "value": "Unknown"},
+                    ]
+                }
+            },
+            page_size=20,
+            sort_action="native",
+            filter_action="native",
+        ),
+    ]),
+
+    # ── Multi builder (shown for Multi Builder tab) ───────────────────────
+    html.Div(id="multi-builder-content"),
+
+    # ── Performance tracker (shown for Performance tab) ───────────────────
+    html.Div(id="performance-content"),
+
 ], fluid=True)
 
-# Callback to load data for all stat types
+
+# ── load data on startup ──────────────────────────────────────────────────────
 @app.callback(
     Output('loaded-data', 'children'),
-    Input('loaded-data', 'children')
+    Input('loaded-data',  'children'),
 )
 def load_data(data):
+    global current_round_number
     if data is None:
         try:
-            # Process data for each stat type
             for stat_type in ['disposals', 'marks', 'tackles']:
                 df = process_data_for_dashboard(stat_type)
-                
-                print(f"Processed data for {stat_type} shape: {df.shape}")
                 if df.empty:
-                    print(f"WARNING: Processed {stat_type} dataframe is empty!")
                     df = pd.DataFrame([{
-                        'Player': 'Test Player',
-                        'Team': 'Test Team',
-                        'Opponent': 'Test Opponent',
-                        'Position': 'KeyF',
-                        'Travel Fatigue': '✅ Neutral',
-                        'Weather': '✅ Neutral',
-                        'DvP': '✅ Neutral',
-                        'Line': '25.5',
-                        'Bet Priority': '1',
-                        'Bet Flag': 'KeyF + Mark + Line > 5 + No Easy DvP → 94% WR (16 bets)'
+                        'Player': 'Test Player', 'Team': 'Test', 'Opponent': 'Test',
+                        'Position': 'KeyF', 'Travel Fatigue': '✅ Neutral',
+                        'Weather': '✅ Neutral', 'DvP': '✅ Neutral', 'Line': '25.5',
+                        'Avg vs Line': '', 'Line Consistency': '',
+                        'Bet Priority': '1', 'Bet Flag': 'Test flag',
                     }])
-                    print(f"Created test data row for {stat_type}.")
-                
-                # Cache the data globally
                 processed_data_by_stat[stat_type] = df
-            
+
+            # infer round from the stats CSV
+            try:
+                raw = pd.read_csv("afl_player_stats.csv", skiprows=3).fillna(0)
+                current_round_number = int(raw['round'].max()) + 1
+            except Exception:
+                current_round_number = 0
+
+            # Record initial pull timestamps
+            pulled_time = datetime.now().strftime('%H:%M:%S')
+            for st in ['disposals', 'marks', 'tackles']:
+                last_pulled_at[st] = pulled_time
+
             return "Data loaded"
         except Exception as e:
-            print(f"Error loading data: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            print(f"Load error: {e}")
             return "Error loading data"
     return data
 
-# Callback to filter and display data based on stat type (UPDATED FOR REMOVED BET TIER)
+
+# ── push to Google Sheets ─────────────────────────────────────────────────────
 @app.callback(
-    [Output('player-table', 'data'),
-     Output('player-table', 'columns'),
-     Output('player-table', 'style_data_conditional'),
-     Output('team-filter', 'options'),
-     Output('loading-message', 'children')],
-    [Input('stat-tabs', 'active_tab'),
-     Input('team-filter', 'value'),
-     Input('position-filter', 'value'),
-     Input('clear-team-filter', 'n_clicks'),
-     Input('loaded-data', 'children')]
+    Output('sheets-push-message', 'children'),
+    Input('push-sheets-button',   'n_clicks'),
+    prevent_initial_call=True,
 )
-def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
-    # Check if data is loaded
+def handle_push_to_sheets(n_clicks):
+    if n_clicks is None:
+        return ""
+
+    disposals_df = processed_data_by_stat.get('disposals')
+    marks_df     = processed_data_by_stat.get('marks')
+    tackles_df   = processed_data_by_stat.get('tackles')
+
+    if all(df is None for df in [disposals_df, marks_df, tackles_df]):
+        return "⚠️ Data not loaded yet — please wait and try again."
+
+    rows_added, message = push_to_google_sheets(
+        disposals_df, marks_df, tackles_df, current_round_number
+    )
+    return message
+
+
+# ── table update ─────────────────────────────────────────────────────────────
+# Store edited row indices per stat type so we can highlight them
+edited_rows_by_stat = {'disposals': set(), 'marks': set(), 'tackles': set()}
+
+@app.callback(
+    [Output('player-table',       'data'),
+     Output('player-table',       'columns'),
+     Output('player-table',       'style_data_conditional'),
+     Output('team-filter',        'options'),
+     Output('loading-message',    'children')],
+    [Input('stat-tabs',           'active_tab'),
+     Input('team-filter',         'value'),
+     Input('position-filter',     'value'),
+     Input('clear-team-filter',   'n_clicks'),
+     Input('loaded-data',         'children'),
+     Input('player-table',        'data_timestamp')],
+    [State('player-table',        'data'),
+     State('player-table',        'active_cell')],
+)
+def update_table(active_tab, team_filter, position, clear_clicks, loaded_data,
+                 data_timestamp, table_data, active_cell):
     if loaded_data != "Data loaded":
         return [], [], [], [], "Loading data..."
-    
-    # Determine which stat type is selected
-    stat_type = 'disposals'
-    if active_tab == "tab-marks":
-        stat_type = 'marks'
-    elif active_tab == "tab-tackles":
-        stat_type = 'tackles'
-    
-    # Get corresponding data
-    processed_data = processed_data_by_stat.get(stat_type)
-    if processed_data is None:
-        return [], [], [], [], f"No data available for {stat_type}"
-    
+
+    stat_type = {'tab-marks': 'marks', 'tab-tackles': 'tackles'}.get(active_tab, 'disposals')
+    data      = processed_data_by_stat.get(stat_type)
+    if data is None:
+        return [], [], [], [], f"No data for {stat_type}"
+
     try:
-        # Check if the clear button was clicked
         ctx = dash.callback_context
-        if ctx.triggered and 'clear-team-filter' in ctx.triggered[0]['prop_id']:
+        triggered = ctx.triggered[0]['prop_id'] if ctx.triggered else ''
+
+        if 'clear-team-filter' in triggered:
             team_filter = None
-        
-        # Work with a copy of the processed data
-        df = processed_data.copy()
-        
-        # Apply filters if provided
-        if team_filter and len(team_filter) > 0:
+
+        # ── Handle cell edits ─────────────────────────────────────────────────
+        # If the trigger was a cell edit (data_timestamp fired and we have
+        # table_data), apply the user's change back to the master dataframe
+        # and recalculate Bet Priority + Bet Flag for the edited row.
+        if 'data_timestamp' in triggered and table_data:
+            edited_df = pd.DataFrame(table_data)
+
+            # Find which rows changed vs the stored master
+            master = processed_data_by_stat[stat_type]
+            for i, row in edited_df.iterrows():
+                player = row.get('Player', '')
+                # Match back to master by Player + Team (unique enough)
+                mask = (master['Player'] == player) & (master['Team'] == row.get('Team', ''))
+                if not mask.any():
+                    continue
+
+                changed = False
+                for col in ['Position', 'Line']:
+                    if col in master.columns and col in row:
+                        if str(master.loc[mask, col].values[0]) != str(row[col]):
+                            master.loc[mask, col] = row[col]
+                            changed = True
+
+                if changed:
+                    # Recalculate Avg vs Line if Line changed
+                    new_line = str(row.get('Line', ''))
+                    if new_line:
+                        try:
+                            stats_raw = pd.read_csv("afl_player_stats.csv", skiprows=3).fillna(0)
+                            if stat_type not in stats_raw.columns and stat_type == 'disposals':
+                                stats_raw[stat_type] = stats_raw.get('kicks', 0) + stats_raw.get('handballs', 0)
+                            ps = stats_raw[stats_raw['player'].str.lower() == player.lower()]
+                            if not ps.empty and stat_type in ps.columns:
+                                avg = ps[stat_type].mean()
+                                if avg > 0:
+                                    avl = ((float(new_line) / avg) - 1) * 100
+                                    master.loc[mask, 'Avg vs Line'] = f"{avl:+.1f}%"
+                                below = sum(1 for v in ps[stat_type].values if v < float(new_line))
+                                master.loc[mask, 'Line Consistency'] = f"{(below / len(ps)) * 100:.1f}%"
+                        except Exception:
+                            pass
+
+                    # Recalculate DvP if Position changed
+                    new_pos = str(row.get('Position', ''))
+                    if new_pos:
+                        try:
+                            opponent = str(master.loc[mask, 'Opponent'].values[0])
+                            sdvp = dvp_data_by_stat.get(stat_type, {})
+                            DVP_MAP = {
+                                "Strong Unders":   "🔴 Strong Unders",
+                                "Moderate Unders": "🟠 Moderate Unders",
+                                "Slight Unders":   "🟡 Slight Unders",
+                                "Strong Easy":     "🔵 Strong Easy",
+                                "Moderate Easy":   "🔷 Moderate Easy",
+                                "Slight Easy":     "🔹 Slight Easy",
+                            }
+                            if opponent and opponent != 'Unknown' and new_pos != 'Unknown':
+                                if opponent in sdvp and new_pos in sdvp[opponent]:
+                                    new_dvp = DVP_MAP.get(sdvp[opponent][new_pos]["strength"], "✅ Neutral")
+                                else:
+                                    new_dvp = "✅ Neutral"
+                            else:
+                                new_dvp = "⚠️ Unknown"
+                            master.loc[mask, 'DvP'] = new_dvp
+                        except Exception:
+                            pass
+
+                    # Recalculate bet flag for this row
+                    updated_row = master.loc[mask].iloc[0]
+                    result = calculate_bet_flag(updated_row, stat_type)
+                    master.loc[mask, 'Bet Priority'] = result['priority']
+                    master.loc[mask, 'Bet Flag']     = result['description']
+
+                    # Track this row index for blue highlight
+                    edited_rows_by_stat[stat_type].add(i)
+
+            # Write changes back to the global store
+            processed_data_by_stat[stat_type] = master
+
+        df = processed_data_by_stat[stat_type].copy()
+        if team_filter:
             df = df[df['Team'].isin(team_filter)]
         if position:
             df = df[df['Position'] == position]
-        
-        # Create team options for dropdown
-        team_options = [{'label': t, 'value': t} for t in sorted(processed_data['Team'].unique())]
-        
-        # Define columns
-        columns = [{"name": i, "id": i} for i in df.columns]
-        
-        # Create the conditional styling (UPDATED FOR NEW COLUMNS AND REMOVED BET TIER)
-        style_data_conditional = [
-            # Travel Fatigue - UPDATED
+
+        team_options = [{'label': t, 'value': t} for t in sorted(processed_data_by_stat[stat_type]['Team'].unique())]
+
+        # ── Build columns — Position and Line are editable ────────────────────
+        EDITABLE_COLS = {'Position', 'Line'}
+        columns = [
+            {"name": c, "id": c, "editable": c in EDITABLE_COLS,
+             "presentation": "dropdown" if c == "Position" else "input"}
+            for c in df.columns
+        ]
+
+        style = [
+            # Travel Fatigue
             {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Neutral"'},
              'backgroundColor': '#d4edda', 'color': 'black'},
             {'if': {'column_id': 'Travel Fatigue', 'filter_query': '{Travel Fatigue} contains "Long Travel"'},
              'backgroundColor': '#ffecb3', 'color': 'black'},
-            
             # Weather
             {'if': {'column_id': 'Weather', 'filter_query': '{Weather} contains "Neutral"'},
              'backgroundColor': '#d4edda', 'color': 'black'},
@@ -1500,8 +1570,7 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
              'backgroundColor': '#f8d7da', 'color': 'black'},
             {'if': {'column_id': 'Weather', 'filter_query': '{Weather} contains "🔵 Avoid"'},
              'backgroundColor': '#cce5ff', 'color': 'black'},
-
-            # DvP - Updated to handle both Unders and Easy
+            # DvP
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Neutral"'},
              'backgroundColor': '#d4edda', 'color': 'black'},
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Slight"'},
@@ -1510,14 +1579,10 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
              'backgroundColor': '#ffe066', 'color': 'black'},
             {'if': {'column_id': 'DvP', 'filter_query': '{DvP} contains "Strong"'},
              'backgroundColor': '#f8d7da', 'color': 'black'},
-             
-            # Line column - highlight based on whether line exists
+            # Line
             {'if': {'column_id': 'Line', 'filter_query': '{Line} != ""'},
              'backgroundColor': '#e8f5e8', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Line', 'filter_query': '{Line} = ""'},
-             'backgroundColor': '#f8f9fa', 'color': '#6c757d'},
-             
-            # Bet Priority colors - UPDATED FOR NEW PRIORITY SYSTEM
+            # Bet Priority  — green P1–2, amber P3–4, blue P5–6
             {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "1"'},
              'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
             {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "2"'},
@@ -1530,136 +1595,513 @@ def update_table(active_tab, team_filter, position, clear_clicks, loaded_data):
              'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
             {'if': {'column_id': 'Bet Priority', 'filter_query': '{Bet Priority} = "6"'},
              'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
-             
-            # Bet Flag colors - UPDATED FOR NEW STRATEGY DESCRIPTIONS
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "94% WR"'},
+            # Bet Flag — keyed on win-rate % in the description string
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "95.7%"'},
              'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "79% WR"'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "90.0%"'},
+             'backgroundColor': '#28a745', 'color': 'white', 'fontWeight': 'bold'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "85.0%"'},
              'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "75% WR"'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "79.3%"'},
              'backgroundColor': '#ffc107', 'color': 'black', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "72% WR"'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "73.3%"'},
              'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
-            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "69% WR"'},
+            {'if': {'column_id': 'Bet Flag', 'filter_query': '{Bet Flag} contains "69.8%"'},
              'backgroundColor': '#17a2b8', 'color': 'white', 'fontWeight': 'bold'},
         ]
-        
-        return df.to_dict('records'), columns, style_data_conditional, team_options, ""
-    
-    except Exception as e:
-        print(f"Error updating table for {stat_type}: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        
-        # Return error data (UPDATED FOR REMOVED BET TIER)
-        error_df = pd.DataFrame([{
-            'Player': f'Error: {str(e)}',
-            'Team': 'N/A',
-            'Opponent': 'N/A',
-            'Position': 'N/A',
-            'Travel Fatigue': 'N/A',
-            'Weather': 'N/A', 
-            'DvP': 'N/A',
-            'Line': 'N/A',
-            'Bet Priority': 'N/A',
-            'Bet Flag': 'N/A'
-        }])
-        columns = [{"name": i, "id": i} for i in error_df.columns]
-        return error_df.to_dict('records'), columns, [], [], f"Error filtering {stat_type} data: {str(e)}"
 
-# Add this debug code temporarily to your app.py to test what's happening
-def debug_pickem_matching(stat_type='disposals'):
-    """Debug function to see what's happening with pickem data"""
-    print(f"\n=== DEBUGGING PICKEM DATA FOR {stat_type.upper()} ===")
-    
-    try:
-        # Test 1: Check if get_pickem_data_for_dashboard works
-        from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name
-        pickem_data = get_pickem_data_for_dashboard(stat_type)
-        
-        print(f"1. Pickem data retrieved: {len(pickem_data) if pickem_data else 0} players")
-        if pickem_data:
-            print(f"   Sample pickem players: {list(pickem_data.keys())[:5]}")
-            print(f"   Sample pickem lines: {list(pickem_data.values())[:5]}")
-        else:
-            print("   ❌ No pickem data returned!")
-            return
-        
-        # Test 2: Check dataframe player names
-        try:
-            df = pd.read_csv("afl_player_stats.csv", skiprows=3)
-            latest_round = df['round'].max()
-            recent_players = df[df['round'] == latest_round]['player'].unique()[:5]
-            print(f"2. Sample dataframe players: {recent_players.tolist()}")
-        except Exception as e:
-            print(f"   ❌ Error reading dataframe: {e}")
-            return
-        
-        # Test 3: Test normalize_player_name function
-        test_names = ["Patrick Cripps", "Marcus Bontempelli", "Lachie Neale"]
-        print("3. Testing normalize_player_name:")
-        for name in test_names:
-            normalized = normalize_player_name(name)
-            print(f"   '{name}' → '{normalized}'")
-        
-        # Test 4: Try manual matching
-        print("4. Testing manual matching:")
-        for df_player in recent_players[:3]:
-            normalized_df = normalize_player_name(df_player)
-            found_match = False
-            
-            for pickem_player in list(pickem_data.keys())[:10]:  # Check first 10
-                normalized_pickem = normalize_player_name(pickem_player)
-                
-                if normalized_df.lower() == normalized_pickem.lower():
-                    print(f"   ✅ MATCH: '{df_player}' ↔ '{pickem_player}'")
-                    found_match = True
-                    break
-            
-            if not found_match:
-                print(f"   ❌ NO MATCH: '{df_player}' (normalized: '{normalized_df}')")
-        
-        print("=== END DEBUG ===\n")
-        
-    except Exception as e:
-        print(f"❌ Debug error: {e}")
-        import traceback
-        traceback.print_exc()
+        # ── Blue highlight for edited rows ────────────────────────────────────
+        edited = edited_rows_by_stat.get(stat_type, set())
+        for row_idx in edited:
+            style.append({
+                'if': {'row_index': row_idx},
+                'backgroundColor': '#cfe2ff',
+                'border': '2px solid #0d6efd',
+            })
 
-# Export data callback
+        # ── Position dropdown options ─────────────────────────────────────────
+        position_options = {
+            "Position": {
+                "options": [
+                    {"label": "KeyF — Key Forward",     "value": "KeyF"},
+                    {"label": "GenF — General Forward", "value": "GenF"},
+                    {"label": "Ruck",                   "value": "Ruck"},
+                    {"label": "InsM — Inside Mid",      "value": "InsM"},
+                    {"label": "Wing",                   "value": "Wing"},
+                    {"label": "GenD — General Defender","value": "GenD"},
+                    {"label": "KeyD — Key Defender",    "value": "KeyD"},
+                    {"label": "Unknown",                "value": "Unknown"},
+                ]
+            }
+        }
+
+        return df.to_dict('records'), columns, style, team_options, ""
+
+    except Exception as e:
+        print(f"Table update error ({stat_type}): {e}")
+        err = pd.DataFrame([{'Player': f'Error: {e}', 'Team': '', 'Opponent': '',
+                              'Position': '', 'Travel Fatigue': '', 'Weather': '',
+                              'DvP': '', 'Line': '', 'Bet Priority': '', 'Bet Flag': ''}])
+        return err.to_dict('records'), [{"name": c, "id": c} for c in err.columns], [], [], str(e)
+
+
+# ── Market refresh callback ───────────────────────────────────────────────────
+# Tracks when the last successful Dabble scrape ran — used for cooldown
+_last_refresh_time = None
+REFRESH_COOLDOWN_SECONDS = 300   # 5 minutes — safe buffer for Dabble
+
+
 @app.callback(
-    Output("download-csv", "data"),
-    Input("export-button", "n_clicks"),
-    [State("stat-tabs", "active_tab")],
-    prevent_initial_call=True
+    Output('refresh-markets-message', 'children'),
+    Output('loaded-data',             'children',  allow_duplicate=True),
+    Input('refresh-markets-button',   'n_clicks'),
+    prevent_initial_call=True,
+)
+def refresh_markets(n_clicks):
+    """
+    Re-scrapes Dabble for updated lines on all three stat types and
+    rebuilds the processed dataframes in-place.
+
+    Cooldown: minimum 5 minutes between scrapes to avoid rate limiting.
+    If called within 5 minutes of the last pull, returns cached data
+    with a message showing how long until the next refresh is allowed.
+    """
+    global _last_refresh_time
+
+    if not n_clicks:
+        return "", "Data loaded"
+
+    # ── Cooldown check ────────────────────────────────────────────────────────
+    if _last_refresh_time is not None:
+        elapsed = (datetime.now() - _last_refresh_time).total_seconds()
+        if elapsed < REFRESH_COOLDOWN_SECONDS:
+            remaining = int(REFRESH_COOLDOWN_SECONDS - elapsed)
+            mins = remaining // 60
+            secs = remaining % 60
+            wait_str = f"{mins}m {secs}s" if mins > 0 else f"{secs}s"
+            return (
+                f"⏳ Lines are fresh — last pulled at "
+                f"{_last_refresh_time.strftime('%H:%M:%S')}. "
+                f"Next refresh available in {wait_str}.",
+                "Data loaded",
+            )
+
+    results = []
+    pulled_time = datetime.now().strftime('%H:%M:%S')
+
+    for stat_type in ['disposals', 'marks', 'tackles']:
+        try:
+            existing = processed_data_by_stat.get(stat_type)
+            if existing is None:
+                results.append(f"{stat_type}: no base data")
+                continue
+
+            # Re-run pickem scrape on existing player list
+            # We work from the existing df (already has travel/weather/dvp)
+            # and just refresh lines + derived columns + bet flags
+            df = existing.copy()
+
+            # Strip old line-dependent columns so they get recalculated fresh
+            for col in ['Line', 'Avg vs Line', 'Line Consistency',
+                        'Bet Priority', 'Bet Flag']:
+                if col in df.columns:
+                    df[col] = ''
+
+            # Rename back to lowercase for the helper functions
+            col_map_down = {
+                'Player': 'player', 'Team': 'team', 'Opponent': 'opponent',
+                'Position': 'position', 'Travel Fatigue': 'travel_fatigue',
+                'Weather': 'weather', 'DvP': 'dvp',
+            }
+            df_lower = df.rename(columns={v: k for k, v in {
+                'player': 'Player', 'team': 'Team', 'opponent': 'Opponent',
+                'position': 'Position', 'travel_fatigue': 'Travel Fatigue',
+                'weather': 'Weather', 'dvp': 'DvP',
+            }.items()})
+
+            # Re-add pickem lines
+            df_lower = add_pickem_lines_to_dataframe(df_lower, stat_type)
+            df_lower = add_line_analysis_columns(df_lower, stat_type)
+            df_lower = add_bet_flag_to_dataframe(df_lower, stat_type)
+
+            # Rename back to display columns
+            display = df_lower.rename(columns={
+                'player': 'Player', 'team': 'Team', 'opponent': 'Opponent',
+                'position': 'Position', 'travel_fatigue': 'Travel Fatigue',
+                'weather': 'Weather', 'dvp': 'DvP',
+                'Bet_Priority': 'Bet Priority', 'Bet_Flag': 'Bet Flag',
+            })
+
+            # Keep only rows with a line
+            display = display[display['Line'] != ''].copy()
+
+            # Sort by bet priority
+            def _sort_p(p):
+                try: return int(p)
+                except: return 999
+            display['_s'] = display['Bet Priority'].apply(_sort_p)
+            display = display.sort_values(['_s', 'Team']).drop('_s', axis=1)
+
+            # Ensure column order matches original
+            keep_cols = ['Player', 'Team', 'Opponent', 'Position',
+                         'Travel Fatigue', 'Weather', 'DvP', 'Line',
+                         'Avg vs Line', 'Line Consistency',
+                         'Bet Priority', 'Bet Flag']
+            display = display[[c for c in keep_cols if c in display.columns]]
+
+            processed_data_by_stat[stat_type] = display
+            last_pulled_at[stat_type] = pulled_time
+
+            new_markets = len(display)
+            flagged     = (display['Bet Priority'].astype(str).str.strip() != '').sum()
+            results.append(f"{stat_type}: {new_markets} players, {flagged} flagged")
+
+        except Exception as e:
+            print(f"Market refresh error ({stat_type}): {e}")
+            results.append(f"{stat_type}: error — {e}")
+
+    # Record successful refresh time for cooldown tracking
+    _last_refresh_time = datetime.now()
+
+    summary = " · ".join(results)
+    return (
+        f"✅ Markets refreshed at {pulled_time} — {summary}",
+        "Data loaded",
+    )
+
+
+# ── Last-pulled indicator callback ────────────────────────────────────────────
+@app.callback(
+    Output('last-pulled-message', 'children'),
+    [Input('loaded-data',             'children'),
+     Input('refresh-markets-message', 'children'),
+     Input('stat-tabs',               'active_tab')],
+)
+def update_last_pulled(loaded_data, refresh_msg, active_tab):
+    """Show when data was last pulled from Dabble for the current tab."""
+    if loaded_data != "Data loaded":
+        return ""
+
+    stat_type = {'tab-marks': 'marks', 'tab-tackles': 'tackles'}.get(active_tab, 'disposals')
+
+    if active_tab == 'tab-performance':
+        return ""
+
+    pulled = last_pulled_at.get(stat_type)
+    if not pulled:
+        return "📡 Data not yet loaded"
+
+    return f"📡 Dabble lines last pulled at {pulled}"
+
+
+# ── Performance tracker helpers ───────────────────────────────────────────────
+
+STRATEGY_LABELS = {
+    "1": "P1 · Tackle Mod Travel",
+    "2": "P2 · Mark multi-confirm",
+    "3": "P3 · KeyF Mark",
+    "4": "P4 · Tackle Strong Unders",
+    "5": "P5 · Mark Strong Unders",
+    "6": "P6 · GenF Tackle",
+}
+
+STRATEGY_TARGET_WR = {
+    "1": 95.7, "2": 90.0, "3": 85.0,
+    "4": 79.3, "5": 73.3, "6": 69.8,
+}
+
+
+def load_performance_data():
+    """
+    Read the master Google Sheet and return a cleaned dataframe
+    containing only rows that have both a Bet Priority and a W/L result.
+    Returns None if the sheet cannot be read.
+    """
+    client = get_sheets_client()
+    if client is None:
+        return None
+    try:
+        sheet     = client.open_by_key(GOOGLE_SHEET_ID)
+        worksheet = sheet.worksheet(GOOGLE_SHEET_TAB)
+        records   = worksheet.get_all_records()
+        if not records:
+            return pd.DataFrame()
+        df = pd.DataFrame(records)
+        # Keep only rows with a strategy flag and a result
+        df = df[df['Bet Priority'].astype(str).str.strip().isin(['1','2','3','4','5','6'])]
+        df = df[df['W/L'].astype(str).str.strip().isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])]
+        df['W/L']         = pd.to_numeric(df['W/L'],         errors='coerce')
+        df['Round']       = pd.to_numeric(df['Round'],       errors='coerce')
+        df['Bet Priority'] = df['Bet Priority'].astype(str).str.strip()
+        df['Type']        = df['Type'].astype(str).str.strip()
+        return df
+    except Exception as e:
+        print(f"⚠️  Performance data load error: {e}")
+        return None
+
+
+def make_metric_card(label, value, sub=None, color="#198754"):
+    """Small summary stat card."""
+    return html.Div([
+        html.Div(label, style={"fontSize": "11px", "color": "#6c757d",
+                               "textTransform": "uppercase", "letterSpacing": "0.05em"}),
+        html.Div(value, style={"fontSize": "24px", "fontWeight": "500", "color": color}),
+        html.Div(sub,   style={"fontSize": "11px", "color": "#6c757d"}) if sub else None,
+    ], style={"background": "#f8f9fa", "borderRadius": "8px",
+              "padding": "12px 16px", "flex": "1"})
+
+
+def build_performance_layout(df):
+    """Build the full performance tab content from the results dataframe."""
+    if df is None:
+        return dbc.Alert("⚠️ Could not connect to Google Sheets. "
+                         "Check your credentials file.", color="warning")
+    if df.empty:
+        return dbc.Alert("No completed bets found in your sheet yet. "
+                         "Results will appear here once W/L is filled in "
+                         "(run update_results.py mid-week).", color="info")
+
+    total_bets = len(df)
+    wins       = (df['W/L'] == 1).sum()
+    losses     = (df['W/L'] == -1).sum()
+    pushes     = (df['W/L'] == 0).sum()
+    wr_overall = round(wins / (total_bets - pushes) * 100, 1) if (total_bets - pushes) > 0 else 0
+
+    # EV at $3.20 two-leg multi — approx each leg independently
+    ev_pct = round((wr_overall/100)**2 * 3.2 * 100 - 100, 1)
+
+    # ── Summary cards ─────────────────────────────────────────────────────────
+    summary_row = html.Div([
+        make_metric_card("Total bets",   str(total_bets), f"{wins}W · {losses}L · {pushes}P"),
+        make_metric_card("Overall W/R",  f"{wr_overall}%", "excl. pushes",
+                         "#198754" if wr_overall >= 65 else "#dc3545"),
+        make_metric_card("2-leg EV",     f"{ev_pct:+.0f}%", "at $3.20 payout",
+                         "#198754" if ev_pct > 0 else "#dc3545"),
+        make_metric_card("Rounds tracked", str(int(df['Round'].nunique())),
+                         f"R{int(df['Round'].min())}–R{int(df['Round'].max())}"),
+    ], style={"display": "flex", "gap": "12px", "marginBottom": "24px", "flexWrap": "wrap"})
+
+    # ── Per-strategy table ────────────────────────────────────────────────────
+    strat_rows = []
+    for prio in ['1','2','3','4','5','6']:
+        sub = df[df['Bet Priority'] == prio]
+        if sub.empty:
+            continue
+        s_total  = len(sub)
+        s_wins   = (sub['W/L'] == 1).sum()
+        s_push   = (sub['W/L'] == 0).sum()
+        s_wr     = round(s_wins / (s_total - s_push) * 100, 1) if (s_total - s_push) > 0 else 0
+        target   = STRATEGY_TARGET_WR.get(prio, 0)
+        vs_target = round(s_wr - target, 1)
+        trend    = "↑" if vs_target >= 0 else "↓"
+        color    = "#198754" if vs_target >= 0 else "#dc3545"
+        # rolling last 10
+        recent   = sub.tail(10)
+        r_wins   = (recent['W/L'] == 1).sum()
+        r_push   = (recent['W/L'] == 0).sum()
+        r_wr     = round(r_wins / (len(recent) - r_push) * 100, 1) if (len(recent) - r_push) > 0 else 0
+
+        strat_rows.append(html.Tr([
+            html.Td(STRATEGY_LABELS.get(prio, prio), style={"fontWeight": "500"}),
+            html.Td(f"{s_total}"),
+            html.Td(f"{s_wins}W – {s_total - s_wins - s_push}L"),
+            html.Td(f"{s_wr}%",     style={"fontWeight": "500",
+                                            "color": "#198754" if s_wr >= target else "#dc3545"}),
+            html.Td(f"{target}%",   style={"color": "#6c757d"}),
+            html.Td(f"{trend} {abs(vs_target)}pp", style={"color": color, "fontWeight": "500"}),
+            html.Td(f"{r_wr}%",     style={"color": "#0d6efd"}),
+        ]))
+
+    strategy_table = dbc.Table([
+        html.Thead(html.Tr([
+            html.Th("Strategy"),
+            html.Th("Bets"),
+            html.Th("Record"),
+            html.Th("Season W/R"),
+            html.Th("Target W/R"),
+            html.Th("vs Target"),
+            html.Th("Last 10 W/R"),
+        ]), style={"backgroundColor": "#343a40", "color": "white"}),
+        html.Tbody(strat_rows),
+    ], bordered=True, hover=True, responsive=True, size="sm", className="mb-4")
+
+    # ── Win rate by round chart ───────────────────────────────────────────────
+    round_stats = []
+    for rnd in sorted(df['Round'].dropna().unique()):
+        sub   = df[df['Round'] == rnd]
+        w     = (sub['W/L'] == 1).sum()
+        p     = (sub['W/L'] == 0).sum()
+        total = len(sub) - p
+        wr    = round(w / total * 100, 1) if total > 0 else 0
+        round_stats.append({"Round": int(rnd), "WR": wr, "Bets": int(len(sub))})
+    round_df = pd.DataFrame(round_stats)
+
+    round_chart = go.Figure()
+    if not round_df.empty:
+        round_chart.add_trace(go.Bar(
+            x=round_df['Round'], y=round_df['Bets'],
+            name="Bets placed", marker_color="#dee2e6",
+            yaxis="y2", opacity=0.6,
+        ))
+        round_chart.add_trace(go.Scatter(
+            x=round_df['Round'], y=round_df['WR'],
+            mode="lines+markers", name="Win rate %",
+            line=dict(color="#198754", width=2),
+            marker=dict(size=7),
+        ))
+        round_chart.add_hline(y=65, line_dash="dash", line_color="#dc3545",
+                              annotation_text="65% threshold")
+    round_chart.update_layout(
+        title="Win rate by round",
+        xaxis_title="Round",
+        yaxis=dict(title="Win rate %", range=[0, 110]),
+        yaxis2=dict(title="Bets", overlaying="y", side="right"),
+        legend=dict(orientation="h", y=-0.2),
+        height=320, margin=dict(t=40, b=40, l=40, r=40),
+        plot_bgcolor="white", paper_bgcolor="white",
+    )
+
+    # ── Stat type breakdown ───────────────────────────────────────────────────
+    type_rows = []
+    for t in ['Disposal', 'Mark', 'Tackle']:
+        sub = df[df['Type'] == t]
+        if sub.empty:
+            continue
+        w  = (sub['W/L'] == 1).sum()
+        p  = (sub['W/L'] == 0).sum()
+        wr = round(w / (len(sub) - p) * 100, 1) if (len(sub) - p) > 0 else 0
+        type_rows.append(html.Tr([
+            html.Td(t, style={"fontWeight": "500"}),
+            html.Td(str(len(sub))),
+            html.Td(f"{w}W – {len(sub)-w-p}L"),
+            html.Td(f"{wr}%", style={"fontWeight": "500",
+                                      "color": "#198754" if wr >= 65 else "#dc3545"}),
+        ]))
+
+    type_table = dbc.Table([
+        html.Thead(html.Tr([
+            html.Th("Stat type"), html.Th("Bets"),
+            html.Th("Record"),    html.Th("Win rate"),
+        ]), style={"backgroundColor": "#343a40", "color": "white"}),
+        html.Tbody(type_rows),
+    ], bordered=True, hover=True, responsive=True, size="sm")
+
+    # ── Rolling last-10 per strategy chart ────────────────────────────────────
+    rolling_fig = go.Figure()
+    colours = {"1":"#198754","2":"#20c997","3":"#ffc107",
+               "4":"#fd7e14","5":"#0d6efd","6":"#6f42c1"}
+    for prio in ['1','2','3','4','5','6']:
+        sub = df[df['Bet Priority'] == prio].copy()
+        if len(sub) < 3:
+            continue
+        sub = sub.reset_index(drop=True)
+        rolling_wr = []
+        rounds_x   = []
+        for i in range(len(sub)):
+            window = sub.iloc[max(0, i-9):i+1]
+            w = (window['W/L'] == 1).sum()
+            p = (window['W/L'] == 0).sum()
+            n = len(window) - p
+            rolling_wr.append(round(w/n*100, 1) if n > 0 else None)
+            rounds_x.append(sub.iloc[i]['Round'])
+        rolling_fig.add_trace(go.Scatter(
+            x=rounds_x, y=rolling_wr,
+            mode="lines", name=STRATEGY_LABELS.get(prio, prio),
+            line=dict(color=colours.get(prio, "#adb5bd"), width=1.5),
+        ))
+    rolling_fig.add_hline(y=65, line_dash="dash", line_color="#dc3545",
+                          annotation_text="65% min")
+    rolling_fig.update_layout(
+        title="Rolling last-10 win rate per strategy",
+        xaxis_title="Round", yaxis_title="Win rate %",
+        yaxis=dict(range=[0, 110]),
+        legend=dict(orientation="h", y=-0.3),
+        height=340, margin=dict(t=40, b=60, l=40, r=40),
+        plot_bgcolor="white", paper_bgcolor="white",
+    )
+
+    # ── Last refresh timestamp ─────────────────────────────────────────────────
+    from datetime import datetime
+    refresh_note = html.P(
+        f"Last refreshed: {datetime.now().strftime('%H:%M:%S')} "
+        f"· Auto-refreshes every 5 min",
+        className="text-muted small text-end mb-3",
+    )
+
+    return html.Div([
+        refresh_note,
+        summary_row,
+        html.H5("Strategy breakdown", className="mb-2"),
+        strategy_table,
+        dbc.Row([
+            dbc.Col([
+                html.H5("Win rate by round", className="mb-2"),
+                dcc.Graph(figure=round_chart, config={"displayModeBar": False}),
+            ], width=8),
+            dbc.Col([
+                html.H5("By stat type", className="mb-2"),
+                type_table,
+            ], width=4),
+        ], className="mb-3"),
+        html.H5("Rolling last-10 win rate per strategy", className="mb-2"),
+        dcc.Graph(figure=rolling_fig, config={"displayModeBar": False}),
+    ])
+
+
+# ── Performance + Multi Builder tab callback ──────────────────────────────────
+@app.callback(
+    Output('performance-content',   'children'),
+    Output('multi-builder-content', 'children'),
+    Output('bet-dashboard-content', 'style'),
+    [Input('stat-tabs',             'active_tab'),
+     Input('perf-interval',         'n_intervals')],
+)
+def update_special_tabs(active_tab, _n_intervals):
+    if active_tab == 'tab-performance':
+        df      = load_performance_data()
+        content = build_performance_layout(df)
+        return content, html.Div(), {"display": "none"}
+    elif active_tab == 'tab-multi':
+        content = build_multi_builder_layout()
+        return html.Div(), content, {"display": "none"}
+    else:
+        return html.Div(), html.Div(), {"display": "block"}
+
+
+# ── CSV export ────────────────────────────────────────────────────────────────
+@app.callback(
+    Output("download-csv",   "data"),
+    Input("export-button",   "n_clicks"),
+    [State("stat-tabs",      "active_tab")],
+    prevent_initial_call=True,
 )
 def export_data(n_clicks, active_tab):
-    if n_clicks is None:
+    if not n_clicks:
         return dash.no_update
-    
-    # Get the current stat type
-    stat_type = 'disposals'
-    if active_tab == "tab-marks":
-        stat_type = 'marks'
-    elif active_tab == "tab-tackles":
-        stat_type = 'tackles'
-    
-    # Get the full dataset for this stat type
-    full_data = processed_data_by_stat.get(stat_type)
-    
-    # If we have data, export it
-    if full_data is not None and not full_data.empty:
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"afl_{stat_type}_dashboard_{current_time}.csv"
-        
-        return dcc.send_data_frame(full_data.to_csv, filename, index=False)
-    
+    stat_type = {'tab-marks': 'marks', 'tab-tackles': 'tackles'}.get(active_tab, 'disposals')
+    df = processed_data_by_stat.get(stat_type)
+    if df is not None and not df.empty:
+        fname = f"afl_{stat_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        return dcc.send_data_frame(df.to_csv, fname, index=False)
     return dash.no_update
 
+
+# ── debug helpers ─────────────────────────────────────────────────────────────
+def debug_pickem_matching(stat_type='disposals'):
+    print(f"\n=== DEBUG PICKEM {stat_type.upper()} ===")
+    try:
+        pickem_data = get_pickem_data_for_dashboard(stat_type)
+        print(f"Players retrieved: {len(pickem_data) if pickem_data else 0}")
+        if pickem_data:
+            print(f"Sample: {list(pickem_data.keys())[:5]}")
+    except Exception as e:
+        print(f"Error: {e}")
+    print("=== END ===\n")
+
+
 debug_pickem_matching('disposals')
-debug_pickem_matching('marks') 
+debug_pickem_matching('marks')
 debug_pickem_matching('tackles')
 
-# Run the app
 if __name__ == '__main__':
     app.run(debug=True)

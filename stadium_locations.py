@@ -6,7 +6,7 @@ STADIUM_COORDS = {
 "Mars Stadium": (-37.5444, 143.8483),  
 #SA
 "Adelaide Oval": (-34.9158, 138.5965),
-"Norwood Oval": (-34.5511, 144.9475),
+"Norwood Oval": (-34.9212, 138.6407),
 "Barossa Park": (-34.6135, 138.9616),
 #WA
 "Optus Stadium": (-31.9505, 115.8890),
@@ -25,6 +25,7 @@ STADIUM_COORDS = {
 "UTAS Stadium": (-41.4298, 147.1571),
 "Blundstone Arena": (-42.8881, 147.3766),
 "University of Tasmania Stadium": (-41.4265, 147.1375),
+"Ninja Stadium": (-42.5238, 147.2225),
 #NT
 "TIO Traeger Park": (-23.7090, 133.8751),
 "TIO Stadium": (-12.2347, 130.5251)

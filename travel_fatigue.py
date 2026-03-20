@@ -77,7 +77,7 @@ VENUE_REGION_MAP = {
 }
 
 def fetch_full_fixture():
-    url = "https://fixturedownload.com/feed/json/afl-2025"
+    url = "https://fixturedownload.com/feed/json/afl-2026"
     response = requests.get(url)
     response.raise_for_status()
     return response.json()

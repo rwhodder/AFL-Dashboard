@@ -8,7 +8,7 @@ def scrape_next_round_fixture():
     Returns a list of match dictionaries for the next upcoming round.
     """
     try:
-        url = "https://fixturedownload.com/feed/json/afl-2025"
+        url = "https://fixturedownload.com/feed/json/afl-2026"
         headers = {'User-Agent': 'Mozilla/5.0'}
         response = requests.get(url, headers=headers)
         response.raise_for_status()
