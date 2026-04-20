@@ -2929,17 +2929,14 @@ def build_performance_layout(df, pair_df=None):
     MONO   = "var(--mono, 'JetBrains Mono', monospace)"
     SHADOW = "0 4px 24px rgba(0,0,0,0.4)"
 
-    # ── Filter: 6-leg multis from Round 6+ ───────────────────────────────────
+    # ── Filter: multis from Round 6+ ─────────────────────────────────────────
     pdf = pd.DataFrame()
     if pair_df is not None and not pair_df.empty:
-        pdf = pair_df[
-            (pair_df['legs'] == 6) &
-            (pair_df['Round'].notna()) &
-            (pair_df['Round'] >= 6)
-        ].copy()
+        mask = pair_df['Round'].notna() & (pd.to_numeric(pair_df['Round'], errors='coerce') >= 6)
+        pdf  = pair_df[mask].copy()
 
     if pdf.empty:
-        return dbc.Alert("No 6-leg multi data from Round 6+ yet.", color="info", className="mt-3")
+        return dbc.Alert("No multi data from Round 6+ yet.", color="info", className="mt-3")
 
     # ── KPIs ──────────────────────────────────────────────────────────────────
     wins      = int((pdf['wl'] == 'W').sum())
