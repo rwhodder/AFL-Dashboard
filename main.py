@@ -40,7 +40,7 @@ WEATHER_LOOKUP = {
 # ===== FIXTURE SCRAPER =====
 def scrape_next_round_fixture():
     try:
-        url = "https://fixturedownload.com/feed/json/afl-2025"
+        url = "https://fixturedownload.com/feed/json/afl-2026"
         response = requests.get(url, verify=False)
         response.raise_for_status()
         data = response.json()

@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import app; print\\(app.__file__\\)\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8050)",
+      "Bash(taskkill /PID 36648 /F)",
+      "Bash(cmd /c \"taskkill /PID 36648 /F\")",
+      "Bash(cmd /c \"netstat -ano | findstr :8050\")",
+      "Bash(python app.py)",
+      "Bash(cmd /c \"type C:\\\\Users\\\\ryan_\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-ryan--Documents-Python-Betting-Dabble-AFL-Dashboard\\\\815630a5-8aba-44a1-ab18-cef89cbf51f9\\\\tasks\\\\b3wc2ufyv.output\")",
+      "Bash(cmd /c \"python app.py 2>&1\")",
+      "Bash(python -c ':*)",
+      "Bash(cmd /c \"for /f \\\\\"tokens=5\\\\\" %a in \\('netstat -ano ^| findstr :8050 ^| findstr LISTENING'\\) do taskkill /PID %a /F\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('app.py OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('update_results.py', encoding='utf-8'\\).read\\(\\)\\); print\\('update_results.py OK'\\)\")",
+      "Bash(python scan_bet_priorities.py)",
+      "Bash(python update_strategy_column.py)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py', encoding='utf-8'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('app.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Read(//c/Users/ryan_/Documents/Python/Betting Dabble/AFL Dashboard/**)",
+      "Bash(python -)",
+      "Bash(python -c \"import app\")",
+      "Bash(python -c \"import app; print\\('OK'\\)\")",
+      "Bash(python -c \"import json; f=open\\(r'c:\\\\Users\\\\ryan_\\\\Documents\\\\Python\\\\Betting Dabble\\\\AFL Dashboard\\\\round_cache.json'\\); d=json.load\\(f\\); f.close\\(\\); print\\(list\\(d.keys\\(\\)\\)\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -c *)",
+      "Bash(python analyse_avl_cons.py)",
+      "Bash(python add_sheet_columns.py)",
+      "Bash(del _tmp_vals.json)",
+      "Bash(ls -la *.txt *.cfg *.toml Procfile)",
+      "Bash(cat requirements.txt)",
+      "Bash(pip freeze *)"
+    ]
+  }
+}

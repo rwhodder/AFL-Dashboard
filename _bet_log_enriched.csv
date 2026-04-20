@@ -1,0 +1,466 @@
+Type,Year,Round,Player,Team,Opponent,Position,Travel Fatigue,Weather,DvP,Line,Avg vs Line,Line Consistency,Bet Priority,Bet Flag,Actual,W/L,line_val,wl,ha,venue
+Tackle,2025.0,10.0,Cam Rayner,BRL,MEL,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.5,2%,67%,,,1.0,1.0,2.5,1.0,home,Gabba
+Tackle,2025.0,10.0,Andrew Brayshaw,FRE,GWS,InsM,🟠 Moderate (Long Travel),🔵 Avoid (Rain),🔴 Strong Unders,6.0,11%,44%,,🔵 Avoid (Rain),6.0,0.0,6.0,0.0,away,ENGIE Stadium
+Tackle,2025.0,10.0,Caleb Serong,FRE,GWS,InsM,🟠 Moderate (Long Travel),🔵 Avoid (Rain),🔴 Strong Unders,4.5,-4%,68%,,🔵 Avoid (Rain),3.0,1.0,4.5,1.0,away,ENGIE Stadium
+Tackle,2025.0,10.0,Shaun Mannagh,GEE,PTA,MedFF,✅ Neutral,🔵 Avoid (Rain),🔷 Moderate Easy,4.5,33%,33%,,,2.0,1.0,4.5,1.0,away,Adelaide Oval
+Tackle,2025.0,10.0,Tom Atkins,GEE,PTA,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,8.0,28%,33%,,,5.0,1.0,8.0,1.0,away,Adelaide Oval
+Tackle,2025.0,10.0,Kysaiah Pickett,MEL,BRL,FwdMid,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-4%,83%,,,3.0,1.0,4.0,1.0,away,Gabba
+Tackle,2025.0,10.0,Kade Chandler,MEL,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,5%,67%,,,0.0,1.0,3.5,1.0,away,Gabba
+Tackle,2025.0,10.0,Sam Powell-Pepper,PTA,GEE,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,3.5,-11%,56%,,,2.0,1.0,3.5,1.0,home,Adelaide Oval
+Tackle,2025.0,10.0,Jack Steele,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,5.0,50%,25%,,,14.0,-1.0,5.0,-1.0,away,Optus Stadium
+Tackle,2025.0,10.0,Jack Macrae,STK,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,5.0,13%,56%,,,3.0,1.0,5.0,1.0,away,Optus Stadium
+Tackle,2025.0,10.0,Rowan Marshall,STK,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,3.5,5%,33%,,,5.0,-1.0,3.5,-1.0,away,Optus Stadium
+Tackle,2025.0,10.0,Marcus Windhager,STK,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.0,-8%,78%,,,0.0,1.0,4.0,1.0,away,Optus Stadium
+Tackle,2025.0,10.0,Ryley Sanders,WBD,ESS,Wing,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,4.0,-8%,89%,,,1.0,1.0,4.0,1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,James Peatling,ADE,WCE,InsM,✅ Neutral,✅ Neutral,✅ Neutral,5.0,0%,78%,,,5.0,0.0,5.0,0.0,home,Adelaide Oval
+Tackle,2025.0,11.0,Adam Cerra,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,4.5,0%,50%,,🔵 Avoid (Rain),6.0,-1.0,4.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,Patrick Cripps,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,6.0,-3%,50%,,🔵 Avoid (Rain),7.0,-1.0,6.0,-1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,George Hewett,CAR,GWS,InsM,✅ Neutral,🔵 Avoid (Rain),🔴 Strong Unders,6.0,7%,50%,,🔵 Avoid (Rain),1.0,1.0,6.0,1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,Andrew Brayshaw,FRE,PTA,InsM,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,6.0,10%,50%,,,8.0,-1.0,6.0,-1.0,home,Optus Stadium
+Tackle,2025.0,11.0,Max Holmes,GEE,WBD,InsM,🟡 Slight (Short Break),✅ Neutral,🟡 Slight Unders,3.0,23%,60%,,,3.0,0.0,3.0,0.0,home,GMHBA Stadium
+Tackle,2025.0,11.0,Nick Watson,HAW,BRL,SmF,✅ Neutral,🔵 Avoid (Rain),🟡 Slight Unders,2.5,4%,60%,,,0.0,1.0,2.5,1.0,home,MCG
+Tackle,2025.0,11.0,Tom Sparrow,MEL,SYD,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,17%,40%,,,5.0,-1.0,3.5,-1.0,home,MCG
+Tackle,2025.0,11.0,Kade Chandler,MEL,SYD,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,3.0,10%,70%,,,4.0,-1.0,3.0,-1.0,home,MCG
+Tackle,2025.0,11.0,Charlie Spargo,MEL,SYD,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.5,-5%,50%,,,4.0,-1.0,2.5,-1.0,home,MCG
+Tackle,2025.0,11.0,Kysaiah Pickett,MEL,SYD,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,6%,70%,,,4.0,-1.0,3.5,-1.0,home,MCG
+Tackle,2025.0,11.0,Luke Davies-Uniacke,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,4.0,0%,60%,,,4.0,0.0,4.0,0.0,home,Marvel Stadium
+Tackle,2025.0,11.0,Tom Powell,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,4.5,16%,40%,,,3.0,1.0,4.5,1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,George Wardlaw,NTH,COL,InsM,✅ Neutral,🔵 Avoid (Rain),🟠 Moderate Unders,5.5,0%,50%,,,4.0,1.0,5.5,1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,Marcus Windhager,STK,GCS,Wing,✅ Neutral,✅ Neutral,✅ Neutral,4.0,-18%,80%,,,4.0,0.0,4.0,0.0,home,Marvel Stadium
+Tackle,2025.0,11.0,Jack Higgins,STK,GCS,SmF,✅ Neutral,✅ Neutral,🔵 Strong Easy,2.5,12%,50%,,,1.0,1.0,2.5,1.0,home,Marvel Stadium
+Tackle,2025.0,11.0,Braeden Campbell,SYD,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,7%,78%,,,7.0,-1.0,3.0,-1.0,away,MCG
+Tackle,2025.0,11.0,James Rowbottom,SYD,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,6.5,6%,56%,,,9.0,-1.0,6.5,-1.0,away,MCG
+Tackle,2025.0,11.0,Ryley Sanders,WBD,GEE,Wing,🟡 Slight (Short Break),✅ Neutral,✅ Neutral,4.0,-15%,80%,,,8.0,-1.0,4.0,-1.0,away,GMHBA Stadium
+Tackle,2025.0,11.0,Tim Kelly,WCE,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,3.5,4%,50%,,,3.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,11.0,Harley Reid,WCE,ADE,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.5,-20%,70%,,,2.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,11.0,Liam Baker,WCE,ADE,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.5,-9%,60%,,,2.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,12.0,Tom Atkins,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,8.5,17%,36%,,🟢 STRONG BET,10.0,-1.0,8.5,-1.0,away,Optus Stadium
+Tackle,2025.0,12.0,Max Holmes,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.5,4%,64%,,🟢 STRONG BET,3.0,1.0,3.5,1.0,away,Optus Stadium
+Tackle,2025.0,12.0,Bailey Smith,GEE,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,6.0,-2%,50%,,🟢 STRONG BET,4.0,1.0,6.0,1.0,away,Optus Stadium
+Tackle,2025.0,12.0,James Worpel,HAW,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.0,10%,70%,,🟡 CONSIDER - Strong DvP Tackles,4.0,1.0,5.0,1.0,away,MCG
+Tackle,2025.0,12.0,Jai Newcombe,HAW,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.0,16%,60%,,🟡 CONSIDER - Strong DvP Tackles,3.0,1.0,5.0,1.0,away,MCG
+Tackle,2025.0,12.0,Lloyd Meek,HAW,COL,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-10%,70%,,🟢 STRONG BET,4.0,0.0,4.0,0.0,away,MCG
+Tackle,2025.0,12.0,Rhyan Mansell,RIC,GWS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,0%,75%,,🟡 CONSIDER,4.0,-1.0,3.0,-1.0,away,ENGIE Stadium
+Tackle,2025.0,12.0,Jacob Hopper,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,-14%,73%,,🟡 CONSIDER - Strong DvP Tackles,2.0,1.0,4.0,1.0,away,ENGIE Stadium
+Tackle,2025.0,12.0,Kamdyn McIntosh,RIC,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,7%,58%,,🟡 CONSIDER - Strong DvP Tackles,1.0,1.0,4.0,1.0,away,ENGIE Stadium
+Tackle,2025.0,12.0,Tim Taranto,RIC,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.5,8%,57%,,🟡 CONSIDER - Strong DvP Tackles,2.0,1.0,4.5,1.0,away,ENGIE Stadium
+Tackle,2025.0,12.0,Marcus Windhager,STK,MEL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,-16%,82%,,,4.0,0.0,4.0,0.0,away,TIO Traeger Park
+Tackle,2025.0,12.0,Jack Higgins,STK,MEL,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.5,6%,55%,,🟡 CONSIDER,1.0,-1.0,2.5,-1.0,away,TIO Traeger Park
+Tackle,2025.0,12.0,James Rowbottom,SYD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,6.5,11%,55%,,🟢 STRONG BET,9.0,-1.0,6.5,-1.0,home,SCG
+Tackle,2025.0,12.0,Chad Warner,SYD,ADE,FwdMid,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-5%,65%,,🟢 STRONG BET,4.0,0.0,4.0,0.0,home,SCG
+Tackle,2025.0,13.0,Jy Simpkin,NTH,WCE,Wing,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,4.0,-5%,73%,,🟢 AUTO-BET - Wing Long Travel,2.0,1.0,4.0,1.0,home,Hands Oval
+Tackle,2025.0,14.0,Lachie Neale,BRL,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,-10%,69%,,🟡 CONSIDER - Strong DvP Tackles,2.0,1.0,4.0,1.0,home,Gabba
+Tackle,2025.0,14.0,Josh Dunkley,BRL,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,6.0,14%,54%,,🟡 CONSIDER - Strong DvP Tackles,2.0,1.0,6.0,1.0,home,Gabba
+Tackle,2025.0,14.0,Hugh McCluggage,BRL,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.5,25%,46%,,🟡 CONSIDER - Strong DvP Tackles,1.0,1.0,4.5,1.0,home,Gabba
+Tackle,2025.0,15.0,Josh Dunkley,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,6.0,8%,57%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,10.0,-1.0,6.0,-1.0,away,GMHBA Stadium
+Tackle,2025.0,15.0,Hugh McCluggage,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,4.5,18%,50%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,6.0,-1.0,4.5,-1.0,away,GMHBA Stadium
+Tackle,2025.0,15.0,Lachie Neale,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,3.5,0%,50%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,4.0,-1.0,3.5,-1.0,away,GMHBA Stadium
+Tackle,2025.0,15.0,Will Ashcroft,BRL,GEE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,3.0,-5%,64%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,5.0,-1.0,3.0,-1.0,away,GMHBA Stadium
+Tackle,2025.0,15.0,Will Setterfield,ESS,FRE,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,7.5,1%,40%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,5.0,1.0,7.5,1.0,away,Optus Stadium
+Tackle,2025.0,15.0,Jye Caldwell,ESS,FRE,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,7.5,-8%,44%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,5.0,1.0,7.5,1.0,away,Optus Stadium
+Tackle,2025.0,15.0,Zach Merrett,ESS,FRE,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,-18%,62%,,🤔 CONSIDER #8 - Long Travel + InsM + Tackle,3.0,1.0,4.5,1.0,away,Optus Stadium
+Tackle,2025.0,15.0,Bailey Humphrey,GCS,GWS,FwdMid,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,17%,67%,,🤔 CONSIDER #7 - Strong DvP + Tackle,3.0,1.0,4.0,1.0,away,ENGIE Stadium
+Tackle,2025.0,15.0,Matt Rowell,GCS,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,8.5,-4%,67%,,🤔 CONSIDER #7 - Strong DvP + Tackle,8.0,1.0,8.5,1.0,away,ENGIE Stadium
+Tackle,2025.0,15.0,Jack Macrae,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.0,7%,63%,,🤔 CONSIDER #7 - Strong DvP + Tackle,6.0,-1.0,5.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,15.0,Hunter Clark,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,20%,60%,,🤔 CONSIDER #7 - Strong DvP + Tackle,5.0,-1.0,4.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,15.0,Marcus Windhager,STK,COL,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,-14%,85%,,🤔 CONSIDER #7 - Strong DvP + Tackle,1.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,15.0,Jack Steele,STK,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,7.5,7%,58%,,🤔 CONSIDER #7 - Strong DvP + Tackle,5.0,1.0,7.5,1.0,away,Marvel Stadium
+Tackle,2025.0,16.0,Marcus Windhager,STK,FRE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.0,-18%,86%,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),3.0,1.0,4.0,1.0,away,Optus Stadium
+Tackle,2025.0,16.0,Jack Macrae,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,5.0,8%,58%,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),4.0,1.0,5.0,1.0,away,Optus Stadium
+Tackle,2025.0,16.0,Jack Steele,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7.0,11%,62%,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),9.0,-1.0,7.0,-1.0,away,Optus Stadium
+Tackle,2025.0,16.0,Hunter Clark,STK,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.5,33%,40%,,🥈 TIER 2 #8 - Long Travel + InsM + Tackle (70.0% WR),5.0,-1.0,4.5,-1.0,away,Optus Stadium
+Tackle,2025.0,16.0,Elijah Hewett,WCE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4.5,16%,40%,,🥈 TIER 2 #5 - Strong DvP + Tackle (73.7% WR),1.0,1.0,4.5,1.0,away,Marvel Stadium
+Tackle,2025.0,16.0,Jack Graham,WCE,COL,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7.0,11%,46%,,🥈 TIER 2 #5 - Strong DvP + Tackle (73.7% WR),8.0,-1.0,7.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,17.0,Adam Cerra,CAR,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.0,1%,67%,5,Strong/Moderate DvP + Tackle + Avg <18%,3.0,1.0,5.0,1.0,home,MCG
+Tackle,2025.0,17.0,Jesse Motlop,CAR,COL,SmF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,-7%,47%,5,Strong/Moderate DvP + Tackle + Avg <18%,2.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,17.0,Patrick Cripps,CAR,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.5,4%,47%,5,Strong/Moderate DvP + Tackle + Avg <18%,3.0,1.0,5.5,1.0,home,MCG
+Tackle,2025.0,17.0,George Hewett,CAR,COL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.5,15%,33%,5,Strong/Moderate DvP + Tackle + Avg <18%,7.0,-1.0,5.5,-1.0,home,MCG
+Tackle,2025.0,17.0,Cooper Lord,CAR,COL,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-6%,64%,,,2.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,17.0,Andrew Brayshaw,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,6.0,11%,47%,,,3.0,1.0,6.0,1.0,away,SCG
+Tackle,2025.0,17.0,Caleb Serong,FRE,SYD,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.5,5%,66%,,,3.0,1.0,4.5,1.0,away,SCG
+Tackle,2025.0,17.0,Luke Jackson,FRE,SYD,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.0,-8%,67%,2,Tackle + Moderate Travel + Avg <5%,5.0,-1.0,4.0,-1.0,away,SCG
+Tackle,2025.0,17.0,Corey Wagner,FRE,SYD,GenD,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,29%,50%,,,6.0,-1.0,3.5,-1.0,away,SCG
+Tackle,2025.0,17.0,Matthew Johnson,FRE,SYD,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.5,-11%,60%,2,Tackle + Moderate Travel + Avg <5%,1.0,1.0,3.5,1.0,away,SCG
+Tackle,2025.0,17.0,Matt Rowell,GCS,ESS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,9.0,-7%,71%,2,Tackle + Moderate Travel + Avg <5%,17.0,-1.0,9.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,17.0,Touk Miller,GCS,ESS,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4.0,-2%,64%,2,Tackle + Moderate Travel + Avg <5%,7.0,-1.0,4.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,17.0,Bailey Humphrey,GCS,ESS,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.0,13%,71%,,,4.0,0.0,4.0,0.0,away,Marvel Stadium
+Tackle,2025.0,17.0,Josh Kelly,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,4.0,16%,36%,,,5.0,-1.0,4.0,-1.0,away,Optus Stadium
+Tackle,2025.0,17.0,Finn Callaghan,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,6.0,-10%,45%,2,Tackle + Moderate Travel + Avg <5%,1.0,1.0,6.0,1.0,away,Optus Stadium
+Tackle,2025.0,17.0,Harry Rowston,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,5.0,-10%,45%,2,Tackle + Moderate Travel + Avg <5%,2.0,1.0,5.0,1.0,away,Optus Stadium
+Tackle,2025.0,17.0,Toby Bedford,GWS,WCE,SmF,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,6.0,2%,64%,2,Tackle + Moderate Travel + Avg <5%,3.0,1.0,6.0,1.0,away,Optus Stadium
+Tackle,2025.0,17.0,Darcy Jones,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,4%,50%,2,Tackle + Moderate Travel + Avg <5%,4.0,-1.0,3.5,-1.0,away,Optus Stadium
+Tackle,2025.0,17.0,Tom Green,GWS,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,4.5,-16%,71%,2,Tackle + Moderate Travel + Avg <5%,0.0,1.0,4.5,1.0,away,Optus Stadium
+Tackle,2025.0,17.0,Christian Petracca,MEL,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,11%,53%,5,Strong/Moderate DvP + Tackle + Avg <18%,2.0,1.0,4.5,1.0,away,Adelaide Oval
+Tackle,2025.0,17.0,Clayton Oliver,MEL,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,6.0,-6%,71%,5,Strong/Moderate DvP + Tackle + Avg <18%,5.0,1.0,6.0,1.0,away,Adelaide Oval
+Tackle,2025.0,17.0,Jack Viney,MEL,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5.5,2%,70%,5,Strong/Moderate DvP + Tackle + Avg <18%,9.0,-1.0,5.5,-1.0,away,Adelaide Oval
+Tackle,2025.0,17.0,Tristan Xerri,NTH,WBD,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5.5,2%,53%,5,Strong/Moderate DvP + Tackle + Avg <18%,5.0,1.0,5.5,1.0,home,Marvel Stadium
+Tackle,2025.0,17.0,Joe Richards,PTA,BRL,MedF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,3.0,-5%,64%,2,Tackle + Moderate Travel + Avg <5%,3.0,0.0,3.0,0.0,away,Gabba
+Tackle,2025.0,17.0,Willem Drew,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,6.5,7%,40%,,,5.0,1.0,6.5,1.0,away,Gabba
+Tackle,2025.0,17.0,Connor Rozee,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.5,1%,40%,2,Tackle + Moderate Travel + Avg <5%,3.0,1.0,3.5,1.0,away,Gabba
+Tackle,2025.0,17.0,Zak Butters,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.5,19%,50%,,,6.0,-1.0,4.5,-1.0,away,Gabba
+Tackle,2025.0,17.0,Sam Powell-Pepper,PTA,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,3.0,-4%,67%,2,Tackle + Moderate Travel + Avg <5%,1.0,1.0,3.0,1.0,away,Gabba
+Tackle,2025.0,17.0,Jamie Cripps,WCE,GWS,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-6%,54%,,,2.0,1.0,3.5,1.0,home,Optus Stadium
+Tackle,2025.0,17.0,Liam Baker,WCE,GWS,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,9%,60%,,,1.0,1.0,3.0,1.0,home,Optus Stadium
+Tackle,2025.0,17.0,Brady Hough,WCE,GWS,GenD,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.5,-25%,64%,5,Strong/Moderate DvP + Tackle + Avg <18%,4.0,1.0,4.5,1.0,home,Optus Stadium
+Tackle,2025.0,17.0,Elijah Hewett,WCE,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,-20%,77%,5,Strong/Moderate DvP + Tackle + Avg <18%,3.0,1.0,4.0,1.0,home,Optus Stadium
+Tackle,2025.0,17.0,Jack Graham,WCE,GWS,FwdMid,✅ Neutral,✅ Neutral,🔴 Strong Unders,7.0,11%,43%,5,Strong/Moderate DvP + Tackle + Avg <18%,4.0,1.0,7.0,1.0,home,Optus Stadium
+Tackle,2025.0,17.0,Tyler Brockman,WCE,GWS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-10%,58%,,,4.0,-1.0,3.5,-1.0,home,Optus Stadium
+Tackle,2025.0,18.0,Alex Neal-Bullen,ADE,WBD,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,7%,44%,,SKIP - No Strategy,4.0,0.0,4.0,0.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Ben Keays,ADE,WBD,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,23%,63%,,SKIP - No Strategy,1.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Brodie Smith,ADE,WBD,GenD,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,93%,83%,,SKIP - No Strategy,0.0,1.0,4.5,1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Izak Rankine,ADE,WBD,SmF,✅ Neutral,✅ Neutral,✅ Neutral,3.5,-7%,38%,,SKIP - No Strategy,4.0,-1.0,3.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Jake Soligo,ADE,WBD,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.0,1%,44%,,SKIP - No Strategy,9.0,-1.0,5.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,James Peatling,ADE,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,4.5,-3%,50%,,SKIP - No Strategy,2.0,1.0,4.5,1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Jordan Dawson,ADE,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,6.5,-6%,44%,,SKIP - No Strategy,8.0,-1.0,6.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Jarrod Berry,BRL,CAR,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.0,-10%,27%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain,5.0,-1.0,3.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Will Ashcroft,BRL,CAR,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,2.5,-11%,50%,,,4.0,-1.0,2.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Hugh McCluggage,BRL,CAR,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.5,-14%,50%,,,2.0,1.0,4.5,1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Josh Dunkley,BRL,CAR,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,6.5,-2%,56%,,,13.0,-1.0,6.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Lachie Neale,BRL,CAR,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,2%,50%,,,8.0,-1.0,3.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Zac Bailey,BRL,CAR,SmF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,2.0,-9%,38%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain,1.0,1.0,2.0,1.0,away,Marvel Stadium
+Tackle,2025.0,18.0,Adam Cerra,CAR,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,-9%,38%,,,5.0,-1.0,4.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Patrick Cripps,CAR,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.5,-1%,50%,,,6.0,-1.0,5.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Tom De Koning,CAR,BRL,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.5,4%,47%,,,4.0,-1.0,2.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Cooper Lord,CAR,BRL,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-6%,53%,,,3.0,0.0,3.0,0.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Jesse Motlop,CAR,BRL,SmF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-2%,44%,,,4.0,0.0,4.0,0.0,home,Marvel Stadium
+Tackle,2025.0,18.0,George Hewett,CAR,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,6.0,-6%,31%,,,3.0,1.0,6.0,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Lachie Fogarty,CAR,BRL,SmF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,3.5,-16%,43%,,,3.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Jack Crisp,COL,GCS,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,5.0,10%,44%,,SKIP - No Strategy,8.0,-1.0,5.0,-1.0,away,People First Stadium
+Tackle,2025.0,18.0,Lachlan Sullivan,COL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,3.5,20%,55%,,SKIP - No Strategy,3.0,1.0,3.5,1.0,away,People First Stadium
+Tackle,2025.0,18.0,Ned Long,COL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,7.0,-1%,38%,,SKIP - No Strategy,8.0,-1.0,7.0,-1.0,away,People First Stadium
+Tackle,2025.0,18.0,Nick Daicos,COL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,-8%,56%,,SKIP - No Strategy,1.0,1.0,3.5,1.0,away,People First Stadium
+Tackle,2025.0,18.0,Scott Pendlebury,COL,GCS,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.5,9%,57%,,SKIP - No Strategy,1.0,1.0,4.5,1.0,away,People First Stadium
+Tackle,2025.0,18.0,Ben Hobbs,ESS,RIC,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,10%,43%,,SKIP - No Strategy,6.0,-1.0,4.0,-1.0,away,MCG
+Tackle,2025.0,18.0,Sam Durham,ESS,RIC,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.0,-2%,31%,,SKIP - No Strategy,6.0,-1.0,4.0,-1.0,away,MCG
+Tackle,2025.0,18.0,Will Setterfield,ESS,RIC,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,8.0,8%,42%,,SKIP - No Strategy,7.0,1.0,8.0,1.0,away,MCG
+Tackle,2025.0,18.0,Zach Merrett,ESS,RIC,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,21%,60%,,SKIP - No Strategy,3.0,1.0,4.5,1.0,away,MCG
+Tackle,2025.0,18.0,Bailey Humphrey,GCS,COL,FwdMid,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-10%,27%,,SKIP - No Strategy,2.0,1.0,4.0,1.0,home,People First Stadium
+Tackle,2025.0,18.0,Jarrod Witts,GCS,COL,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-9%,43%,,SKIP - No Strategy,3.0,1.0,3.5,1.0,home,People First Stadium
+Tackle,2025.0,18.0,Matt Rowell,GCS,COL,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,9.5,6%,67%,,SKIP - No Strategy,13.0,-1.0,9.5,-1.0,home,People First Stadium
+Tackle,2025.0,18.0,Noah Anderson,GCS,COL,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,3.5,14%,60%,,SKIP - No Strategy,4.0,-1.0,3.5,-1.0,home,People First Stadium
+Tackle,2025.0,18.0,Touk Miller,GCS,COL,FwdMid,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-3%,53%,,SKIP - No Strategy,1.0,1.0,4.0,1.0,home,People First Stadium
+Tackle,2025.0,18.0,Max Holmes,GEE,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.5,0%,63%,2,Tackle + Strong Unders DvP + No Rain + Avg <15%,3.0,1.0,3.5,1.0,away,ENGIE Stadium
+Tackle,2025.0,18.0,Tom Atkins,GEE,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,8.5,-14%,38%,2,Tackle + Strong Unders DvP + No Rain + Avg <15%,6.0,1.0,8.5,1.0,away,ENGIE Stadium
+Tackle,2025.0,18.0,Gryan Miers,GEE,GWS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,11%,57%,,SKIP - No Strategy,3.0,0.0,3.0,0.0,away,ENGIE Stadium
+Tackle,2025.0,18.0,Shaun Mannagh,GEE,GWS,MedFF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-19%,31%,,SKIP - No Strategy,2.0,1.0,3.5,1.0,away,ENGIE Stadium
+Tackle,2025.0,18.0,Darcy Jones,GWS,GEE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-5%,47%,,SKIP - No Strategy,6.0,-1.0,3.5,-1.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Finn Callaghan,GWS,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.0,35%,62%,,SKIP - No Strategy,2.0,1.0,6.0,1.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Harry Rowston,GWS,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,23%,50%,,SKIP - No Strategy,0.0,1.0,4.0,1.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Josh Kelly,GWS,GEE,InsM,✅ Neutral,✅ Neutral,✅ Neutral,4.0,-14%,25%,,SKIP - No Strategy,2.0,1.0,4.0,1.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Ryan Angwin,GWS,GEE,Wing,✅ Neutral,✅ Neutral,✅ Neutral,6.0,71%,100%,,SKIP - No Strategy,5.0,1.0,6.0,1.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Toby Bedford,GWS,GEE,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.0,1%,40%,,SKIP - No Strategy,2.0,1.0,6.0,1.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Tom Green,GWS,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,13%,47%,,SKIP - No Strategy,4.0,0.0,4.0,0.0,home,ENGIE Stadium
+Tackle,2025.0,18.0,Christian Petracca,MEL,NTH,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,16%,56%,,SKIP - No Strategy,3.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,18.0,Clayton Oliver,MEL,NTH,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,6.0,8%,47%,,SKIP - No Strategy,7.0,-1.0,6.0,-1.0,home,MCG
+Tackle,2025.0,18.0,Jack Viney,MEL,NTH,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,6.5,10%,64%,,SKIP - No Strategy,9.0,-1.0,6.5,-1.0,home,MCG
+Tackle,2025.0,18.0,Kade Chandler,MEL,NTH,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,5%,56%,,SKIP - No Strategy,4.0,0.0,4.0,0.0,home,MCG
+Tackle,2025.0,18.0,Kysaiah Pickett,MEL,NTH,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-7%,62%,,SKIP - No Strategy,2.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,18.0,Tom Sparrow,MEL,NTH,InsM,✅ Neutral,✅ Neutral,✅ Neutral,4.5,3%,56%,,SKIP - No Strategy,3.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,18.0,Harry Sheezel,NTH,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-18%,44%,,SKIP - No Strategy,6.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2025.0,18.0,Jy Simpkin,NTH,MEL,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-2%,44%,,SKIP - No Strategy,1.0,1.0,3.5,1.0,away,MCG
+Tackle,2025.0,18.0,Luke Parker,NTH,MEL,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,6%,60%,,SKIP - No Strategy,6.0,-1.0,4.5,-1.0,away,MCG
+Tackle,2025.0,18.0,Paul Curtis,NTH,MEL,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-20%,23%,,SKIP - No Strategy,6.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2025.0,18.0,Tom Powell,NTH,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.0,0%,44%,,SKIP - No Strategy,4.0,1.0,5.0,1.0,away,MCG
+Tackle,2025.0,18.0,Tristan Xerri,NTH,MEL,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.0,-10%,44%,,SKIP - No Strategy,6.0,-1.0,5.0,-1.0,away,MCG
+Tackle,2025.0,18.0,Connor Rozee,PTA,WCE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.5,57%,81%,,SKIP - No Strategy,2.0,1.0,5.5,1.0,home,Adelaide Oval
+Tackle,2025.0,18.0,Dion Prestia,RIC,ESS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-3%,40%,,SKIP - No Strategy,1.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,18.0,Jacob Hopper,RIC,ESS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,21%,44%,,SKIP - No Strategy,2.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,18.0,Rhyan Mansell,RIC,ESS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-15%,39%,,SKIP - No Strategy,3.0,0.0,3.0,0.0,home,MCG
+Tackle,2025.0,18.0,Seth Campbell,RIC,ESS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.5,-5%,63%,,SKIP - No Strategy,4.0,-1.0,2.5,-1.0,home,MCG
+Tackle,2025.0,18.0,Tim Taranto,RIC,ESS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.0,0%,50%,,SKIP - No Strategy,5.0,0.0,5.0,0.0,home,MCG
+Tackle,2025.0,18.0,Toby Nankervis,RIC,ESS,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,13%,60%,,SKIP - No Strategy,1.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,18.0,Tim English,WBD,ADE,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.5,4%,56%,2,Tackle + Strong Unders DvP + No Rain + Avg <15%,3.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Ed Richards,WBD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,9%,63%,,SKIP - No Strategy,3.0,1.0,4.5,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Joel Freijah,WBD,ADE,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,14%,44%,,SKIP - No Strategy,2.0,1.0,3.0,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Marcus Bontempelli,WBD,ADE,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,-7%,64%,,SKIP - No Strategy,12.0,-1.0,4.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Matthew Kennedy,WBD,ADE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.0,0%,56%,,SKIP - No Strategy,2.0,1.0,5.0,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Rhylee West,WBD,ADE,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,2%,50%,,SKIP - No Strategy,3.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Ryley Sanders,WBD,ADE,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-12%,40%,,SKIP - No Strategy,0.0,1.0,3.0,1.0,home,Marvel Stadium
+Tackle,2025.0,18.0,Tom Liberatore,WBD,ADE,FwdMid,✅ Neutral,✅ Neutral,🟠 Moderate Unders,6.0,8%,50%,,SKIP - No Strategy,5.0,1.0,6.0,1.0,home,Marvel Stadium
+Tackle,2025.0,19.0,Sam Durham,ESS,GWS,FwdMid,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.5,15%,79%,2,Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets),6.0,-1.0,4.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,19.0,Kieren Briggs,GWS,ESS,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.0,3%,46%,2,Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets),3.0,0.0,3.0,0.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Isaac Kako,ESS,GWS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.0,-6%,25%,,,1.0,1.0,2.0,1.0,home,Marvel Stadium
+Tackle,2025.0,19.0,Xavier Duursma,ESS,GWS,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-6%,44%,,,2.0,1.0,3.0,1.0,home,Marvel Stadium
+Tackle,2025.0,19.0,Zach Merrett,ESS,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.5,22%,63%,,,4.0,1.0,4.5,1.0,home,Marvel Stadium
+Tackle,2025.0,19.0,Darcy Jones,GWS,ESS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,5%,44%,,,2.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Finn Callaghan,GWS,ESS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,5%,64%,,,2.0,1.0,4.5,1.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Ryan Angwin,GWS,ESS,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-13%,33%,,,4.0,-1.0,3.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Toby Bedford,GWS,ESS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.5,-3%,44%,,,6.0,-1.0,5.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Toby Greene,GWS,ESS,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-11%,50%,,,2.0,1.0,3.0,1.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Tom Green,GWS,ESS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,12%,44%,,,3.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,19.0,Tim English,WBD,BRL,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,3.0,-11%,35%,2,Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets),6.0,-1.0,3.0,-1.0,away,Gabba
+Tackle,2025.0,19.0,Rhylee West,WBD,BRL,SmF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.0,-12%,24%,,,4.0,-1.0,3.0,-1.0,away,Gabba
+Tackle,2025.0,19.0,Ryley Sanders,WBD,BRL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,2.5,-22%,44%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),2.0,1.0,2.5,1.0,away,Gabba
+Tackle,2025.0,19.0,Cam Rayner,BRL,WBD,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.5,15%,65%,,,5.0,-1.0,2.5,-1.0,home,Gabba
+Tackle,2025.0,19.0,Hugh McCluggage,BRL,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,4.5,-11%,53%,,,4.0,1.0,4.5,1.0,home,Gabba
+Tackle,2025.0,19.0,Jarrod Berry,BRL,WBD,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,16%,56%,,,1.0,1.0,4.0,1.0,home,Gabba
+Tackle,2025.0,19.0,Josh Dunkley,BRL,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,7.5,7%,59%,,,15.0,-1.0,7.5,-1.0,home,Gabba
+Tackle,2025.0,19.0,Kai Lohmann,BRL,WBD,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,33%,50%,,,8.0,-1.0,3.0,-1.0,home,Gabba
+Tackle,2025.0,19.0,Lachie Neale,BRL,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,4.5,21%,71%,,,4.0,1.0,4.5,1.0,home,Gabba
+Tackle,2025.0,19.0,Oscar McInerney,BRL,WBD,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,13%,44%,,,3.0,1.0,3.5,1.0,home,Gabba
+Tackle,2025.0,19.0,Will Ashcroft,BRL,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,3.5,21%,59%,,,5.0,-1.0,3.5,-1.0,home,Gabba
+Tackle,2025.0,19.0,Ed Richards,WBD,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.5,11%,65%,,,1.0,1.0,4.5,1.0,away,Gabba
+Tackle,2025.0,19.0,Marcus Bontempelli,WBD,BRL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,6.0,11%,67%,,,10.0,-1.0,6.0,-1.0,away,Gabba
+Tackle,2025.0,19.0,Tom Liberatore,WBD,BRL,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,6.5,18%,59%,,,10.0,-1.0,6.5,-1.0,away,Gabba
+Tackle,2025.0,19.0,Jarrod Witts,GCS,ADE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,3.5,-8%,47%,2,Tackle + Strong Unders DvP + No Rain + Avg <15% → 94% WR (16 bets),3.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,19.0,Andrew Brayshaw,FRE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,6.0,-13%,29%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),10.0,-1.0,6.0,-1.0,away,MCG
+Tackle,2025.0,19.0,Caleb Serong,FRE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4.5,-3%,65%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),3.0,1.0,4.5,1.0,away,MCG
+Tackle,2025.0,19.0,Corey Wagner,FRE,COL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,5.0,5%,50%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),2.0,1.0,5.0,1.0,away,MCG
+Tackle,2025.0,19.0,Nathan O'Driscoll,FRE,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,⚠️ Unknown,3.5,-3%,50%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),4.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2025.0,19.0,Shai Bolton,FRE,COL,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2.5,3%,50%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),2.0,1.0,2.5,1.0,away,MCG
+Tackle,2025.0,19.0,Bailey Humphrey,GCS,ADE,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.0,-7%,31%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),3.0,1.0,4.0,1.0,away,Adelaide Oval
+Tackle,2025.0,19.0,Daniel Rioli,GCS,ADE,GenDD,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,2.5,-13%,38%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),0.0,1.0,2.5,1.0,away,Adelaide Oval
+Tackle,2025.0,19.0,Matt Rowell,GCS,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,9.0,-2%,56%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),9.0,0.0,9.0,0.0,away,Adelaide Oval
+Tackle,2025.0,19.0,Dion Prestia,RIC,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.0,-5%,50%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),1.0,1.0,3.0,1.0,away,Optus Stadium
+Tackle,2025.0,19.0,Tim Taranto,RIC,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,5.0,0%,47%,3,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 79% WR (19 bets),4.0,1.0,5.0,1.0,away,Optus Stadium
+Tackle,2025.0,19.0,Alex Neal-Bullen,ADE,GCS,MedF,✅ Neutral,✅ Neutral,⚠️ Unknown,3.5,-7%,41%,,,4.0,-1.0,3.5,-1.0,home,Adelaide Oval
+Tackle,2025.0,19.0,Isaac Cumming,ADE,GCS,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,86%,88%,,,2.0,1.0,3.5,1.0,home,Adelaide Oval
+Tackle,2025.0,19.0,Jake Soligo,ADE,GCS,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.0,-3%,41%,,,5.0,0.0,5.0,0.0,home,Adelaide Oval
+Tackle,2025.0,19.0,James Peatling,ADE,GCS,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,4.5,1%,53%,,,6.0,-1.0,4.5,-1.0,home,Adelaide Oval
+Tackle,2025.0,19.0,Jordan Dawson,ADE,GCS,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,7.0,0%,41%,,,5.0,1.0,7.0,1.0,home,Adelaide Oval
+Tackle,2025.0,19.0,Sam Berry,ADE,GCS,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,27%,64%,,,7.0,-1.0,4.5,-1.0,home,Adelaide Oval
+Tackle,2025.0,19.0,Adam Cerra,CAR,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.0,1%,35%,,,2.0,1.0,5.0,1.0,home,MCG
+Tackle,2025.0,19.0,Cooper Lord,CAR,MEL,Wing,✅ Neutral,✅ Neutral,⚠️ Unknown,3.5,10%,69%,,,4.0,-1.0,3.5,-1.0,home,MCG
+Tackle,2025.0,19.0,George Hewett,CAR,MEL,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.5,-11%,35%,,,0.0,1.0,5.5,1.0,home,MCG
+Tackle,2025.0,19.0,Jesse Motlop,CAR,MEL,SmF,✅ Neutral,✅ Neutral,⚠️ Unknown,4.0,-1%,41%,,,1.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,19.0,Lachie Fogarty,CAR,MEL,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-14%,47%,,,3.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,19.0,Patrick Cripps,CAR,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.5,-2%,47%,,,5.0,1.0,5.5,1.0,home,MCG
+Tackle,2025.0,19.0,Jack Crisp,COL,FRE,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.5,15%,59%,,,5.0,1.0,5.5,1.0,home,MCG
+Tackle,2025.0,19.0,Lachie Schultz,COL,FRE,SmF,✅ Neutral,✅ Neutral,✅ Neutral,5.5,-4%,25%,,,7.0,-1.0,5.5,-1.0,home,MCG
+Tackle,2025.0,19.0,Lachlan Sullivan,COL,FRE,InsM,✅ Neutral,✅ Neutral,✅ Neutral,3.5,20%,58%,,,4.0,-1.0,3.5,-1.0,home,MCG
+Tackle,2025.0,19.0,Ned Long,COL,FRE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,7.0,-2%,35%,,,12.0,-1.0,7.0,-1.0,home,MCG
+Tackle,2025.0,19.0,Nick Daicos,COL,FRE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-4%,59%,,,7.0,-1.0,3.5,-1.0,home,MCG
+Tackle,2025.0,19.0,Scott Pendlebury,COL,FRE,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,4.5,14%,60%,,,5.0,-1.0,4.5,-1.0,home,MCG
+Tackle,2025.0,19.0,Michael Frederick,FRE,COL,SmF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2.5,6%,47%,,,2.0,1.0,2.5,1.0,away,MCG
+Tackle,2025.0,19.0,Sam Switkowski,FRE,COL,SmF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,3.5,24%,64%,,,5.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2025.0,19.0,Brayden Fiorini,GCS,ADE,Wing,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,5.5,10%,67%,,,3.0,1.0,5.5,1.0,away,Adelaide Oval
+Tackle,2025.0,19.0,Noah Anderson,GCS,ADE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.5,12%,56%,,,1.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,19.0,Bailey Smith,GEE,STK,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.0,-7%,43%,,,4.0,1.0,5.0,1.0,home,GMHBA Stadium
+Tackle,2025.0,19.0,Mark O'Connor,GEE,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,6%,59%,,,0.0,1.0,3.5,1.0,home,GMHBA Stadium
+Tackle,2025.0,19.0,Max Holmes,GEE,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,1%,65%,,,4.0,-1.0,3.5,-1.0,home,GMHBA Stadium
+Tackle,2025.0,19.0,Shaun Mannagh,GEE,STK,MedFF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-17%,36%,,,11.0,-1.0,3.5,-1.0,home,GMHBA Stadium
+Tackle,2025.0,19.0,Tom Atkins,GEE,STK,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,8.5,-12%,41%,,,9.0,-1.0,8.5,-1.0,home,GMHBA Stadium
+Tackle,2025.0,19.0,Christian Petracca,MEL,CAR,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,5%,47%,,,1.0,1.0,4.0,1.0,away,MCG
+Tackle,2025.0,19.0,Clayton Oliver,MEL,CAR,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.5,-2%,44%,,,5.0,1.0,5.5,1.0,away,MCG
+Tackle,2025.0,19.0,Jack Viney,MEL,CAR,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.5,5%,58%,,,5.0,1.0,6.5,1.0,away,MCG
+Tackle,2025.0,19.0,Kade Chandler,MEL,CAR,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,5%,53%,,,5.0,-1.0,4.0,-1.0,away,MCG
+Tackle,2025.0,19.0,Kysaiah Pickett,MEL,CAR,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-18%,21%,,,2.0,1.0,3.0,1.0,away,MCG
+Tackle,2025.0,19.0,Jy Simpkin,NTH,SYD,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,3%,47%,,,3.0,1.0,3.5,1.0,away,SCG
+Tackle,2025.0,19.0,Luke Davies-Uniacke,NTH,SYD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,5%,38%,,,3.0,1.0,4.0,1.0,away,SCG
+Tackle,2025.0,19.0,Luke Parker,NTH,SYD,FwdMid,✅ Neutral,✅ Neutral,⚠️ Unknown,4.5,3%,56%,,,2.0,1.0,4.5,1.0,away,SCG
+Tackle,2025.0,19.0,Paul Curtis,NTH,SYD,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,-11%,21%,,,6.0,-1.0,4.0,-1.0,away,SCG
+Tackle,2025.0,19.0,Tom Powell,NTH,SYD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-9%,47%,,,5.0,-1.0,4.5,-1.0,away,SCG
+Tackle,2025.0,19.0,Will Phillips,NTH,SYD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,-14%,33%,,,7.0,-1.0,4.0,-1.0,away,SCG
+Tackle,2025.0,19.0,Jacob Hopper,RIC,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.0,24%,47%,,,4.0,0.0,4.0,0.0,away,Optus Stadium
+Tackle,2025.0,19.0,Rhyan Mansell,RIC,WCE,SmF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.0,-14%,36%,,,2.0,1.0,3.0,1.0,away,Optus Stadium
+Tackle,2025.0,19.0,Seth Campbell,RIC,WCE,SmF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.0,11%,59%,,,5.0,-1.0,3.0,-1.0,away,Optus Stadium
+Tackle,2025.0,19.0,Toby Nankervis,RIC,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.0,5%,44%,,,6.0,-1.0,4.0,-1.0,away,Optus Stadium
+Tackle,2025.0,19.0,Hunter Clark,STK,GEE,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.0,2%,44%,,,2.0,1.0,5.0,1.0,away,GMHBA Stadium
+Tackle,2025.0,19.0,Jack Higgins,STK,GEE,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.0,-15%,29%,,,1.0,1.0,2.0,1.0,away,GMHBA Stadium
+Tackle,2025.0,19.0,Jack Macrae,STK,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.0,0%,53%,,,3.0,1.0,6.0,1.0,away,GMHBA Stadium
+Tackle,2025.0,19.0,Jack Steele,STK,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,8.5,-3%,47%,,,14.0,-1.0,8.5,-1.0,away,GMHBA Stadium
+Tackle,2025.0,19.0,Marcus Windhager,STK,GEE,Wing,✅ Neutral,✅ Neutral,✅ Neutral,3.5,6%,41%,,,5.0,-1.0,3.5,-1.0,away,GMHBA Stadium
+Tackle,2025.0,19.0,Max Hall,STK,GEE,InsM,✅ Neutral,✅ Neutral,✅ Neutral,3.0,9%,41%,,,3.0,0.0,3.0,0.0,away,GMHBA Stadium
+Tackle,2025.0,19.0,Brodie Grundy,SYD,NTH,Ruck,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.0,13%,53%,,,3.0,1.0,5.0,1.0,home,SCG
+Tackle,2025.0,19.0,Chad Warner,SYD,NTH,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.0,15%,47%,,,4.0,0.0,4.0,0.0,home,SCG
+Tackle,2025.0,19.0,Errol Gulden,SYD,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-22%,25%,,,4.0,1.0,4.5,1.0,home,SCG
+Tackle,2025.0,19.0,Isaac Heeney,SYD,NTH,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,13%,65%,,,5.0,-1.0,4.5,-1.0,home,SCG
+Tackle,2025.0,19.0,James Jordon,SYD,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,11%,65%,,,3.0,1.0,4.5,1.0,home,SCG
+Tackle,2025.0,19.0,James Rowbottom,SYD,NTH,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,8.0,5%,59%,,,7.0,1.0,8.0,1.0,home,SCG
+Tackle,2025.0,19.0,Clay Hall,WCE,RIC,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,3.0,11%,29%,,,5.0,-1.0,3.0,-1.0,home,Optus Stadium
+Tackle,2025.0,19.0,Harley Reid,WCE,RIC,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,30%,77%,,,6.0,-1.0,4.5,-1.0,home,Optus Stadium
+Tackle,2025.0,19.0,Jamie Cripps,WCE,RIC,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,14%,60%,,,0.0,1.0,3.5,1.0,home,Optus Stadium
+Tackle,2025.0,19.0,Matt Flynn,WCE,RIC,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-5%,31%,,,1.0,1.0,3.0,1.0,home,Optus Stadium
+Tackle,2025.0,19.0,Tyler Brockman,WCE,RIC,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,9%,57%,,,3.0,1.0,3.5,1.0,home,Optus Stadium
+Tackle,2025.0,21.0,Ed Richards,WBD,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.5,-10.00%,50.00%,3,Tackle + Strong Unders DvP + No Rain + Avg <15% → 85.7% WR (18/21 bets),3.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Marcus Bontempelli,WBD,GWS,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.0,-13.30%,53.80%,3,Tackle + Strong Unders DvP + No Rain + Avg <15% → 85.7% WR (18/21 bets),3.0,1.0,5.0,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Tom Liberatore,WBD,GWS,FwdMid,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.5,-4.80%,50.00%,3,Tackle + Strong Unders DvP + No Rain + Avg <15% → 85.7% WR (18/21 bets),2.0,1.0,5.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Hugh McCluggage,BRL,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4.0,-20.00%,38.90%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 74.2% WR (23/31 bets),7.0,-1.0,4.0,-1.0,away,MCG
+Tackle,2025.0,21.0,Tyler Brockman,WCE,MEL,SmF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,3.0,-6.20%,33.30%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 74.2% WR (23/31 bets),0.0,1.0,3.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Shaun Mannagh,GEE,PTA,MedFF,✅ Neutral,✅ Neutral,✅ Neutral,5.0,+7.1%,53.30%,,,2.0,1.0,5.0,1.0,home,GMHBA Stadium
+Tackle,2025.0,21.0,Kade Chandler,MEL,WCE,Wing,✅ Neutral,✅ Neutral,✅ Neutral,4.0,+2.9%,50.00%,,,4.0,0.0,4.0,0.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Luke Davies-Uniacke,NTH,STK,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.0,+6.2%,41.20%,,,5.0,-1.0,4.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Luke Parker,NTH,STK,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.0,-5.60%,47.10%,,,3.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Darcy Jones,GWS,WBD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-5.60%,47.10%,,,3.0,1.0,3.5,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Finn Callaghan,GWS,WBD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,-3.20%,53.30%,,,2.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Kieren Briggs,GWS,WBD,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+19.5%,64.30%,,,2.0,1.0,3.5,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Ryan Angwin,GWS,WBD,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+0.0%,25.00%,,,3.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Stephen Coniglio,GWS,WBD,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+55.6%,100.00%,,,3.0,1.0,3.5,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Toby Bedford,GWS,WBD,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.0,-12.40%,35.30%,,,2.0,1.0,5.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Tom Green,GWS,WBD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+13.3%,47.10%,,,3.0,1.0,4.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Jarrod Berry,BRL,COL,Wing,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.0,-8.90%,29.40%,,,3.0,0.0,3.0,0.0,away,MCG
+Tackle,2025.0,21.0,Oisin Mullin,GEE,PTA,GenD,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-8.90%,41.20%,,,0.0,1.0,3.0,1.0,home,GMHBA Stadium
+Tackle,2025.0,21.0,Tyson Stengle,GEE,PTA,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-12.70%,31.20%,,,0.0,1.0,3.0,1.0,home,GMHBA Stadium
+Tackle,2025.0,21.0,Jack Viney,MEL,WCE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.5,+7.0%,61.50%,,,8.0,-1.0,6.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Kysaiah Pickett,MEL,WCE,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-0.90%,66.70%,,,5.0,-1.0,3.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Willem Drew,PTA,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.5,-3.30%,44.40%,,,10.0,-1.0,6.5,-1.0,away,GMHBA Stadium
+Tackle,2025.0,21.0,Zak Butters,PTA,GEE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-12.30%,46.70%,,,2.0,1.0,4.5,1.0,away,GMHBA Stadium
+Tackle,2025.0,21.0,Hugo Garcia,STK,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-16.40%,46.20%,,,1.0,1.0,4.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Jack Macrae,STK,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.5,-5.40%,56.20%,,,4.0,1.0,5.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Jack Steele,STK,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,8.5,-6.80%,43.80%,,,2.0,1.0,8.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Marcus Windhager,STK,NTH,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+3.3%,38.90%,,,1.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Max Hall,STK,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+26.0%,66.70%,,,1.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Jamie Cripps,WCE,MEL,MedF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.0,+4.3%,43.80%,,,2.0,1.0,3.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Cam Rayner,BRL,COL,MedF,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,2.5,+7.1%,61.10%,,,9.0,-1.0,2.5,-1.0,away,MCG
+Tackle,2025.0,21.0,Josh Dunkley,BRL,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,8.0,+7.5%,55.60%,,,6.0,1.0,8.0,1.0,away,MCG
+Tackle,2025.0,21.0,Lachie Neale,BRL,COL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟠 Moderate Unders,4.0,+7.5%,44.40%,,,3.0,1.0,4.0,1.0,away,MCG
+Tackle,2025.0,21.0,Lachie Schultz,COL,BRL,SmF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,5.5,-6.60%,22.20%,,,7.0,-1.0,5.5,-1.0,home,MCG
+Tackle,2025.0,21.0,Matthew Kennedy,WBD,GWS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.5,+8.8%,61.10%,,,2.0,1.0,5.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Rhylee West,WBD,GWS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,+1.6%,50.00%,,,3.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Riley Garcia,WBD,GWS,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,+0.0%,33.30%,,,5.0,-1.0,4.0,-1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Ryley Sanders,WBD,GWS,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-3.80%,47.10%,,,2.0,1.0,3.0,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Tim English,WBD,GWS,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-14.30%,33.30%,,,0.0,1.0,3.0,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Ned Long,COL,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,7.0,-5.30%,33.30%,,,7.0,0.0,7.0,0.0,home,MCG
+Tackle,2025.0,21.0,Nick Daicos,COL,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-21.70%,22.20%,,,2.0,1.0,3.0,1.0,home,MCG
+Tackle,2025.0,21.0,Scott Pendlebury,COL,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,+12.5%,56.20%,,,8.0,-1.0,4.5,-1.0,home,MCG
+Tackle,2025.0,21.0,Steele Sidebottom,COL,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,+2.9%,62.50%,,,3.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,21.0,Bailey Smith,GEE,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,-14.60%,46.70%,,,7.0,-1.0,4.5,-1.0,home,GMHBA Stadium
+Tackle,2025.0,21.0,Max Holmes,GEE,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,+0.0%,61.10%,,,2.0,1.0,3.5,1.0,home,GMHBA Stadium
+Tackle,2025.0,21.0,Christian Petracca,MEL,WCE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-18.20%,33.30%,,,4.0,-1.0,3.0,-1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Clayton Oliver,MEL,WCE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,6.0,+7.4%,47.10%,,,5.0,1.0,6.0,1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Tom Sparrow,MEL,WCE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,-6.80%,35.30%,,,5.0,-1.0,4.0,-1.0,home,Marvel Stadium
+Tackle,2025.0,21.0,Cameron Zurhaar,NTH,STK,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,2.0,-12.20%,27.80%,,,0.0,1.0,2.0,1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Paul Curtis,NTH,STK,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,-13.00%,20.00%,,,6.0,-1.0,4.0,-1.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Tom Powell,NTH,STK,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.0,+1.1%,44.40%,,,5.0,0.0,5.0,0.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Joe Richards,PTA,GEE,MedF,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,+13.3%,58.80%,,,5.0,-1.0,4.0,-1.0,away,GMHBA Stadium
+Tackle,2025.0,21.0,Jordon Sweet,PTA,GEE,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,+1.8%,42.90%,,,5.0,-1.0,4.0,-1.0,away,GMHBA Stadium
+Tackle,2025.0,21.0,Elijah Hewett,WCE,MEL,InsM,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.0,+22.4%,46.70%,,,4.0,0.0,4.0,0.0,away,Marvel Stadium
+Tackle,2025.0,21.0,Liam Baker,WCE,MEL,GenD,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,4.5,+37.3%,66.70%,,,5.0,-1.0,4.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,22.0,Darcy Moore,COL,HAW,KeyD,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+142.9%,94.10%,,,3.0,1.0,4.0,1.0,away,MCG
+Tackle,2025.0,22.0,Jack Crisp,COL,HAW,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.0,+6.4%,40.00%,,,3.0,1.0,5.0,1.0,away,MCG
+Tackle,2025.0,22.0,Lachie Schultz,COL,HAW,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.5,-2.40%,27.30%,,,5.0,1.0,5.5,1.0,away,MCG
+Tackle,2025.0,22.0,Ned Long,COL,HAW,InsM,✅ Neutral,✅ Neutral,🔵 Strong Easy,7.0,-4.10%,35.00%,,,3.0,1.0,7.0,1.0,away,MCG
+Tackle,2025.0,22.0,Nick Daicos,COL,HAW,InsM,✅ Neutral,✅ Neutral,🔵 Strong Easy,3.0,-15.50%,30.00%,,,4.0,-1.0,3.0,-1.0,away,MCG
+Tackle,2025.0,22.0,Scott Pendlebury,COL,HAW,InsM,✅ Neutral,✅ Neutral,🔵 Strong Easy,4.5,+6.2%,52.90%,,,0.0,1.0,4.5,1.0,away,MCG
+Tackle,2025.0,22.0,Steele Sidebottom,COL,HAW,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,-10.00%,33.30%,,,0.0,1.0,4.0,1.0,away,MCG
+Tackle,2025.0,22.0,Connor Macdonald,HAW,COL,FwdMid,✅ Neutral,✅ Neutral,⚠️ Unknown,3.5,-1.60%,44.40%,,,0.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,22.0,Conor Nash,HAW,COL,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.0,-20.00%,18.80%,,,3.0,1.0,5.0,1.0,home,MCG
+Tackle,2025.0,22.0,Dylan Moore,HAW,COL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,+0.0%,45.00%,,,2.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,22.0,Jai Newcombe,HAW,COL,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,-15.10%,50.00%,,,2.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,22.0,James Worpel,HAW,COL,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,4.5,-19.60%,53.30%,,,1.0,1.0,4.5,1.0,home,MCG
+Tackle,2025.0,22.0,Josh Ward,HAW,COL,Wing,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,+11.8%,52.60%,,,3.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,22.0,Lloyd Meek,HAW,COL,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,-8.40%,31.60%,,,4.0,0.0,4.0,0.0,home,MCG
+Tackle,2025.0,22.0,Nick Watson,HAW,COL,SmF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,2.0,+0.0%,36.80%,,,1.0,1.0,2.0,1.0,home,MCG
+Tackle,2025.0,22.0,George Wardlaw,NTH,GWS,InsM,✅ Neutral,✅ Neutral,🔵 Strong Easy,5.5,+14.6%,50.00%,3,Tackle + Strong Unders DvP + No Rain + Avg <15% → 85.7% WR (18/21 bets),11.0,-1.0,5.5,-1.0,away,Manuka Oval
+Tackle,2025.0,22.0,Luke Davies-Uniacke,NTH,GWS,InsM,✅ Neutral,✅ Neutral,🔵 Strong Easy,4.0,+0.0%,36.80%,3,Tackle + Strong Unders DvP + No Rain + Avg <15% → 85.7% WR (18/21 bets),5.0,-1.0,4.0,-1.0,away,Manuka Oval
+Tackle,2025.0,22.0,Andrew Brayshaw,FRE,PTA,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,7.0,+2.2%,45.00%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 74.2% WR (23/31 bets),5.0,1.0,7.0,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Caleb Serong,FRE,PTA,InsM,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,4.5,-3.20%,60.00%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 74.2% WR (23/31 bets),2.0,1.0,4.5,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Sean Darcy,FRE,PTA,Ruck,🟠 Moderate (Long Travel),✅ Neutral,⚠️ Unknown,3.0,-4.90%,38.50%,5,Tackle + Moderate Travel + Avg <5% + No Easy DvP + No Rain → 74.2% WR (23/31 bets),1.0,1.0,3.0,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Darcy Fort,BRL,SYD,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.5,+0.0%,57.10%,,,3.0,-1.0,2.5,-1.0,home,Gabba
+Tackle,2025.0,22.0,Hugh McCluggage,BRL,SYD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,-19.20%,40.00%,,,3.0,1.0,4.0,1.0,home,Gabba
+Tackle,2025.0,22.0,Josh Dunkley,BRL,SYD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,7.5,-2.60%,55.00%,,,7.0,1.0,7.5,1.0,home,Gabba
+Tackle,2025.0,22.0,Will Ashcroft,BRL,SYD,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,3.5,+14.8%,55.00%,,,5.0,-1.0,3.5,-1.0,home,Gabba
+Tackle,2025.0,22.0,George Hewett,CAR,GCS,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.5,-7.60%,35.00%,,,6.0,-1.0,5.5,-1.0,home,Marvel Stadium
+Tackle,2025.0,22.0,Patrick Cripps,CAR,GCS,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.0,+4.3%,45.00%,,,8.0,-1.0,6.0,-1.0,home,Marvel Stadium
+Tackle,2025.0,22.0,Jaeger O'Meara,FRE,PTA,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,-10.30%,50.00%,,,2.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Luke Jackson,FRE,PTA,Ruck,🟠 Moderate (Long Travel),✅ Neutral,✅ Neutral,5.0,+19.7%,52.90%,,,3.0,1.0,5.0,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Nathan O'Driscoll,FRE,PTA,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,-1.30%,45.50%,,,2.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Sam Switkowski,FRE,PTA,SmF,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,+11.4%,57.10%,,,2.0,1.0,3.5,1.0,away,Adelaide Oval
+Tackle,2025.0,22.0,Bailey Humphrey,GCS,CAR,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.0,-9.50%,31.60%,,,4.0,0.0,4.0,0.0,away,Marvel Stadium
+Tackle,2025.0,22.0,Matt Rowell,GCS,CAR,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,9.0,-3.40%,47.40%,,,8.0,1.0,9.0,1.0,away,Marvel Stadium
+Tackle,2025.0,22.0,Noah Anderson,GCS,CAR,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,+14.7%,57.90%,,,6.0,-1.0,3.5,-1.0,away,Marvel Stadium
+Tackle,2025.0,22.0,Darcy Jones,GWS,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-14.90%,31.60%,,,2.0,1.0,3.0,1.0,home,Manuka Oval
+Tackle,2025.0,22.0,Finn Callaghan,GWS,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-13.80%,52.90%,,,8.0,-1.0,3.5,-1.0,home,Manuka Oval
+Tackle,2025.0,22.0,Ryan Angwin,GWS,NTH,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-8.70%,33.30%,,,4.0,-1.0,3.5,-1.0,home,Manuka Oval
+Tackle,2025.0,22.0,Toby Bedford,GWS,NTH,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-15.30%,42.10%,,,3.0,1.0,4.5,1.0,home,Manuka Oval
+Tackle,2025.0,22.0,Toby Greene,GWS,NTH,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.5,-21.10%,55.60%,,,4.0,-1.0,2.5,-1.0,home,Manuka Oval
+Tackle,2025.0,22.0,Tom Green,GWS,NTH,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+10.1%,47.40%,,,4.0,0.0,4.0,0.0,home,Manuka Oval
+Tackle,2025.0,22.0,Christian Petracca,MEL,WBD,InsM,✅ Neutral,✅ Neutral,✅ Neutral,3.5,-2.80%,50.00%,,,2.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,22.0,Clayton Oliver,MEL,WBD,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.5,-4.10%,47.40%,,,4.0,1.0,5.5,1.0,home,MCG
+Tackle,2025.0,22.0,Jack Viney,MEL,WBD,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,6.5,-5.30%,53.30%,,,1.0,1.0,6.5,1.0,home,MCG
+Tackle,2025.0,22.0,Kade Chandler,MEL,WBD,Wing,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+2.6%,45.00%,,,4.0,0.0,4.0,0.0,home,MCG
+Tackle,2025.0,22.0,Kysaiah Pickett,MEL,WBD,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,-8.50%,58.80%,,,2.0,1.0,3.5,1.0,home,MCG
+Tackle,2025.0,22.0,Tom Sparrow,MEL,WBD,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,4.0,-5.00%,36.80%,,,3.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,22.0,Jacob Konstanty,NTH,GWS,SmF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,-7.70%,45.00%,,,5.0,-1.0,3.0,-1.0,away,Manuka Oval
+Tackle,2025.0,22.0,Luke Parker,NTH,GWS,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-16.90%,47.40%,,,5.0,-1.0,3.5,-1.0,away,Manuka Oval
+Tackle,2025.0,22.0,Tom Powell,NTH,GWS,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,5.0,-2.00%,40.00%,,,2.0,1.0,5.0,1.0,away,Manuka Oval
+Tackle,2025.0,22.0,Jed McEntee,PTA,FRE,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+16.7%,33.30%,,,4.0,-1.0,3.5,-1.0,home,Adelaide Oval
+Tackle,2025.0,22.0,Joe Richards,PTA,FRE,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,+22.1%,63.20%,,,1.0,1.0,4.5,1.0,home,Adelaide Oval
+Tackle,2025.0,22.0,Jordon Sweet,PTA,FRE,Ruck,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.0,+0.0%,37.50%,,,0.0,1.0,4.0,1.0,home,Adelaide Oval
+Tackle,2025.0,22.0,Ollie Wines,PTA,FRE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,+2.5%,61.10%,,,4.0,1.0,4.5,1.0,home,Adelaide Oval
+Tackle,2025.0,22.0,Willem Drew,PTA,FRE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,7.0,+0.7%,40.00%,,,6.0,1.0,7.0,1.0,home,Adelaide Oval
+Tackle,2025.0,22.0,Zak Butters,PTA,FRE,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-7.80%,52.90%,,,4.0,1.0,4.5,1.0,home,Adelaide Oval
+Tackle,2025.0,22.0,Jack Ross,RIC,STK,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,4.0,+3.9%,55.00%,,,2.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,22.0,Jacob Hopper,RIC,STK,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+25.0%,50.00%,,,1.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,22.0,Toby Nankervis,RIC,STK,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,+2.7%,42.10%,,,3.0,1.0,4.0,1.0,home,MCG
+Tackle,2025.0,22.0,Jack Macrae,STK,RIC,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.5,-3.90%,55.60%,,,4.0,1.0,5.5,1.0,away,MCG
+Tackle,2025.0,22.0,Jack Steele,STK,RIC,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,8.5,+0.0%,50.00%,,,10.0,-1.0,8.5,-1.0,away,MCG
+Tackle,2025.0,22.0,Marcus Windhager,STK,RIC,Wing,✅ Neutral,✅ Neutral,✅ Neutral,3.5,+7.7%,45.00%,,,6.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2025.0,22.0,Max Hall,STK,RIC,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,+20.7%,65.00%,,,5.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2025.0,22.0,Brodie Grundy,SYD,BRL,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.0,-4.80%,35.00%,,,0.0,1.0,4.0,1.0,away,Gabba
+Tackle,2025.0,22.0,Errol Gulden,SYD,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-23.40%,28.60%,,,4.0,-1.0,3.5,-1.0,away,Gabba
+Tackle,2025.0,22.0,James Rowbottom,SYD,BRL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,6.5,-13.90%,45.00%,,,3.0,1.0,6.5,1.0,away,Gabba
+Tackle,2025.0,22.0,Ed Richards,WBD,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-6.70%,55.00%,,,2.0,1.0,3.5,1.0,away,MCG
+Tackle,2025.0,22.0,Marcus Bontempelli,WBD,MEL,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,-16.70%,60.00%,,,5.0,-1.0,4.5,-1.0,away,MCG
+Tackle,2025.0,22.0,Matthew Kennedy,WBD,MEL,InsM,✅ Neutral,✅ Neutral,🟠 Moderate Unders,4.5,-11.80%,55.00%,,,6.0,-1.0,4.5,-1.0,away,MCG
+Tackle,2025.0,22.0,Rhylee West,WBD,MEL,SmF,✅ Neutral,✅ Neutral,🟠 Moderate Unders,3.5,+1.4%,50.00%,,,2.0,1.0,3.5,1.0,away,MCG
+Tackle,2025.0,22.0,Riley Garcia,WBD,MEL,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,4.0,-4.80%,20.00%,,,1.0,1.0,4.0,1.0,away,MCG
+Tackle,2025.0,22.0,Sam Darcy,WBD,MEL,KeyF,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.0,+75.0%,71.40%,,,0.0,1.0,3.0,1.0,away,MCG
+Tackle,2025.0,22.0,Tim English,WBD,MEL,Ruck,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+7.7%,60.00%,,,2.0,1.0,3.5,1.0,away,MCG
+Tackle,2025.0,22.0,Tom Liberatore,WBD,MEL,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.0,-5.70%,45.00%,,,12.0,-1.0,5.0,-1.0,away,MCG
+Tackle,2026.0,1.0,Cooper Lord,CAR,RIC,Wing,✅ Neutral,✅ Neutral,🔷 Moderate Easy,3.5,-11.40%,55.00%,,,2.0,1.0,3.5,1.0,home,MCG
+Tackle,2026.0,1.0,George Hewett,CAR,RIC,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.5,-7.60%,33.30%,,,4.0,1.0,5.5,1.0,home,MCG
+Tackle,2026.0,1.0,Lachie Fogarty,CAR,RIC,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-23.00%,5.30%,,,3.0,0.0,3.0,0.0,home,MCG
+Tackle,2026.0,1.0,Oliver Hollands,CAR,RIC,GenD,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-11.30%,28.60%,,,1.0,1.0,3.0,1.0,home,MCG
+Tackle,2026.0,1.0,Patrick Cripps,CAR,RIC,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.5,-6.10%,42.90%,,,3.0,1.0,5.5,1.0,home,MCG
+Tackle,2026.0,1.0,Jack Ross,RIC,CAR,InsM,✅ Neutral,✅ Neutral,⚠️ Unknown,3.5,-7.00%,57.10%,,,7.0,-1.0,3.5,-1.0,away,MCG
+Tackle,2026.0,1.0,Jacob Hopper,RIC,CAR,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,+13.1%,52.40%,,,2.0,1.0,3.5,1.0,away,MCG
+Tackle,2026.0,1.0,Rhyan Mansell,RIC,CAR,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-14.30%,38.90%,,,4.0,-1.0,3.0,-1.0,away,MCG
+Tackle,2026.0,1.0,Seth Campbell,RIC,CAR,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.5,-3.80%,60.00%,,,0.0,1.0,2.5,1.0,away,MCG
+Tackle,2026.0,1.0,Tim Taranto,RIC,CAR,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.5,-5.00%,52.60%,,,1.0,1.0,4.5,1.0,away,MCG
+Tackle,2026.0,1.0,Toby Nankervis,RIC,CAR,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,3.5,-9.10%,45.00%,,,2.0,1.0,3.5,1.0,away,MCG
+Tackle,2026.0,1.0,Kade Chandler,MEL,STK,Wing,✅ Neutral,✅ Neutral,✅ Neutral,3.0,-10.40%,43.00%,,,2.0,1.0,3.0,1.0,home,MCG
+Tackle,2026.0,1.0,Lachie Shultz,COL,ADE,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,-28.40%,25.00%,,,2.0,1.0,4.0,1.0,,
+Tackle,2026.0,1.0,Brad Close,GEL,FRE,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.0,-10.60%,38.10%,,,2.0,0.0,2.0,0.0,,
+Tackle,2026.0,1.0,Cameron Zurhaar,NTH,PTA,MedF,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.5,11.70%,57.10%,,,3.0,-1.0,2.5,-1.0,home,Marvel Stadium
+Tackle,2026.0,1.0,Jacob Konstanty,NTH,PTA,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.5,5.00%,57.10%,,,2.0,1.0,3.5,1.0,home,Marvel Stadium
+Tackle,2026.0,1.0,Paul Curtin,NTH,PTA,InsM,✅ Neutral,✅ Neutral,🔹 Slight Easy,4.0,-12.80%,23.50%,,,1.0,1.0,4.0,1.0,home,Marvel Stadium
+Tackle,2026.0,2.0,Jake Soligo,ADE,WBD,FwdMid,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,-33%,0%,,,2.0,1.0,4.0,1.0,,
+Tackle,2026.0,2.0,James Peatling,ADE,WBD,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.5,75%,100%,,,2.0,1.0,3.5,1.0,,
+Tackle,2026.0,2.0,Jordan Dawson,ADE,WBD,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,6.0,0%,0%,4,Tackle + Strong Unders DvP + Avg <15% → 79.3% WR (23/29),7.0,-1.0,6.0,-1.0,,
+Tackle,2026.0,2.0,Sam Berry,ADE,WBD,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.0,-29%,0%,4,Tackle + Strong Unders DvP + Avg <15% → 79.3% WR (23/29),8.0,-1.0,5.0,-1.0,,
+Tackle,2026.0,2.0,Alex Davies,GCS,RIC,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,6.0,0%,50%,,,6.0,0.0,6.0,0.0,away,MCG
+Tackle,2026.0,2.0,Joel Freijah,WBD,ADE,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,2.5,0%,50%,,,3.0,-1.0,2.5,-1.0,,
+Tackle,2026.0,2.0,Tim English,WBD,ADE,Ruck,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.0,20%,50%,,,3.0,0.0,3.0,0.0,,
+Tackle,2026.0,2.0,Alex Neal-Bullen,ADE,WBD,MedF,✅ Neutral,✅ Neutral,🔵 Strong Easy,3.5,75%,100%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),1.0,1.0,3.5,1.0,,
+Tackle,2026.0,2.0,Ben Keays,ADE,WBD,MedF,✅ Neutral,✅ Neutral,🔵 Strong Easy,2.5,,100%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),2.0,1.0,2.5,1.0,,
+Tackle,2026.0,2.0,Bailey Williams,WBD,ADE,Wing,✅ Neutral,✅ Neutral,🔷 Moderate Easy,2.5,-38%,0%,,,5.0,-1.0,2.5,-1.0,,
+Tackle,2026.0,2.0,Rhylee West,WBD,ADE,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,20%,50%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),4.0,-1.0,3.0,-1.0,,
+Tackle,2026.0,2.0,Lachlan McAndrew,ADE,WBD,Ruck,✅ Neutral,✅ Neutral,🟠 Moderate Unders,3.0,-25%,0%,,,2.0,1.0,3.0,1.0,,
+Tackle,2026.0,2.0,Tom Liberatore,WBD,ADE,FwdMid,✅ Neutral,✅ Neutral,🔹 Slight Easy,5.5,38%,50%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),9.0,-1.0,5.5,-1.0,,
+Tackle,2026.0,2.0,Matthew Johnson,FRE,MEL,Wing,✅ Neutral,✅ Neutral,🔴 Strong Unders,3.5,-42%,0%,4,Tackle + Strong Unders DvP + Avg <15% → 79.3% WR (23/29),2.0,1.0,3.5,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Sam Switkowski,FRE,MEL,SmF,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.0,0%,0%,4,Tackle + Strong Unders DvP + Avg <15% → 79.3% WR (23/29),1.0,1.0,4.0,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Andrew Brayshaw,FRE,MEL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,5.5,38%,100%,,,4.0,1.0,5.5,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Caleb Serong,FRE,MEL,InsM,✅ Neutral,✅ Neutral,🔴 Strong Unders,4.5,350%,100%,,,3.0,1.0,4.5,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Christian Petracca,GCS,RIC,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,3.0,20%,50%,,,2.0,1.0,3.0,1.0,away,MCG
+Tackle,2026.0,2.0,Trent Rivers,MEL,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,3.0,-25%,0%,,,1.0,1.0,3.0,1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Jack Ross,RIC,GCS,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,-36%,0%,,,4.0,1.0,4.5,1.0,home,MCG
+Tackle,2026.0,2.0,Tim Taranto,RIC,GCS,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,4.5,350%,100%,,,12.0,-1.0,4.5,-1.0,home,MCG
+Tackle,2026.0,2.0,Ed Richards,WBD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,0%,50%,,,3.0,1.0,4.5,1.0,,
+Tackle,2026.0,2.0,Marcus Bontempelli,WBD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,13%,50%,,,6.0,-1.0,4.5,-1.0,,
+Tackle,2026.0,2.0,Noah Anderson,GCS,RIC,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,3.0,20%,50%,,,4.0,-1.0,3.0,-1.0,away,MCG
+Tackle,2026.0,2.0,Wil Powell,GCS,RIC,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔷 Moderate Easy,4.5,-25%,0%,,,8.0,-1.0,4.5,-1.0,away,MCG
+Tackle,2026.0,2.0,Matthew Kennedy,WBD,ADE,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.5,-10%,50%,,,7.0,-1.0,4.5,-1.0,,
+Tackle,2026.0,2.0,Maurice Rioli,RIC,GCS,SmF,✅ Neutral,✅ Neutral,🔹 Slight Easy,3.0,-25%,0%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),3.0,0.0,3.0,0.0,home,MCG
+Tackle,2026.0,2.0,Leonardo Lombard,GCS,RIC,SmF,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,2.5,-29%,0%,1,Tackle + Mod Travel + Avg <5% + Slight Unders/Neutral DvP → 95.7% WR (22/23),1.0,1.0,2.5,1.0,away,MCG
+Tackle,2026.0,2.0,Touk Miller,GCS,RIC,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🟡 Slight Unders,5.0,25%,50%,,,1.0,1.0,5.0,1.0,away,MCG
+Tackle,2026.0,2.0,Caleb Windsor,MEL,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,3.0,50%,100%,,,3.0,0.0,3.0,0.0,away,Optus Stadium
+Tackle,2026.0,2.0,Jack Steele,MEL,FRE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,7.5,150%,100%,,,9.0,-1.0,7.5,-1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Kysaiah Pickett,MEL,FRE,FwdMid,🟠 Moderate (Long Travel),✅ Neutral,🔵 Strong Easy,4.0,-43%,0%,,,5.0,-1.0,4.0,-1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Tristan Xerri,NTH,WCE,Ruck,🟠 Moderate (Long Travel),✅ Neutral,🔴 Strong Unders,6.5,-35%,0%,4,Tackle + Strong Unders DvP + Avg <15% → 79.3% WR (23/29),9.0,-1.0,6.5,-1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Harry Sheezel,NTH,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.5,-10%,0%,,,4.0,1.0,4.5,1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Jack Graham,WCE,NTH,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,7.5,-6%,0%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),7.0,1.0,7.5,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Luke Davies-Uniacke,NTH,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,4.5,-10%,0%,,,4.0,1.0,4.5,1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Harley Reid,WCE,NTH,FwdMid,✅ Neutral,✅ Neutral,🔷 Moderate Easy,3.5,75%,100%,,,5.0,-1.0,3.5,-1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Luke Jackson,FRE,MEL,Ruck,✅ Neutral,✅ Neutral,🟡 Slight Unders,5.0,-38%,0%,,,2.0,1.0,5.0,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Tom Powell,NTH,WCE,InsM,🟠 Moderate (Long Travel),✅ Neutral,🔹 Slight Easy,3.5,250%,100%,,,2.0,1.0,3.5,1.0,away,Optus Stadium
+Tackle,2026.0,2.0,Tom McCarthy,WCE,NTH,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,3.5,-30%,0%,,,3.0,1.0,3.5,1.0,home,Optus Stadium
+Tackle,2026.0,2.0,Connor Rozee,PTA,ESS,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,3.5,17%,100%,,,3.0,1.0,3.5,1.0,home,Adelaide Oval
+Tackle,2026.0,2.0,Darcy Parish,ESS,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,0%,0%,,,3.0,1.0,4.0,1.0,away,Adelaide Oval
+Tackle,2026.0,2.0,Jye Caldwell,ESS,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,6.5,-7%,0%,,,6.0,1.0,6.5,1.0,away,Adelaide Oval
+Tackle,2026.0,2.0,Sam Durham,ESS,PTA,FwdMid,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,0%,0%,,,7.0,-1.0,4.0,-1.0,away,Adelaide Oval
+Tackle,2026.0,2.0,Zach Merrett,ESS,PTA,InsM,✅ Neutral,✅ Neutral,🟡 Slight Unders,4.0,100%,100%,,,4.0,0.0,4.0,0.0,away,Adelaide Oval
+Tackle,2026.0,2.0,Willem Drew,PTA,ESS,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.5,38%,100%,,,5.0,1.0,5.5,1.0,home,Adelaide Oval
+Tackle,2026.0,2.0,Zak Butters,PTA,ESS,InsM,✅ Neutral,✅ Neutral,🔷 Moderate Easy,5.0,-29%,0%,,,6.0,-1.0,5.0,-1.0,home,Adelaide Oval
+Tackle,2026.0,2.0,Jason Horne-Francis,PTA,ESS,FwdMid,✅ Neutral,✅ Neutral,🟠 Moderate Unders,3.0,0%,0%,6,GenF Tackle + excl Slight Unders DvP → 69.8% WR (37/53),2.0,1.0,3.0,1.0,home,Adelaide Oval
+Tackle,2026.0,2.0,Deven Robertson,WCE,NTH,Wing,✅ Neutral,✅ Neutral,🟡 Slight Unders,6.0,-50%,0%,,,4.0,1.0,6.0,1.0,home,Optus Stadium

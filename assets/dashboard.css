@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* ── Honey Pot palette ────────────────────────────────────────────────── */
+:root {
+  --bg:        #091d26;
+  --surface:   #102937;
+  --glass:     rgba(18, 77, 84, 0.45);
+  --glass2:    rgba(9, 29, 38, 0.6);
+  --border:    rgba(225, 217, 207, 0.10);
+  --border2:   rgba(225, 217, 207, 0.06);
+  --text:      #e1d9cf;
+  --muted:     rgba(225, 217, 207, 0.55);
+  --faded:     rgba(225, 217, 207, 0.25);
+  --accent:    #f9744b;
+  --accent2:   #d84f2a;
+  --win:       #2dd4bf;
+  --loss:      #f87171;
+  --amber:     #f9744b;
+  --s1:        #2dd4bf;
+  --s2:        #7dd3fc;
+  --s3:        #c4b5fd;
+  --mono:      'JetBrains Mono', 'Courier New', monospace;
+  --display:   'Inter', system-ui, sans-serif;
+}
+
+/* ── Base ─────────────────────────────────────────────────────────────── */
+html, body {
+  font-family: var(--display);
+  background: linear-gradient(135deg, #091d26 0%, #102937 50%, #094044 100%) !important;
+  background-attachment: fixed !important;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.container-fluid {
+  background: transparent !important;
+}
+
+/* ── Glass panel ──────────────────────────────────────────────────────── */
+.glass-panel {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+/* ── Fade-in stagger ──────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+.fade-1 { animation: fadeUp 0.35s ease-out 0.04s both; }
+.fade-2 { animation: fadeUp 0.35s ease-out 0.10s both; }
+.fade-3 { animation: fadeUp 0.35s ease-out 0.16s both; }
+.fade-4 { animation: fadeUp 0.35s ease-out 0.22s both; }
+.fade-5 { animation: fadeUp 0.35s ease-out 0.28s both; }
+.fade-6 { animation: fadeUp 0.35s ease-out 0.34s both; }
+
+/* KPI classes — no animation, colour via inline border */
+.kpi-cyan, .kpi-green, .kpi-red {}
+
+/* ── Strategy row hover ───────────────────────────────────────────────── */
+.strat-row { transition: background 0.12s ease; }
+.strat-row:hover { background: rgba(249, 116, 75, 0.06) !important; }
+
+/* ── Heat table row hover ─────────────────────────────────────────────── */
+.heat-row { transition: background 0.12s ease; }
+.heat-row:hover td { filter: brightness(1.15); }
+
+/* ── Top buttons ──────────────────────────────────────────────────────── */
+#refresh-markets-button:hover {
+  border-color: rgba(249, 116, 75, 0.5) !important;
+  background: rgba(249, 116, 75, 0.08) !important;
+}
+#export-button:hover {
+  border-color: rgba(225, 217, 207, 0.25) !important;
+  color: #e1d9cf !important;
+}
+
+/* ── Pairings table checkbox ──────────────────────────────────────────── */
+#pairings-datatable input[type="checkbox"] {
+  width: 16px; height: 16px;
+  cursor: pointer; accent-color: var(--accent);
+}
+#pairings-datatable th input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--accent);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(225,217,207,0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(249,116,75,0.4); }
+
+/* ── Tooltip override ─────────────────────────────────────────────────── */
+.tooltip-inner {
+  background: rgba(9, 29, 38, 0.95) !important;
+  border: 1px solid rgba(225, 217, 207, 0.12) !important;
+  border-radius: 8px !important;
+  max-width: 440px !important;
+  backdrop-filter: blur(12px);
+}
+.bs-tooltip-bottom .tooltip-arrow::before {
+  border-bottom-color: rgba(225, 217, 207, 0.12) !important;
+}

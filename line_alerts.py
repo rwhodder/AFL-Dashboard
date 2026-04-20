@@ -114,14 +114,16 @@ def save_cache(cache: set):
 
 # ── Bet flag logic (mirrors app.py calculate_bet_flag) ───────────────────────
 
+TACKLE_BAD_OPPONENTS = {"SYD", "GCS", "GEE"}
+
+
 def calculate_bet_flag(player_row, stat_type):
     try:
-        position             = player_row.get("Position", player_row.get("position", ""))
-        dvp                  = player_row.get("DvP",      player_row.get("dvp",      ""))
-        travel_fatigue       = player_row.get("Travel Fatigue", player_row.get("travel_fatigue", ""))
-        line_str             = player_row.get("Line", "")
-        avg_vs_line_str      = player_row.get("Avg vs Line", "")
-        line_consistency_str = player_row.get("Line Consistency", "")
+        position = player_row.get("Position", player_row.get("position", ""))
+        dvp      = player_row.get("DvP",      player_row.get("dvp",      ""))
+        travel   = player_row.get("Travel Fatigue", player_row.get("travel_fatigue", ""))
+        opponent = player_row.get("Opponent", player_row.get("opponent", ""))
+        line_str = player_row.get("Line", "")
 
         if not line_str:
             return {"priority": "", "description": ""}
@@ -130,58 +132,56 @@ def calculate_bet_flag(player_row, stat_type):
         except (ValueError, TypeError):
             return {"priority": "", "description": ""}
 
-        avg_vs_line_pct = None
-        if avg_vs_line_str:
-            try:
-                avg_vs_line_pct = float(str(avg_vs_line_str).replace("%", "").replace("+", ""))
-            except (ValueError, TypeError):
-                pass
+        has_strong_unders = "Strong Unders" in dvp
+        has_slight_unders = "Slight Unders" in dvp
+        has_slight_easy   = "Slight Easy"   in dvp
+        has_moderate_easy = "Moderate Easy" in dvp
+        has_strong_easy   = "Strong Easy"   in dvp
 
-        line_consistency_pct = None
-        if line_consistency_str:
-            try:
-                line_consistency_pct = float(str(line_consistency_str).replace("%", ""))
-            except (ValueError, TypeError):
-                pass
-
-        has_short_break       = "Short Break"   in travel_fatigue
-        has_moderate_travel   = "Moderate"      in travel_fatigue
-        has_slight_unders_dvp = "Slight Unders" in dvp
-        has_strong_unders_dvp = "Strong Unders" in dvp
-        has_neutral_dvp       = "Neutral"        in dvp and "Unknown" not in dvp
-        has_easy_dvp          = any(x in dvp for x in ["Strong Easy", "Moderate Easy", "Slight Easy"])
-
-        if has_short_break:
+        # Kill switch 1: Short Break
+        if "Short Break" in travel:
             return {"priority": "", "description": ""}
 
-        if (stat_type == "tackles" and has_moderate_travel
-                and (has_slight_unders_dvp or has_neutral_dvp)
-                and avg_vs_line_pct is not None and avg_vs_line_pct < 5):
-            return {"priority": "1", "description": "Tackle + Mod Travel + Avg <5% + Slight Unders/Neutral DvP → 95.7% WR"}
+        # ── Tackle strategies ──────────────────────────────────────────────────
+        if stat_type == "tackles":
+            # Kill switch 2: bad tackle opponents
+            if opponent in TACKLE_BAD_OPPONENTS:
+                return {"priority": "", "description": ""}
 
-        if (stat_type == "marks" and line_value > 5 and not has_easy_dvp
-                and avg_vs_line_pct is not None and avg_vs_line_pct < -5
-                and line_consistency_pct is not None and line_consistency_pct > 60):
-            return {"priority": "2", "description": "Mark + Avg <-5% + No Easy DvP + Line >5 + LC >60% → 90.0% WR"}
+            if has_strong_unders:
+                return {"priority": "S1",
+                        "description": "Tackle + Strong Unders DvP → 76.7% WR (n=46) CONFIRMED"}
 
-        if (stat_type == "marks" and position == "KeyF"
-                and line_value > 5 and not has_easy_dvp):
-            return {"priority": "3", "description": "KeyF Mark + Line >5 + No Easy DvP → 85.0% WR"}
+            if has_slight_easy or has_moderate_easy:
+                return {"priority": "S2",
+                        "description": "Tackle + Slight/Moderate Easy DvP → 67.5% WR (n=163) CONFIRMED"}
 
-        if (stat_type == "tackles" and has_strong_unders_dvp
-                and avg_vs_line_pct is not None and avg_vs_line_pct < 15):
-            return {"priority": "4", "description": "Tackle + Strong Unders DvP + Avg <15% → 79.3% WR"}
+            if position == "InsM" and not has_strong_easy:
+                return {"priority": "S3",
+                        "description": "Tackle + InsM → 63.5% WR (n=220+) CONFIRMED"}
 
-        if (stat_type == "marks" and has_strong_unders_dvp and line_value > 4.5):
-            return {"priority": "5", "description": "Mark + Strong Unders DvP + Line >4.5 → 73.3% WR"}
+            if position in ("Wing", "Ruck"):
+                return {"priority": "D1",
+                        "description": "Tackle + Wing/Ruck → 69.9% WR (n=78) DEVELOPING"}
 
-        if (stat_type == "tackles" and position == "GenF"
-                and not has_slight_unders_dvp):
-            return {"priority": "6", "description": "GenF Tackle + excl Slight Unders DvP → 69.8% WR"}
+        # ── Disposal strategies ────────────────────────────────────────────────
+        elif stat_type == "disposals":
+            if position == "SmF" and (has_slight_unders or has_slight_easy):
+                return {"priority": "D2",
+                        "description": "Disposal + SmF + Slight Unders/Easy DvP → 69.0% WR (n=90) DEVELOPING"}
+
+        # ── Mark strategies (Watch only) ───────────────────────────────────────
+        elif stat_type == "marks":
+            if position == "SmF":
+                return {"priority": "W1",
+                        "description": "Mark + SmF → 92.3% WR (n=16, 2025 only) WATCH"}
+            if line_value >= 8.0:
+                return {"priority": "W2",
+                        "description": "Mark + Line ≥8.0 → 86.7% WR (n=16, 2025 only) WATCH"}
 
         return {"priority": "", "description": ""}
 
-    except Exception as e:
+    except Exception:
         return {"priority": "", "description": ""}
 
 
@@ -265,34 +265,18 @@ def get_current_flagged_bets():
         print(f"Stats load error: {e}")
         return []
 
-    # Map positions
-    def map_pos(pos):
-        if pd.isna(pos) or pos == "":
-            return "Unknown"
-        for role, tags in POSITION_MAP.items():
-            if pos in tags:
-                return role
-        return "Unknown"
+    # Map positions from player_positions.csv (source of truth)
+    PLAYER_POSITIONS_FILE = "player_positions.csv"
+    if os.path.exists(PLAYER_POSITIONS_FILE):
+        pos_df     = pd.read_csv(PLAYER_POSITIONS_FILE)
+        pos_lookup = dict(zip(pos_df["player"].str.lower().str.strip(), pos_df["position"]))
+    else:
+        pos_lookup = {}
 
-    players["position"] = players.get("namedPosition",
-                                      pd.Series(["Unknown"] * len(players))).apply(map_pos)
+    def map_pos_csv(name):
+        return pos_lookup.get(str(name).lower().strip(), "Unknown")
 
-    # Fallback position from history
-    unknown_mask = players["position"] == "Unknown"
-    if unknown_mask.any():
-        try:
-            hist = stats_df[["player", "round", "namedPosition"]].copy()
-            hist = hist[hist["namedPosition"].notna() & (hist["namedPosition"] != "")]
-            hist["role"] = hist["namedPosition"].apply(map_pos)
-            hist = hist[hist["role"] != "Unknown"].sort_values("round", ascending=False)
-            hist_lookup = hist.groupby("player")["role"].first().to_dict()
-            def fill_pos(row):
-                if row["position"] != "Unknown":
-                    return row["position"]
-                return hist_lookup.get(row["player"], "Unknown")
-            players["position"] = players.apply(fill_pos, axis=1)
-        except Exception:
-            pass
+    players["position"] = players["player"].apply(map_pos_csv)
 
     # Travel fatigue
     def get_travel(team):
@@ -354,10 +338,12 @@ def get_current_flagged_bets():
             if not line_val:
                 continue
 
-            # DvP
-            if opponent and opponent != "Unknown" and position != "Unknown":
-                if opponent in sdvp and position in sdvp[opponent]:
-                    dvp_str = DVP_MAP.get(sdvp[opponent][position]["strength"], "✅ Neutral")
+            # DvP — SmF/MedF/FwdMid map back to GenF for the DvP lookup
+            DVP_POS_NORM = {"SmF": "GenF", "MedF": "GenF", "FwdMid": "GenF"}
+            dvp_pos = DVP_POS_NORM.get(position, position)
+            if opponent and opponent != "Unknown" and dvp_pos != "Unknown":
+                if opponent in sdvp and dvp_pos in sdvp[opponent]:
+                    dvp_str = DVP_MAP.get(sdvp[opponent][dvp_pos]["strength"], "✅ Neutral")
                 else:
                     dvp_str = "✅ Neutral"
             else:
@@ -393,7 +379,6 @@ def get_current_flagged_bets():
                     **row,
                     "Stat":        stat_type.title(),
                     "Bet Priority": result["priority"],
-                    "Bet Flag":     result["description"],
                 })
 
     return flagged
@@ -410,14 +395,16 @@ def send_push_notification(new_bets: list):
     lines   = []
     for b in new_bets:
         lines.append(
-            f"P{b['Bet Priority']} {b['Stat']} — {b['Player']} "
+            f"{b['Bet Priority']} {b['Stat']} — {b['Player']} "
             f"({b['Team']} vs {b['Opponent']}) Line {b['Line']}"
         )
     body = "\n".join(lines)
 
-    # Highest priority for P1-2, default for others
-    top_priority = min(int(b["Bet Priority"]) for b in new_bets)
-    ntfy_priority = "urgent" if top_priority <= 2 else ("high" if top_priority <= 4 else "default")
+    # Urgency: S1 = urgent, S2/S3 = high, D = default
+    priorities = [b["Bet Priority"] for b in new_bets]
+    ntfy_priority = ("urgent" if "S1" in priorities
+                     else "high" if any(p in priorities for p in ("S2","S3"))
+                     else "default")
 
     req = urllib.request.Request(
         f"https://ntfy.sh/{NTFY_TOPIC}",
@@ -445,22 +432,25 @@ def send_alert_email(new_bets: list):
     lines = [f"New flagged bets found at {datetime.now().strftime('%H:%M %d/%m/%Y')}\n"]
     for b in new_bets:
         lines.append(
-            f"  P{b['Bet Priority']} | {b['Stat']:>9} | {b['Player']} ({b['Team']} vs {b['Opponent']}) "
-            f"| Line: {b['Line']} | {b['DvP']} | {b['Bet Flag']}"
+            f"  {b['Bet Priority']} | {b['Stat']:>9} | {b['Player']} ({b['Team']} vs {b['Opponent']}) "
+            f"| Line: {b['Line']} | {b['DvP']}"
         )
     text_body = "\n".join(lines)
 
     # HTML body
     rows_html = ""
-    priority_colours = {"1": "#28a745", "2": "#28a745", "3": "#ffc107",
-                        "4": "#ffc107",  "5": "#17a2b8", "6": "#17a2b8"}
+    priority_colours = {
+        "S1": "#198754", "S2": "#198754", "S3": "#198754",
+        "D1": "#fd7e14", "D2": "#fd7e14",
+        "W1": "#6c757d", "W2": "#6c757d",
+    }
     for b in new_bets:
         colour = priority_colours.get(b["Bet Priority"], "#6c757d")
         rows_html += f"""
         <tr>
-          <td style="background:{colour};color:{'white' if b['Bet Priority'] in '1256' else 'black'};
+          <td style="background:{colour};color:white;
                      font-weight:bold;padding:6px 10px;text-align:center">
-            P{b['Bet Priority']}
+            {b['Bet Priority']}
           </td>
           <td style="padding:6px 10px">{b['Stat']}</td>
           <td style="padding:6px 10px"><strong>{b['Player']}</strong></td>
@@ -469,7 +459,6 @@ def send_alert_email(new_bets: list):
           <td style="padding:6px 10px">{b['Line']}</td>
           <td style="padding:6px 10px">{b['Avg vs Line']}</td>
           <td style="padding:6px 10px">{b['DvP']}</td>
-          <td style="padding:6px 10px;font-size:12px">{b['Bet Flag']}</td>
         </tr>"""
 
     html_body = f"""
@@ -488,7 +477,6 @@ def send_alert_email(new_bets: list):
             <th style="padding:8px 10px">Line</th>
             <th style="padding:8px 10px">Avg vs Line</th>
             <th style="padding:8px 10px">DvP</th>
-            <th style="padding:8px 10px">Strategy</th>
           </tr>
         </thead>
         <tbody>{rows_html}</tbody>
@@ -532,21 +520,30 @@ def run_check():
         save_cache(cache)
         return
 
+    # Separate active bets (S/D) from watch bets (W) for alerting
+    active_bets = [b for b in new_bets if b["Bet Priority"] not in ("W1", "W2")]
+    watch_bets  = [b for b in new_bets if b["Bet Priority"] in ("W1", "W2")]
+
     print(f"🚨 {len(new_bets)} new bet(s) found:")
     for b in new_bets:
-        print(f"   P{b['Bet Priority']} | {b['Stat']:>9} | {b['Player']} | Line {b['Line']}")
+        print(f"   {b['Bet Priority']} | {b['Stat']:>9} | {b['Player']} | Line {b['Line']}")
+    if watch_bets:
+        print(f"   👁 {len(watch_bets)} watch-only bet(s) — logged but no alert sent")
 
-    try:
-        send_alert_email(new_bets)
-    except Exception as e:
-        print(f"❌ Email failed: {e}")
-        print("   Check EMAIL_FROM / EMAIL_TO / EMAIL_APP_PASSWORD at top of file.")
+    if active_bets:
+        try:
+            send_alert_email(active_bets)
+        except Exception as e:
+            print(f"❌ Email failed: {e}")
+            print("   Check EMAIL_FROM / EMAIL_TO / EMAIL_APP_PASSWORD at top of file.")
 
-    try:
-        send_push_notification(new_bets)
-    except Exception as e:
-        print(f"❌ Push notification failed: {e}")
-        print(f"   Check NTFY_TOPIC at top of file.")
+        try:
+            send_push_notification(active_bets)
+        except Exception as e:
+            print(f"❌ Push notification failed: {e}")
+            print(f"   Check NTFY_TOPIC at top of file.")
+    else:
+        print("ℹ️  No active bets (S/D strategies) — no email or push sent.")
 
     save_cache(cache)
 

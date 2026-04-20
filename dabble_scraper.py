@@ -17,131 +17,89 @@ HEADERS = {
 
 def get_afl_fixtures() -> List[Dict]:
     """Get all AFL fixtures for the current round"""
-    print(f"🔄 Requesting AFL fixture list...")
     response = requests.get(FIXTURES_URL, headers=HEADERS, verify=False)
-    print(f"✅ Status Code: {response.status_code}")
-    
+
     if response.status_code != 200:
-        print("❌ Request failed.")
         return []
-    
+
     try:
         data = response.json()["data"]
-        print(f"📅 Found {len(data)} AFL fixtures:\n")
-        
+
         fixtures = []
         for match in data:
             match_name = match.get("name", "Unknown match")
             start_time = match.get("advertisedStart", "Unknown time")
             fixture_id = match.get("id", "No ID")
-            
-            if start_time != "Unknown time":
-                dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
-                print(f"🏉 {match_name} at {dt.strftime('%Y-%m-%d %H:%M')} UTC")
-            else:
-                print(f"🏉 {match_name} at {start_time}")
-            
-            print(f"🔗 Fixture ID: {fixture_id}\n")
-            
+
             fixtures.append({
                 "name": match_name,
                 "start_time": start_time,
                 "fixture_id": fixture_id
             })
-        
+
         return fixtures
-        
+
     except Exception as e:
-        print("❌ Error parsing fixtures response:", e)
-        print("Raw response:", response.text[:300])
         return []
 
 def get_pickem_lines(fixture_id: str) -> Optional[Dict]:
     """Get pickem lines for a specific fixture"""
     pickem_url = f"https://api.dabble.com.au/sportfixtures/details/{fixture_id}?filter=dfs-enabled"
-    
-    print(f"🔄 Requesting pickem lines for fixture {fixture_id}...")
-    
+
     try:
         response = requests.get(pickem_url, headers=HEADERS, verify=False)
-        print(f"   Status Code: {response.status_code}")
-        
+
         if response.status_code != 200:
-            print(f"   ❌ Failed to get pickem data for {fixture_id}")
             return None
-        
+
         data = response.json()
-        
-        # Extract relevant pickem data
         fixture_data = data.get("data", {})
         markets = fixture_data.get("markets", [])
-        
-        # Filter for pickem markets - look for any market with "pickem" in the resultingType
+
         pickem_markets = []
-        
         for market in markets:
             market_type = market.get("resultingType", "")
             market_name = market.get("name", "")
-            
-            # Accept any market that has "pickem" in the type OR common stat names
-            if ("pickem" in market_type.lower() or 
+            if ("pickem" in market_type.lower() or
                 any(stat in market_name.lower() for stat in ["disposal", "mark", "tackle", "goal", "kick", "handball"])):
                 pickem_markets.append(market)
-                print(f"   📊 Found market: {market_name} (type: {market_type})")
-        
-        print(f"   ✅ Found {len(pickem_markets)} pickem markets")
+
         return {
             "fixture_id": fixture_id,
             "markets": pickem_markets
         }
-        
-    except Exception as e:
-        print(f"   ❌ Error getting pickem lines for {fixture_id}: {e}")
+
+    except Exception:
         return None
 
 def extract_player_lines(pickem_data: Dict) -> List[Dict]:
     """Extract individual player lines from pickem data"""
     all_lines = []
-    
+
     if not pickem_data or "markets" not in pickem_data:
         return all_lines
-    
+
     fixture_id = pickem_data["fixture_id"]
-    
+
     for market in pickem_data["markets"]:
         market_name = market.get("name", "Unknown Market")
         market_type = market.get("resultingType", "Unknown Type")
-        selections = market.get("selections", [])
-        
-        print(f"   🔍 Processing market: {market_name} (type: {market_type}, {len(selections)} selections)")
-        
-        # Since selections are empty, extract player name and line from market name
-        # Format: "Player Name stat_type line_value"
-        # Example: "Jack Lukosius goals 2.5" 
-        
+
         if market_name and market_name != "Unknown Market":
-            # Parse the market name to extract player, stat, and line
             parts = market_name.split()
-            
+
             if len(parts) >= 3:
-                # Last part should be the line (number)
                 try:
                     line_value = float(parts[-1])
-                    
-                    # Second to last part should be the stat type
                     stat_type = parts[-2].lower()
-                    
-                    # Everything before that should be the player name
                     player_name = " ".join(parts[:-2])
-                    
-                    # Determine stat name from market type or parsed stat
+
                     if market_type.startswith("pickem_"):
                         stat_name = market_type.replace("pickem_", "").title()
                     else:
-                        # Map common stat types
                         stat_mapping = {
                             "disposals": "Disposals",
-                            "marks": "Marks", 
+                            "marks": "Marks",
                             "tackles": "Tackles",
                             "goals": "Goals",
                             "kicks": "Kicks",
@@ -150,17 +108,14 @@ def extract_player_lines(pickem_data: Dict) -> List[Dict]:
                             "supercoach": "SuperCoach"
                         }
                         stat_name = stat_mapping.get(stat_type, stat_type.title())
-                    
-                    # Extract odds from market if available (though they seem to be in selections)
+
                     over_odds = None
                     under_odds = None
-                    
-                    # Check if there are any price fields in the market itself
                     if "overPrice" in market:
                         over_odds = market.get("overPrice", {}).get("decimal")
                     if "underPrice" in market:
                         under_odds = market.get("underPrice", {}).get("decimal")
-                    
+
                     all_lines.append({
                         "fixture_id": fixture_id,
                         "player": player_name,
@@ -171,58 +126,34 @@ def extract_player_lines(pickem_data: Dict) -> List[Dict]:
                         "market_name": market_name,
                         "market_type": market_type
                     })
-                    
-                    print(f"      ✅ Extracted: {player_name} | {stat_name} | {line_value}")
-                
-                except (ValueError, IndexError) as e:
-                    print(f"      ⚠️ Could not parse market name: {market_name} - {e}")
-            else:
-                print(f"      ⚠️ Market name format unexpected: {market_name}")
-    
-    print(f"   📈 Extracted {len(all_lines)} total player lines from all markets")
+
+                except (ValueError, IndexError):
+                    pass
+
     return all_lines
 
 def get_all_pickem_lines() -> List[Dict]:
     """Get all pickem lines for all fixtures this round"""
-    print("🚀 Starting AFL Pickem Lines Scraper\n")
-    
-    # Step 1: Get all fixtures
     fixtures = get_afl_fixtures()
-    
+
     if not fixtures:
-        print("❌ No fixtures found. Exiting.")
         return []
-    
-    print(f"📊 Processing {len(fixtures)} fixtures for pickem lines...\n")
-    
-    # Step 2: Get pickem lines for each fixture
+
     all_player_lines = []
-    
+
     for fixture in fixtures:
         fixture_id = fixture["fixture_id"]
         match_name = fixture["name"]
-        
-        print(f"🔍 Processing: {match_name}")
-        
-        # Get pickem data for this fixture
+
         pickem_data = get_pickem_lines(fixture_id)
-        
+
         if pickem_data:
-            # Extract individual player lines
             player_lines = extract_player_lines(pickem_data)
-            
-            # Add match info to each line
             for line in player_lines:
                 line["match"] = match_name
                 line["start_time"] = fixture["start_time"]
-            
             all_player_lines.extend(player_lines)
-            print(f"   📈 Extracted {len(player_lines)} player lines")
-        else:
-            print(f"   ⚠️ No pickem data found for {match_name}")
-        
-        print()  # Empty line for readability
-    
+
     return all_player_lines
 
 def get_pickem_data_for_dashboard(stat_type='disposals') -> Dict[str, float]:
@@ -230,52 +161,34 @@ def get_pickem_data_for_dashboard(stat_type='disposals') -> Dict[str, float]:
     Get pickem lines for dashboard integration - only returns disposals, marks, and tackles
     Returns a dictionary mapping player names to their line values for the specified stat type
     """
-    print(f"🎯 Getting pickem data for {stat_type}...")
-    
     try:
-        # Get all pickem lines
         all_lines = get_all_pickem_lines()
-        
+
         if not all_lines:
-            print(f"⚠️ No pickem lines found for {stat_type}")
             return {}
-        
-        # Filter for the specific stat type we want
+
         stat_mapping = {
             'disposals': 'Disposals',
-            'marks': 'Marks', 
+            'marks': 'Marks',
             'tackles': 'Tackles'
         }
-        
+
         target_stat = stat_mapping.get(stat_type.lower(), stat_type.title())
-        
-        # Filter lines for the target stat
         filtered_lines = [line for line in all_lines if line['stat'] == target_stat]
-        
-        print(f"📊 Found {len(filtered_lines)} {target_stat} lines out of {len(all_lines)} total lines")
-        
-        # Create a mapping of player name to line value
+
         player_lines = {}
-        
         for line in filtered_lines:
             player_name = line['player']
             line_value = line['line']
-            
-            # Store the line value for this player
-            # If duplicate, keep the first one or could implement logic to pick best line
             if player_name not in player_lines:
                 player_lines[player_name] = line_value
-                print(f"   📈 {player_name}: {line_value}")
             else:
-                print(f"   ⚠️ Duplicate line for {player_name}: existing={player_lines[player_name]}, new={line_value}")
-        
-        print(f"✅ Returning {len(player_lines)} unique {target_stat} lines")
+                if line_value > player_lines[player_name]:
+                    player_lines[player_name] = line_value
+
         return player_lines
-        
-    except Exception as e:
-        print(f"❌ Error getting pickem data for {stat_type}: {e}")
-        import traceback
-        traceback.print_exc()
+
+    except Exception:
         return {}
 
 def normalize_player_name(name: str) -> str:
