@@ -2805,7 +2805,7 @@ def load_performance_data():
 
 
 def load_pair_log_data():
-    """Load and clean the Pair Log tab. Returns None on error, empty DataFrame if no data."""
+    """Load Multi Log tab — supports 2–12 leg multis. Returns None on error."""
     client = get_sheets_client()
     if client is None:
         return None
@@ -2818,38 +2818,54 @@ def load_pair_log_data():
         df = pd.DataFrame(records)
         df.columns = [c.strip() for c in df.columns]
 
-        def _dollar(s):
-            try: return float(str(s).replace('$','').replace(',','').strip())
+        def _num(s):
+            try: return float(str(s).replace('$','').replace(',','').replace('+','').replace('%','').strip())
             except: return None
 
-        def _ev_num(s):
-            try: return float(str(s).replace('%','').replace('+','').strip())
-            except: return None
+        df['Round']      = pd.to_numeric(df.get('Round', pd.Series()), errors='coerce')
+        df['Year']       = pd.to_numeric(df.get('Year',  pd.Series()), errors='coerce')
+        df['stake_num']  = df['Stake'].apply(_num)  if 'Stake'  in df.columns else 0
+        df['profit_num'] = df['Profit'].apply(_num) if 'Profit' in df.columns else None
+        df['odds_num']   = df['Odds'].apply(_num)   if 'Odds'   in df.columns else None
+        df['wl']         = df['W/L'].astype(str).str.strip() if 'W/L' in df.columns else ''
 
-        df['Round']       = pd.to_numeric(df['Round'], errors='coerce')
-        df['profit_num']  = df['Profit'].apply(_dollar)
-        df['stake_num']   = df['Stake'].apply(_dollar)
-        df['ev_num']      = df['EV'].apply(_ev_num)
-        df['cumsum_num']  = df['CumSum'].apply(_dollar) if 'CumSum' in df.columns else None
-        df['Leg1 Tier']   = df['Leg1 Tier'].astype(str).str.strip()
-        df['Leg2 Tier']   = df['Leg2 Tier'].astype(str).str.strip()
-        df['Pair W/L']    = df['Pair W/L'].astype(str).str.strip()
-        df['Leg1 Hit']    = pd.to_numeric(df['Leg1 Hit'], errors='coerce')
-        df['Leg2 Hit']    = pd.to_numeric(df['Leg2 Hit'], errors='coerce')
+        # Parse up to 12 legs — columns Player1/Hit1 … Player12/Hit12
+        MAX_LEGS = 12
+        players_cols = [f'Player{i}' for i in range(1, MAX_LEGS+1) if f'Player{i}' in df.columns]
+        hits_cols    = [f'Hit{i}'    for i in range(1, MAX_LEGS+1) if f'Hit{i}'    in df.columns]
 
-        def _combo(row):
-            t1, t2 = row['Leg1 Tier'], row['Leg2 Tier']
-            if t1 in ('T1','T2') and t2 in ('T1','T2'):
-                return 'T1+T1' if t1 == t2 == 'T1' else ('T2+T2' if t1 == t2 == 'T2' else 'T1+T2')
-            return 'No Tier'
+        # Legs count — count non-empty player slots
+        df['legs'] = df[players_cols].apply(
+            lambda r: sum(1 for v in r if str(v).strip() not in ('', 'nan')), axis=1
+        ) if players_cols else 0
 
-        df['combo'] = df.apply(_combo, axis=1)
+        # Hits count — count W hits across legs
+        def _hit(v):
+            s = str(v).strip()
+            if s in ('1', '1.0', 'W'): return 1
+            if s in ('-1', '-1.0', '0', '0.0', 'L'): return 0
+            return None
+
+        if hits_cols:
+            df['hits'] = df[hits_cols].apply(
+                lambda r: sum(_hit(v) for v in r if _hit(v) is not None), axis=1
+            )
+        else:
+            df['hits'] = None
+
+        # Player list per row (for player-level breakdown)
+        if players_cols:
+            df['player_list'] = df[players_cols].apply(
+                lambda r: [str(v).strip() for v in r if str(v).strip() not in ('', 'nan')], axis=1
+            )
+        else:
+            df['player_list'] = [[]] * len(df)
 
         # Only keep rows with a result
-        df = df[df['Pair W/L'].isin(['W','L','P'])]
+        df = df[df['wl'].isin(['W', 'L'])]
         return df
     except Exception as e:
-        print(f"Pair log load error: {e}")
+        print(f"Multi log load error: {e}")
         return None
 
 
@@ -3469,285 +3485,181 @@ def build_performance_layout(df, pair_df=None):
 
     df_2025 = df[df['Year'] >= 2025] if 'Year' in df.columns else df
 
-    # ── Pair Log analytics section ────────────────────────────────────────────
-    COMBOS = [
-        ('T1+T1', S1,   53.4, 91.4),
-        ('T1+T2', S2,   45.7, 65.5),
-        ('T2+T2', S3,   39.2, 43.1),
-    ]
-
+    # ── Multi Log analytics section ───────────────────────────────────────────
     def _pair_section(pdf):
         if pdf is None or pdf.empty:
             return html.Div()
 
-        tiered = pdf[pdf['combo'] != 'No Tier']
-        no_tier = pdf[pdf['combo'] == 'No Tier']
-
-        def _pwr(sub):
-            w = (sub['Pair W/L'] == 'W').sum()
-            l = (sub['Pair W/L'] == 'L').sum()
-            return round(w / (w + l) * 100, 1) if (w + l) > 0 else 0
+        def _wr(sub):
+            w = (sub['wl']=='W').sum(); l = (sub['wl']=='L').sum()
+            return round(w/(w+l)*100, 1) if (w+l) > 0 else 0
 
         def _roi(sub):
             s = sub['stake_num'].sum()
-            return round(sub['profit_num'].sum() / s * 100, 1) if s > 0 else 0
+            return round(sub['profit_num'].sum()/s*100, 1) if s and s > 0 else 0
 
-        # ── Combo rows ────────────────────────────────────────────────────────
-        TH = {"fontSize": "9px", "color": FADED, "fontWeight": "500",
-              "textTransform": "uppercase", "letterSpacing": "0.08em",
-              "padding": "8px 12px", "borderBottom": f"1px solid {BORDER}",
-              "background": CARD2, "fontFamily": MONO, "whiteSpace": "nowrap"}
+        TH = {"fontSize":"9px","color":FADED,"fontWeight":"500",
+              "textTransform":"uppercase","letterSpacing":"0.08em",
+              "padding":"8px 12px","borderBottom":f"1px solid {BORDER}",
+              "background":CARD2,"fontFamily":MONO,"whiteSpace":"nowrap"}
         TD = lambda v, col=TEXT, bold=False: html.Td(v, style={
-            "padding": "9px 12px", "fontSize": "11px", "color": col,
-            "fontFamily": FONT, "fontWeight": "700" if bold else "400",
-            "whiteSpace": "nowrap",
-        })
+            "padding":"9px 12px","fontSize":"11px","color":col,
+            "fontFamily":FONT,"fontWeight":"700" if bold else "400","whiteSpace":"nowrap"})
 
-        combo_rows = []
-        for combo_name, stripe, exp_wr, exp_ev in COMBOS:
-            sub = tiered[tiered['combo'] == combo_name]
-            if sub.empty:
-                continue
-            w   = int((sub['Pair W/L'] == 'W').sum())
-            l   = int((sub['Pair W/L'] == 'L').sum())
-            p   = int((sub['Pair W/L'] == 'P').sum())
-            pwr = _pwr(sub)
-            roi = _roi(sub)
-            stk = sub['stake_num'].sum()
-            prf = sub['profit_num'].sum()
-            wr_col  = WIN if pwr >= exp_wr else LOSS
-            roi_col = WIN if roi >= exp_ev  else AMBER
-            vs_wr   = round(pwr - exp_wr, 1)
-            vs_ev   = round(roi - exp_ev,  1)
-            combo_rows.append(html.Tr([
-                html.Td(style={"width": "3px", "padding": "0",
-                               "background": stripe, "borderRadius": "2px"}),
-                TD(combo_name, bold=True),
+        # By leg count
+        leg_rows = []
+        stripe_cycle = [S1, S2, S3, ACCENT, AMBER]
+        for legs_n in sorted(pdf['legs'].dropna().unique()):
+            sub = pdf[pdf['legs']==legs_n]
+            w   = int((sub['wl']=='W').sum()); l = int((sub['wl']=='L').sum())
+            pwr = _wr(sub); roi = _roi(sub)
+            prf = sub['profit_num'].sum(); stk = sub['stake_num'].sum()
+            pc  = WIN if prf >= 0 else LOSS; wrc = WIN if pwr >= 20 else LOSS
+            stripe = stripe_cycle[int(legs_n) % len(stripe_cycle)]
+            leg_rows.append(html.Tr([
+                html.Td(style={"width":"3px","padding":"0","background":stripe,"borderRadius":"2px"}),
+                TD(f"{int(legs_n)}-leg", bold=True),
                 TD(f"{len(sub)}"),
-                TD(f"{w}W · {l}L · {p}P"),
-                html.Td(html.Span(f"{pwr}%", style={
-                    "background": f"{wr_col}18", "color": wr_col,
-                    "border": f"1px solid {wr_col}44", "borderRadius": "4px",
-                    "padding": "2px 8px", "fontSize": "11px",
-                    "fontWeight": "700", "fontFamily": FONT,
-                }), style={"padding": "9px 12px"}),
-                TD(f"{exp_wr}%", FADED),
-                TD(f"{vs_wr:+.1f}pp", wr_col),
-                html.Td(html.Span(f"{roi:+.1f}%", style={
-                    "background": f"{roi_col}18", "color": roi_col,
-                    "border": f"1px solid {roi_col}44", "borderRadius": "4px",
-                    "padding": "2px 8px", "fontSize": "11px",
-                    "fontWeight": "700", "fontFamily": FONT,
-                }), style={"padding": "9px 12px"}),
-                TD(f"{exp_ev:+.1f}%", FADED),
-                TD(f"{vs_ev:+.1f}pp", roi_col),
-                TD(f"${prf:+.2f}", WIN if prf >= 0 else LOSS, bold=True),
+                TD(f"{w}W · {l}L"),
+                html.Td(html.Span(f"{pwr:.1f}%", style={
+                    "background":f"{wrc}18","color":wrc,"border":f"1px solid {wrc}44",
+                    "borderRadius":"4px","padding":"2px 8px","fontSize":"11px",
+                    "fontWeight":"700","fontFamily":FONT}), style={"padding":"9px 12px"}),
+                TD(f"{roi:+.1f}%", WIN if roi>=0 else LOSS),
+                TD(f"${prf:+.2f}", pc, bold=True),
                 TD(f"${stk:.2f}", FADED),
             ], className="strat-row"))
 
-        # Tiered totals row
-        tw = int((tiered['Pair W/L']=='W').sum())
-        tl = int((tiered['Pair W/L']=='L').sum())
-        tp = int((tiered['Pair W/L']=='P').sum())
-        tpwr  = _pwr(tiered)
-        troi  = _roi(tiered)
-        tprf  = tiered['profit_num'].sum()
-        tstk  = tiered['stake_num'].sum()
-        twr_col = WIN if tpwr >= 45 else LOSS
-        combo_rows.append(html.Tr([
-            html.Td(style={"width": "3px", "padding": "0",
-                           "background": ACCENT, "borderRadius": "2px"}),
-            html.Td("Tiered Total", style={"padding": "9px 12px", "fontSize": "11px",
-                                           "color": ACCENT, "fontWeight": "700",
-                                           "fontFamily": FONT}),
-            TD(f"{len(tiered)}"),
-            TD(f"{tw}W · {tl}L · {tp}P"),
-            html.Td(html.Span(f"{tpwr}%", style={
-                "background": f"{twr_col}18", "color": twr_col,
-                "border": f"1px solid {twr_col}44", "borderRadius": "4px",
-                "padding": "2px 8px", "fontSize": "11px",
-                "fontWeight": "700", "fontFamily": FONT,
-            }), style={"padding": "9px 12px"}),
-            TD("—", FADED), TD("—", FADED),
-            html.Td(html.Span(f"{troi:+.1f}%", style={
-                "background": f"{(WIN if troi>0 else LOSS)}18",
-                "color": WIN if troi > 0 else LOSS,
-                "border": f"1px solid {(WIN if troi>0 else LOSS)}44",
-                "borderRadius": "4px", "padding": "2px 8px",
-                "fontSize": "11px", "fontWeight": "700", "fontFamily": FONT,
-            }), style={"padding": "9px 12px"}),
-            TD("—", FADED), TD("—", FADED),
-            TD(f"${tprf:+.2f}", WIN if tprf >= 0 else LOSS, bold=True),
-            TD(f"${tstk:.2f}", FADED),
-        ], className="strat-row",
-           style={"borderTop": f"2px solid {ACCENT}33"}))
+        # Totals
+        w_all=int((pdf['wl']=='W').sum()); l_all=int((pdf['wl']=='L').sum())
+        prf_all=pdf['profit_num'].sum(); stk_all=pdf['stake_num'].sum()
+        wr_all=_wr(pdf); roi_all=_roi(pdf); pc_all=WIN if prf_all>=0 else LOSS
+        leg_rows.append(html.Tr([
+            html.Td(style={"width":"3px","padding":"0","background":ACCENT,"borderRadius":"2px"}),
+            html.Td("TOTAL", style={"padding":"9px 12px","fontSize":"11px",
+                                    "color":ACCENT,"fontWeight":"700","fontFamily":FONT}),
+            TD(f"{len(pdf)}"), TD(f"{w_all}W · {l_all}L"),
+            html.Td(html.Span(f"{wr_all:.1f}%", style={
+                "background":f"{pc_all}18","color":pc_all,"border":f"1px solid {pc_all}44",
+                "borderRadius":"4px","padding":"2px 8px","fontSize":"11px",
+                "fontWeight":"700","fontFamily":FONT}), style={"padding":"9px 12px"}),
+            TD(f"{roi_all:+.1f}%", WIN if roi_all>=0 else LOSS),
+            TD(f"${prf_all:+.2f}", pc_all, bold=True),
+            TD(f"${stk_all:.2f}", FADED),
+        ], className="strat-row", style={"borderTop":f"2px solid {ACCENT}33"}))
 
-        # ── Round-by-round profit bars ────────────────────────────────────────
-        rounds = sorted(tiered['Round'].dropna().unique())
-        max_abs = max((abs(tiered[tiered['Round']==r]['profit_num'].sum()) for r in rounds), default=1)
+        # Round bars
+        rounds = sorted(pdf['Round'].dropna().unique())
+        max_abs = max((abs(pdf[pdf['Round']==r]['profit_num'].sum()) for r in rounds), default=1)
         round_bars = []
         for rnd in rounds:
-            sub  = tiered[tiered['Round'] == rnd]
-            prf  = sub['profit_num'].sum()
-            stk  = sub['stake_num'].sum()
-            roi  = round(prf / stk * 100, 1) if stk > 0 else 0
-            w    = int((sub['Pair W/L']=='W').sum())
-            l    = int((sub['Pair W/L']=='L').sum())
-            col  = WIN if prf >= 0 else LOSS
-            bar_w = max(2, abs(prf) / max_abs * 100) if max_abs > 0 else 2
+            sub=pdf[pdf['Round']==rnd]; prf=sub['profit_num'].sum()
+            stk=sub['stake_num'].sum(); roi=round(prf/stk*100,1) if stk>0 else 0
+            w=int((sub['wl']=='W').sum()); l=int((sub['wl']=='L').sum())
+            col=WIN if prf>=0 else LOSS
+            bar_w=max(2, abs(prf)/max_abs*100) if max_abs>0 else 2
             round_bars.append(html.Div([
-                html.Div(f"R{int(rnd)}", style={
-                    "fontSize": "9px", "color": MUTED, "fontFamily": MONO,
-                    "width": "24px", "flexShrink": "0",
-                }),
-                html.Div(style={
-                    "height": "6px", "width": f"{bar_w}%", "maxWidth": "60%",
-                    "background": col, "borderRadius": "3px", "opacity": "0.75",
-                }),
-                html.Div(f"${prf:+.0f}  ({roi:+.0f}%)  {w}W {l}L", style={
-                    "fontSize": "10px", "color": col, "fontFamily": MONO,
-                    "marginLeft": "8px",
-                }),
-            ], style={"display": "flex", "alignItems": "center",
-                      "gap": "6px", "marginBottom": "5px"}))
+                html.Div(f"R{int(rnd)}", style={"fontSize":"9px","color":MUTED,
+                    "fontFamily":MONO,"width":"24px","flexShrink":"0"}),
+                html.Div(style={"height":"6px","width":f"{bar_w}%","maxWidth":"60%",
+                    "background":col,"borderRadius":"3px","opacity":"0.75"}),
+                html.Div(f"${prf:+.0f}  ({roi:+.0f}%)  {w}W {l}L",
+                    style={"fontSize":"10px","color":col,"fontFamily":MONO,"marginLeft":"8px"}),
+            ], style={"display":"flex","alignItems":"center","gap":"6px","marginBottom":"5px"}))
 
-        no_tier_note = html.Div(
-            f"Note: {len(no_tier)} no-tier pairs (Disposals/Marks/unclassified) excluded from table above "
-            f"— {int((no_tier['Pair W/L']=='W').sum())}W "
-            f"{int((no_tier['Pair W/L']=='L').sum())}L  "
-            f"${no_tier['profit_num'].sum():+.2f} profit",
-            style={"fontSize": "10px", "color": FADED, "fontFamily": MONO,
-                   "marginTop": "10px"}
-        ) if not no_tier.empty else html.Div()
+        # Player contribution
+        from collections import defaultdict
+        ps = defaultdict(lambda: {'multis':0,'wins':0,'profit':0.0})
+        for _, row in pdf.iterrows():
+            for p in (row.get('player_list') or []):
+                ps[p]['multis'] += 1
+                if row['wl']=='W': ps[p]['wins'] += 1
+                ps[p]['profit'] += row['profit_num'] or 0
+
+        player_rows = []
+        for p, s in sorted(ps.items(), key=lambda x: -x[1]['profit']):
+            pwr = round(s['wins']/s['multis']*100,1) if s['multis']>0 else 0
+            pc  = WIN if s['profit']>=0 else LOSS
+            player_rows.append(html.Tr([
+                TD(p, bold=True), TD(f"{s['multis']}"),
+                TD(f"{s['wins']}W · {s['multis']-s['wins']}L"),
+                TD(f"{pwr:.1f}%", WIN if pwr>=50 else LOSS),
+                TD(f"${s['profit']:+.2f}", pc, bold=True),
+            ]))
 
         return html.Div([
-            html.Div([
-                html.Span("PAIR LOG", style={"color": MUTED, "fontWeight": "500",
-                                             "fontSize": "9px", "fontFamily": MONO,
-                                             "letterSpacing": "0.1em",
-                                             "textTransform": "uppercase"}),
-                html.Span("  actual vs expected EV", style={"color": FADED,
-                                                             "fontSize": "9px",
-                                                             "fontFamily": MONO}),
-            ], style={"marginBottom": "12px"}),
-
-            # Combo table
-            html.Div(
-                html.Table([
-                    html.Thead(html.Tr(
-                        [html.Th("", style={**TH, "width": "3px", "padding": "0"})] +
-                        [html.Th(h, style=TH) for h in [
-                            "Combo", "Pairs", "Record",
-                            "Pair WR", "Exp WR", "vs Exp",
-                            "Act ROI", "Exp EV", "vs EV",
-                            "Profit", "Staked",
-                        ]]
-                    )),
-                    html.Tbody(combo_rows),
-                ], style={"width": "100%", "borderCollapse": "collapse"}),
-                style={"overflowX": "auto", "marginBottom": "16px"},
-            ),
-
-            no_tier_note,
-
-        ], style={
-            "background": CARD, "borderRadius": "10px",
-            "padding": "18px 20px", "border": f"1px solid {BORDER}",
-            "marginBottom": "14px",
-        })
+            html.Div("MULTI LOG  ·  combined PnL", style={
+                "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
+                "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
+            html.Div(html.Table([
+                html.Thead(html.Tr(
+                    [html.Th("", style={**TH,"width":"3px","padding":"0"})] +
+                    [html.Th(h, style=TH) for h in
+                     ["Legs","Multis","Record","Win Rate","ROI","Profit","Staked"]])),
+                html.Tbody(leg_rows),
+            ], style={"width":"100%","borderCollapse":"collapse"}),
+            style={"overflowX":"auto","marginBottom":"16px"}),
+            html.Div(round_bars, style={"marginBottom":"16px"}),
+            html.Div("PLAYER CONTRIBUTION", style={
+                "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
+                "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"8px"}),
+            html.Div(html.Table([
+                html.Thead(html.Tr([html.Th(h, style=TH) for h in
+                    ["Player","Multis","Record","Win Rate","P&L"]])),
+                html.Tbody(player_rows),
+            ], style={"width":"100%","borderCollapse":"collapse"}),
+            style={"overflowX":"auto"}),
+        ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
+                  "border":f"1px solid {BORDER}","marginBottom":"14px"})
 
     pair_section = _pair_section(pair_df)
 
-    # ── Cumulative profit chart (tiered pairs) ────────────────────────────────
+    # ── Cumulative profit chart ───────────────────────────────────────────────
     def _cumsum_chart(pdf):
-        if pdf is None or pdf.empty:
+        if pdf is None or pdf.empty or pdf['profit_num'].isna().all():
             return html.Div()
         plot_df = pdf.copy()
-        if 'cumsum_num' not in plot_df.columns or plot_df['cumsum_num'].isna().all():
-            return html.Div()
-        plot_df = plot_df.dropna(subset=['cumsum_num'])
-        if plot_df.empty:
-            return html.Div()
-
-        xs  = list(range(len(plot_df)))
-        ys  = plot_df['cumsum_num'].tolist()
-        rds = plot_df['Round'].tolist()
-        cbs = plot_df['combo'].tolist()
-        wls = plot_df['Pair W/L'].tolist()
-        prf = plot_df['profit_num'].tolist()
-
-        hover = [
-            f"<b>Pair {i+1}</b>  R{int(r) if r == r else '?'}<br>"
-            f"{cb}  {wl}  ${p:+.2f}<br>Cumulative: ${y:+.2f}"
-            for i, (r, cb, wl, p, y) in enumerate(zip(rds, cbs, wls, prf, ys))
-        ]
-
+        plot_df['cumsum'] = plot_df['profit_num'].cumsum()
+        xs=list(range(len(plot_df))); ys=plot_df['cumsum'].tolist()
+        rds=plot_df['Round'].tolist(); wls=plot_df['wl'].tolist()
+        prf=plot_df['profit_num'].tolist(); legs=plot_df['legs'].tolist()
+        hover=[f"<b>Multi {i+1}</b>  R{int(r) if r==r else '?'}  {int(lg)}-leg<br>"
+               f"{wl}  ${p:+.2f}  |  Cumulative: ${y:+.2f}"
+               for i,(r,wl,p,y,lg) in enumerate(zip(rds,wls,prf,ys,legs))]
         fig = go.Figure()
-
-        # Zero line fill area
-        fig.add_trace(go.Scatter(
-            x=xs, y=ys,
-            mode='lines',
-            line=dict(color=WIN, width=2),
-            fill='tozeroy',
+        fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines',
+            line=dict(color=WIN, width=2), fill='tozeroy',
             fillcolor='rgba(45,212,191,0.08)',
-            hovertext=hover, hoverinfo='text',
-            showlegend=False,
-        ))
-
-        # Colour negative segments red
-        neg_xs = [x for x, y in zip(xs, ys) if y < 0]
-        neg_ys = [y for y in ys if y < 0]
+            hovertext=hover, hoverinfo='text', showlegend=False))
+        neg_xs=[x for x,y in zip(xs,ys) if y<0]; neg_ys=[y for y in ys if y<0]
         if neg_xs:
-            fig.add_trace(go.Scatter(
-                x=neg_xs, y=neg_ys,
-                mode='markers',
-                marker=dict(color=LOSS, size=3, opacity=0.6),
-                hoverinfo='skip', showlegend=False,
-            ))
-
-        # Zero reference line
+            fig.add_trace(go.Scatter(x=neg_xs, y=neg_ys, mode='markers',
+                marker=dict(color=LOSS,size=3,opacity=0.6),
+                hoverinfo='skip', showlegend=False))
         fig.add_hline(y=0, line=dict(color=FADED, width=1, dash='dot'))
-
-        # Round boundary markers
         round_starts = {}
-        for i, r in enumerate(rds):
-            if r not in round_starts:
-                round_starts[r] = i
-        for r, xi in round_starts.items():
-            if xi > 0:
-                fig.add_vline(
-                    x=xi, line=dict(color=BORDER, width=1, dash='dot'),
-                    annotation=dict(
-                        text=f"R{int(r)}", font=dict(size=9, color=FADED, family='JetBrains Mono'),
-                        xanchor='left', yanchor='top', bgcolor='rgba(0,0,0,0)',
-                    ),
-                )
-
-        final = ys[-1] if ys else 0
+        for i,r in enumerate(rds):
+            if r not in round_starts: round_starts[r]=i
+        for r,xi in round_starts.items():
+            if xi>0:
+                fig.add_vline(x=xi, line=dict(color=BORDER,width=1,dash='dot'),
+                    annotation=dict(text=f"R{int(r)}",
+                        font=dict(size=9,color=FADED,family='JetBrains Mono'),
+                        xanchor='left',yanchor='top',bgcolor='rgba(0,0,0,0)'))
+        final=ys[-1] if ys else 0
         fig.update_layout(
-            title=dict(
-                text=f"CUMULATIVE PROFIT  ·  all pairs  ·  ${final:+.2f}",
-                font=dict(size=10, color=WIN if final >= 0 else LOSS,
-                          family='JetBrains Mono'), x=0,
-            ),
-            height=180,
-            margin=dict(l=0, r=10, t=28, b=10),
+            title=dict(text=f"CUMULATIVE PROFIT  ·  all multis  ·  ${final:+.2f}",
+                font=dict(size=10,color=WIN if final>=0 else LOSS,family='JetBrains Mono'),x=0),
+            height=180, margin=dict(l=0,r=10,t=28,b=10),
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showticklabels=False, showgrid=False,
-                       linecolor='rgba(0,0,0,0)', zeroline=False),
-            yaxis=dict(tickfont=dict(size=10, color=FADED, family='JetBrains Mono'),
-                       gridcolor=BORDER, linecolor='rgba(0,0,0,0)',
-                       zeroline=False, tickprefix='$'),
-            hoverlabel=dict(bgcolor="rgba(9,29,38,0.95)", bordercolor=BORDER,
-                            font_color=TEXT, font_family='JetBrains Mono', font_size=11),
-            showlegend=False,
-        )
-
-        return html.Div([
-            dcc.Graph(figure=fig, config={'displayModeBar': False}),
-        ], style={"marginBottom": "14px",
-                  "borderLeft": f"2px solid {WIN}30", "paddingLeft": "2px"})
+            xaxis=dict(showticklabels=False,showgrid=False,linecolor='rgba(0,0,0,0)',zeroline=False),
+            yaxis=dict(tickfont=dict(size=10,color=FADED,family='JetBrains Mono'),
+                       gridcolor=BORDER,linecolor='rgba(0,0,0,0)',zeroline=False,tickprefix='$'),
+            hoverlabel=dict(bgcolor="rgba(9,29,38,0.95)",bordercolor=BORDER,
+                font_color=TEXT,font_family='JetBrains Mono',font_size=11),
+            showlegend=False)
+        return html.Div([dcc.Graph(figure=fig, config={'displayModeBar':False})],
+            style={"marginBottom":"14px","borderLeft":f"2px solid {WIN}30","paddingLeft":"2px"})
 
     cumsum_chart = _cumsum_chart(pair_df)
 
