@@ -2913,982 +2913,252 @@ def _wr(sub):
 
 def build_performance_layout(df, pair_df=None):
 
-    # ── Electric Blue SaaS palette ────────────────────────────────────────────
-    BG        = "#0a0a0a"
-    CARD      = "#111111"
-    CARD2     = "#0d0d0d"
-    BORDER    = "rgba(255,255,255,0.06)"
-    BORDER2   = "rgba(0,102,255,0.25)"
-    TEXT      = "#f0f0f0"
-    MUTED     = "rgba(240,240,240,0.5)"
-    FADED     = "rgba(240,240,240,0.25)"
-    BLUE      = "#0066ff"
-    BLUE_DIM  = "rgba(0,102,255,0.12)"
-    BLUE_MID  = "rgba(0,102,255,0.4)"
-    ACCENT    = "#0066ff"
-    WIN       = "#00d4aa"
-    LOSS      = "#ff4d6d"
-    AMBER     = "#f59e0b"
-    S1        = "#0066ff"
-    S2        = "#00d4aa"
-    S3        = "#a78bfa"
-    FONT      = "var(--display, 'Inter', sans-serif)"
-    MONO      = "var(--mono, 'JetBrains Mono', monospace)"
-    SHADOW    = "0 4px 24px rgba(0,0,0,0.4)"
-    SHADOW_B  = "0 0 0 1px rgba(0,102,255,0.3), 0 4px 24px rgba(0,102,255,0.08)"
+    # ── Palette ───────────────────────────────────────────────────────────────
+    BG     = "#0a0a0a"
+    CARD   = "#111111"
+    CARD2  = "#0d0d0d"
+    BORDER = "rgba(255,255,255,0.06)"
+    TEXT   = "#f0f0f0"
+    MUTED  = "rgba(240,240,240,0.5)"
+    FADED  = "rgba(240,240,240,0.25)"
+    BLUE   = "#0066ff"
+    WIN    = "#00d4aa"
+    LOSS   = "#ff4d6d"
+    AMBER  = "#f59e0b"
+    FONT   = "var(--display, 'Inter', sans-serif)"
+    MONO   = "var(--mono, 'JetBrains Mono', monospace)"
+    SHADOW = "0 4px 24px rgba(0,0,0,0.4)"
 
-    if df is None:
-        return dbc.Alert("⚠️ Could not connect to Google Sheets. Check credentials file.",
-                         color="warning", className="mt-3")
-    if df.empty:
-        return dbc.Alert(
-            "No completed bets yet — W/L results will appear once update_results.py has run.",
-            color="info", className="mt-3")
-
-    df26 = df[df['Year'] == 2026] if 'Year' in df.columns else df
-
-    def _wins(sub):   return int((sub['W/L'] == 1).sum())
-    def _losses(sub): return int((sub['W/L'] == -1).sum())
-    def _pushes(sub): return int((sub['W/L'] == 0).sum())
-
-    # ── Strategy filters — driven by the Strategy column in the sheet ─────────
-    def _t1(frame):
-        return frame[frame['Strategy'].astype(str).str.strip() == 'T1']
-
-    def _t2(frame):
-        return frame[frame['Strategy'].astype(str).str.strip() == 'T2']
-
-    def _all_strats(frame):
-        return frame[frame['Strategy'].astype(str).str.strip().isin(['T1', 'T2'])]
-
-
-    strat26   = _all_strats(df26)
-    strat_all = _all_strats(df)
-
-    # ── KPI values ────────────────────────────────────────────────────────────
-    def _ev(wr_pct, push_rate=0.09):
-        """Push-corrected 2-leg EV at $3.20. One push pays $1.50 (leg voided)."""
-        pw = (wr_pct / 100) * (1 - push_rate)   # actual win prob per bet
-        pp = push_rate
-        ev = pw ** 2 * 3.20 + 2 * pw * pp * 1.50 + pp ** 2 * 1.00 - 1.00
-        return round(ev * 100, 1)
-
-    w26, l26, p26 = _wins(strat26), _losses(strat26), _pushes(strat26)
-    wr26   = _wr(strat26)
-    ev26   = _ev(wr26)
-    wr_all = _wr(strat_all)
-    ev_all = _ev(wr_all)
-
-    wr_color   = WIN  if wr26 >= 65 else LOSS
-    ev_color   = WIN  if ev26 > 0   else LOSS
-    wr_css     = "kpi-green" if wr26 >= 65 else "kpi-red"
-    ev_css     = "kpi-green" if ev26 > 0   else "kpi-red"
-
-    rnd26 = (f"R{int(strat26['Round'].min())}–R{int(strat26['Round'].max())}"
-             if not strat26.empty else "—")
-
-    # ── Statistical helpers ───────────────────────────────────────────────────
-    import math
-
-    def _significance(sub, breakeven=0.57):
-        """One-sided binomial test: is WR significantly above breakeven?"""
-        w = _wins(sub); l = _losses(sub)
-        n = w + l
-        if n < 5:
-            return None, n
-        p_val = scipy_stats.binom_test(w, n, breakeven, alternative='greater') if hasattr(scipy_stats, 'binom_test') else scipy_stats.binomtest(w, n, breakeven, alternative='greater').pvalue
-        return round(p_val, 4), n
-
-    def _rolling_wr(sub, n=20):
-        """Win rate of last n decisive bets."""
-        decisive = sub[sub['W/L'] != 0].tail(n)
-        if len(decisive) < 3:
-            return None
-        return round((decisive['W/L'] == 1).sum() / len(decisive) * 100, 1)
-
-    def _max_drawdown(sub):
-        """Max peak-to-trough drawdown in bet count (not dollars)."""
-        if sub.empty:
-            return 0, 0
-        cumw = (sub['W/L'] == 1).astype(int).cumsum()
-        peak = cumw.cummax()
-        dd   = (peak - cumw).max()
-        curr_dd = int((peak - cumw).iloc[-1])
-        return int(dd), curr_dd
-
-    def _sig_label(p_val, n):
-        if p_val is None:
-            return "Needs More Data", FADED
-        if p_val < 0.05:
-            return f"Highly Significant  p={p_val:.3f}", WIN
-        if p_val < 0.15:
-            return f"Moderate Significance  p={p_val:.3f}", AMBER
-        return f"No Significance  p={p_val:.3f}", LOSS
-
-    # ── Compute monitoring values ─────────────────────────────────────────────
-    t1_26  = _t1(df26);  t2_26 = _t2(df26)
-    t1_all = _t1(df);    t2_all = _t2(df)
-
-    # Significance (kept for strategy table)
-    p_all, n_all = _significance(strat_all)
-
-    # Push %
-    total_all = len(strat_all)
-    push_pct  = round(_pushes(strat_all) / total_all * 100, 1) if total_all > 0 else 0
-
-    # 2026 pair win rate
-    pair_wr = None
+    # ── Filter: 6-leg multis from Round 6+ ───────────────────────────────────
+    pdf = pd.DataFrame()
     if pair_df is not None and not pair_df.empty:
-        tiered_pairs = pair_df[pair_df['combo'] != 'No Tier']
-        pw = (tiered_pairs['Pair W/L'] == 'W').sum()
-        pl = (tiered_pairs['Pair W/L'] == 'L').sum()
-        pair_wr = round(pw / (pw + pl) * 100, 1) if (pw + pl) > 0 else None
-
-    # Last round individual leg WR
-    last_rnd_leg_wr  = None
-    last_rnd_leg_sub = "—"
-    if not strat26.empty and 'Round' in strat26.columns:
-        last_rnd = int(strat26['Round'].dropna().max())
-        sub_last_leg = strat26[strat26['Round'] == last_rnd]
-        last_rnd_leg_wr  = _wr(sub_last_leg)
-        last_rnd_leg_sub = f"R{last_rnd} · {_wins(sub_last_leg)}W {_losses(sub_last_leg)}L"
-
-    # Last round pair win rate
-    last_rnd_pair_wr  = None
-    last_rnd_pair_sub = "—"
-    if pair_df is not None and not pair_df.empty:
-        tiered_p = pair_df[(pair_df['combo'] != 'No Tier') & pair_df['Round'].notna()]
-        if not tiered_p.empty:
-            last_rnd_p   = int(tiered_p['Round'].max())
-            sub_last_pair = tiered_p[tiered_p['Round'] == last_rnd_p]
-            pw_l = (sub_last_pair['Pair W/L'] == 'W').sum()
-            pl_l = (sub_last_pair['Pair W/L'] == 'L').sum()
-            if pw_l + pl_l > 0:
-                last_rnd_pair_wr  = round(pw_l / (pw_l + pl_l) * 100, 1)
-                last_rnd_pair_sub = f"R{last_rnd_p} · {pw_l}W {pl_l}L"
-
-    # Round consistency — pair win rate per round
-    round_results = []
-    if pair_df is not None and not pair_df.empty:
-        tiered_rnd = pair_df[
-            (pair_df['combo'] != 'No Tier') & pair_df['Round'].notna()
+        pdf = pair_df[
+            (pair_df['legs'] == 6) &
+            (pair_df['Round'].notna()) &
+            (pair_df['Round'] >= 6)
         ].copy()
-        tiered_rnd['Round'] = tiered_rnd['Round'].astype(int)
-        for rnd in sorted(tiered_rnd['Round'].unique()):
-            sub      = tiered_rnd[tiered_rnd['Round'] == rnd]
-            pw       = (sub['Pair W/L'] == 'W').sum()
-            pl       = (sub['Pair W/L'] == 'L').sum()
-            decisive = pw + pl
-            if decisive < 5:           # skip rounds with too few pairs to be meaningful
-                continue
-            pwr = round(pw / decisive * 100, 1)
-            round_results.append((f"R{rnd}", pwr, decisive))
-    rounds_above = sum(1 for _, pwr, _ in round_results if pwr >= 50)
-    rounds_total = len(round_results)
 
-    # ── Shared style helpers ──────────────────────────────────────────────────
-    def _card(children, extra=None):
-        s = {"background": CARD, "borderRadius": "12px",
-             "border": f"1px solid {BORDER}", "padding": "20px 22px",
-             "boxShadow": SHADOW, "marginBottom": "14px"}
-        if extra:
-            s.update(extra)
-        return html.Div(children, style=s)
+    if pdf.empty:
+        return dbc.Alert("No 6-leg multi data from Round 6+ yet.", color="info", className="mt-3")
 
-    def _label(txt):
-        return html.Div(txt, style={"fontSize": "9px", "color": FADED, "fontWeight": "600",
-                                    "letterSpacing": "0.12em", "textTransform": "uppercase",
-                                    "fontFamily": MONO, "marginBottom": "6px"})
+    # ── KPIs ──────────────────────────────────────────────────────────────────
+    wins      = int((pdf['wl'] == 'W').sum())
+    losses    = int((pdf['wl'] == 'L').sum())
+    total     = wins + losses
+    multi_wr  = round(wins / total * 100, 1) if total > 0 else 0
+    total_pnl = pdf['profit_num'].sum() if 'profit_num' in pdf.columns else 0
+    total_stk = pdf['stake_num'].sum()  if 'stake_num'  in pdf.columns else 0
+    roi       = round(total_pnl / total_stk * 100, 1) if total_stk > 0 else 0
 
-    TH_S = {"fontSize": "9px", "color": FADED, "fontWeight": "600",
-             "textTransform": "uppercase", "letterSpacing": "0.08em",
-             "padding": "8px 14px", "borderBottom": f"1px solid {BORDER}",
-             "background": CARD2, "fontFamily": MONO, "whiteSpace": "nowrap"}
+    has_hits     = 'hits' in pdf.columns and pdf['hits'].notna().any()
+    leg_hit_rate = None
+    if has_hits:
+        leg_hit_rate = round(pdf['hits'].sum() / pdf['legs'].sum() * 100, 1) \
+                       if pdf['legs'].sum() > 0 else None
 
-    def _td(v, col=None, bold=False, align="left"):
-        return html.Td(v, style={"padding": "9px 14px", "fontSize": "11px",
-                                  "color": col or TEXT, "fontFamily": FONT,
-                                  "fontWeight": "700" if bold else "400",
-                                  "textAlign": align, "whiteSpace": "nowrap",
-                                  "borderBottom": f"1px solid {BORDER}"})
-
-    def _pill(txt, col):
-        return html.Span(txt, style={
-            "background": f"{col}18", "color": col,
-            "border": f"1px solid {col}33", "borderRadius": "6px",
-            "padding": "3px 10px", "fontSize": "11px",
-            "fontWeight": "700", "fontFamily": MONO,
-        })
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # BUILD LAYOUT
-    # ─────────────────────────────────────────────────────────────────────────
-
-    t2_wr26   = _wr(t2_26)
-    S_ACCENTS = [S1, S2, S3]
-
-    # ── Helper: strat row ────────────────────────────────────────────────────
-    def _strat_row(label, fn, target, stripe_color, fade_cls=""):
-        sub26    = fn(df26)
-        sub_all  = fn(df)
-        s_wr26   = _wr(sub26)
-        s_wr_all = _wr(sub_all)
-        vs       = round(s_wr26 - target, 1)
-        w26s, l26s, p26s = _wins(sub26), _losses(sub26), _pushes(sub26)
-        total26s  = len(sub26)
-        _ppct     = round(p26s / total26s * 100, 1) if total26s > 0 else 0.0
-        wr_col   = WIN  if s_wr26 >= target else LOSS
-        vs_col   = WIN  if vs >= 0          else LOSS
-        vs_arrow = "▲" if vs >= 0 else "▼"
-
-        badge = {"background": f"{FADED}14", "color": FADED, "borderRadius": "3px",
-                 "padding": "2px 6px", "fontSize": "10px", "marginLeft": "6px",
-                 "fontFamily": MONO}
-
-        p_sig, n_sig   = _significance(sub_all)
-        sig_lbl, sig_col = _sig_label(p_sig, n_sig)
-
-        return html.Tr([
-            html.Td("", style={"width": "3px", "padding": "0",
-                                "background": stripe_color, "borderRadius": "2px 0 0 2px"}),
-            html.Td(html.Div(label, style={"fontWeight": "600", "color": TEXT,
-                                            "fontSize": "11px", "fontFamily": FONT}),
-                    style={"padding": "11px 14px"}),
-            html.Td([
-                html.Span(str(len(sub26)), style={"fontWeight": "800", "fontSize": "15px",
-                                                   "color": ACCENT, "fontFamily": FONT}),
-                html.Span(f"all:{len(sub_all)}", style=badge),
-            ], style={"padding": "11px 12px", "whiteSpace": "nowrap"}),
-            html.Td([
-                html.Span(f"{w26s}W · {l26s}L",
-                          style={"fontWeight": "600", "fontSize": "11px",
-                                  "color": TEXT, "fontFamily": FONT}),
-                html.Span(f"all:{_wins(sub_all)}W·{_losses(sub_all)}L", style=badge),
-            ], style={"padding": "11px 12px", "whiteSpace": "nowrap"}),
-            html.Td([
-                html.Span(f"{s_wr26}%", style={
-                    "background": f"{wr_col}18", "color": wr_col,
-                    "border": f"1px solid {wr_col}44",
-                    "borderRadius": "4px", "padding": "3px 9px",
-                    "fontSize": "12px", "fontWeight": "700", "fontFamily": FONT,
-                }),
-                html.Span(f"all:{s_wr_all}%", style={**badge, "marginLeft": "6px"}),
-            ], style={"padding": "11px 12px", "whiteSpace": "nowrap"}),
-            html.Td(
-                f"{_ppct}%",
-                style={"color": MUTED, "fontSize": "11px", "fontFamily": FONT, "padding": "11px 12px"},
-            ),
-            html.Td(sig_lbl, style={"color": sig_col, "fontSize": "10px",
-                                     "fontFamily": MONO, "padding": "11px 12px",
-                                     "whiteSpace": "nowrap"}),
-        ], className=f"strat-row {fade_cls}",
-           style={"borderBottom": f"1px solid {BORDER}"})
-
-    def _totals_row():
-        w26t, l26t, p26t = _wins(strat26), _losses(strat26), _pushes(strat26)
-        wr26t   = _wr(strat26)
-        wr_all_t = _wr(strat_all)
-        total26t = len(strat26)
-        push_pct_t = round(p26t / total26t * 100, 1) if total26t > 0 else 0.0
-        wr_col   = WIN if wr26t >= 65 else LOSS
-        TOTAL_STRIPE = "#a78bfa"
-
-        badge = {"background": "#0d1828", "color": FADED, "borderRadius": "3px",
-                 "padding": "2px 6px", "fontSize": "11px", "marginLeft": "6px",
-                 "fontFamily": FONT}
-
-        return html.Tr([
-            html.Td("", style={"width": "3px", "padding": "0",
-                                "background": TOTAL_STRIPE, "borderRadius": "2px 0 0 2px"}),
-            html.Td([
-                html.Div("▸ ALL STRATEGIES", style={"fontWeight": "700", "color": TOTAL_STRIPE,
-                                                     "fontSize": "11px", "fontFamily": FONT,
-                                                     "letterSpacing": "0.06em"}),
-            ], style={"padding": "11px 14px"}),
-            html.Td([
-                html.Span(str(total26t), style={"fontWeight": "800", "fontSize": "15px",
-                                                "color": ACCENT, "fontFamily": FONT}),
-                html.Span(f"all:{len(strat_all)}", style=badge),
-            ], style={"padding": "11px 12px", "whiteSpace": "nowrap"}),
-            html.Td([
-                html.Span(f"{w26t}W · {l26t}L",
-                          style={"fontWeight": "600", "fontSize": "11px",
-                                  "color": TEXT, "fontFamily": FONT}),
-                html.Span(f"all:{_wins(strat_all)}W·{_losses(strat_all)}L", style=badge),
-            ], style={"padding": "11px 12px", "whiteSpace": "nowrap"}),
-            html.Td([
-                html.Span(f"{wr26t}%", style={
-                    "background": f"{wr_col}18", "color": wr_col,
-                    "border": f"1px solid {wr_col}44",
-                    "borderRadius": "4px", "padding": "3px 9px",
-                    "fontSize": "12px", "fontWeight": "700", "fontFamily": FONT,
-                }),
-                html.Span(f"all:{wr_all_t}%", style={**badge, "marginLeft": "6px"}),
-            ], style={"padding": "11px 12px", "whiteSpace": "nowrap"}),
-            html.Td(
-                f"{push_pct_t}%",
-                style={"color": MUTED, "fontSize": "11px", "fontFamily": FONT, "padding": "11px 12px"},
-            ),
-            html.Td(_sig_label(p_all, n_all)[0],
-                    style={"color": _sig_label(p_all, n_all)[1], "fontSize": "10px",
-                           "fontFamily": MONO, "padding": "11px 12px", "whiteSpace": "nowrap"}),
-        ], className="strat-row fade-6",
-           style={"borderTop": f"2px solid {TOTAL_STRIPE}44", "borderBottom": f"1px solid {BORDER}"})
-
-    strat_specs = [
-        ("T1 · Wing / Ruck",   _t1, 80.3, S_ACCENTS[0], "fade-3"),
-        ("T2 · Standard",      _t2, 68.8, S_ACCENTS[1], "fade-4"),
-    ]
-
-    TH = {"fontSize": "9px", "color": FADED, "fontWeight": "500",
-          "textTransform": "uppercase", "letterSpacing": "0.08em",
-          "padding": "9px 12px", "borderBottom": f"1px solid {BORDER}",
-          "background": CARD2, "fontFamily": MONO, "whiteSpace": "nowrap"}
-
-    strategy_section = html.Div([
-        html.Div([
-            html.Span("STRATEGY BREAKDOWN", style={"color": MUTED, "fontWeight": "500",
-                                                    "fontSize": "9px", "fontFamily": MONO,
-                                                    "letterSpacing": "0.1em",
-                                                    "textTransform": "uppercase"}),
-            html.Span("  2026 · (all-time)", style={"color": FADED, "fontWeight": "400",
-                                                     "fontSize": "9px", "fontFamily": MONO}),
-        ], style={"marginBottom": "12px"}),
-        html.Div(
-            html.Table([
-                html.Thead(html.Tr(
-                    [html.Th("", style={**TH, "width": "3px", "padding": "0"})] +
-                    [html.Th(h, style=TH)
-                     for h in ["Strategy", "Bets", "Record", "Win Rate", "Push %", "Significance"]]
-                )),
-                html.Tbody([_strat_row(*s) for s in strat_specs] + [_totals_row()]),
-            ], style={"width": "100%", "borderCollapse": "collapse"}),
-            style={"overflowX": "auto"},
-        ),
-    ], style={
-        "background": CARD, "borderRadius": "10px", "padding": "18px 20px",
-        "border": f"1px solid {BORDER}",
-        "marginBottom": "14px",
-    })
-
-    # ── KPI cards ─────────────────────────────────────────────────────────────
     def _kpi(title, value, sub, color):
         return html.Div([
-            html.Div(title, style={"fontSize": "9px", "fontWeight": "600", "color": FADED,
-                                    "letterSpacing": "0.12em", "textTransform": "uppercase",
-                                    "fontFamily": MONO, "marginBottom": "10px"}),
-            html.Div(value, style={"fontSize": "24px", "fontWeight": "800", "color": color,
-                                    "fontFamily": MONO, "letterSpacing": "-0.02em",
-                                    "lineHeight": "1", "marginBottom": "8px"}),
-            html.Div(sub, style={"fontSize": "10px", "color": MUTED, "fontFamily": MONO,
-                                  "lineHeight": "1.4"}),
-        ], style={
-            "background": CARD, "borderRadius": "10px",
-            "padding": "18px 20px", "flex": "1",
-            "border": f"1px solid {BORDER}",
-            "borderTop": f"3px solid {color}",
-            "boxShadow": SHADOW, "minWidth": "0",
-        })
+            html.Div(title, style={"fontSize":"9px","fontWeight":"600","color":FADED,
+                                   "letterSpacing":"0.12em","textTransform":"uppercase",
+                                   "fontFamily":MONO,"marginBottom":"10px"}),
+            html.Div(value, style={"fontSize":"24px","fontWeight":"800","color":color,
+                                   "fontFamily":MONO,"letterSpacing":"-0.02em",
+                                   "lineHeight":"1","marginBottom":"8px"}),
+            html.Div(sub, style={"fontSize":"10px","color":MUTED,"fontFamily":MONO}),
+        ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px","flex":"1",
+                  "border":f"1px solid {BORDER}","borderTop":f"3px solid {color}",
+                  "boxShadow":SHADOW,"minWidth":"0"})
 
-    leg_wr26_col      = WIN if wr26 >= 65 else (AMBER if wr26 >= 57 else LOSS)
-    last_leg_col      = WIN if (last_rnd_leg_wr or 0) >= 65 else (AMBER if (last_rnd_leg_wr or 0) >= 57 else LOSS)
-    pair_wr26_col     = WIN if (pair_wr or 0) >= 50 else (AMBER if (pair_wr or 0) >= 40 else LOSS)
-    last_pair_col     = WIN if (last_rnd_pair_wr or 0) >= 50 else (AMBER if (last_rnd_pair_wr or 0) >= 40 else LOSS)
+    wr_col  = WIN if multi_wr >= 50 else (AMBER if multi_wr >= 40 else LOSS)
+    pnl_col = WIN if total_pnl >= 0 else LOSS
+    roi_col = WIN if roi >= 0 else LOSS
+    hit_col = WIN if (leg_hit_rate or 0) >= 80 else AMBER
+    rnd_rng = (f"R{int(pdf['Round'].min())}\u2013R{int(pdf['Round'].max())}"
+               if not pdf.empty else "R6+")
 
     kpi_row = html.Div([
-        _kpi("2026 Individual Leg WR",
-             f"{wr26}%",
-             f"{w26}W · {l26}L  |  excl. pushes",
-             leg_wr26_col),
-        _kpi("Last Round Individual Leg WR",
-             f"{last_rnd_leg_wr}%" if last_rnd_leg_wr is not None else "—",
-             last_rnd_leg_sub,
-             last_leg_col),
-        _kpi("2026 Pair Win Rate",
-             f"{pair_wr}%" if pair_wr is not None else "—",
-             "Tiered pairs · excl. pushes",
-             pair_wr26_col),
-        _kpi("Last Round Pair Win Rate",
-             f"{last_rnd_pair_wr}%" if last_rnd_pair_wr is not None else "—",
-             last_rnd_pair_sub,
-             last_pair_col),
-    ], style={"display": "flex", "gap": "12px", "marginBottom": "14px"})
+        _kpi("Multi Win Rate",  f"{multi_wr}%",  f"{wins}W \u00b7 {losses}L \u00b7 {rnd_rng}", wr_col),
+        _kpi("Net P&L",         f"${total_pnl:+.2f}", f"${total_stk:.0f} staked \u00b7 {total} multis", pnl_col),
+        _kpi("ROI",             f"{roi:+.1f}%",  "profit \u00f7 total staked", roi_col),
+        _kpi("Leg Hit Rate",
+             f"{leg_hit_rate}%" if leg_hit_rate is not None else "\u2014",
+             "avg legs won per multi", hit_col),
+    ], style={"display":"flex","gap":"12px","marginBottom":"14px"})
 
-    # ── Round consistency bars (pair win % per round) ─────────────────────────
-    round_bar_section = html.Div()
-    if round_results:
-        bar_items = []
-        for lbl, pwr, cnt in round_results[-16:]:
-            bar_col = WIN if pwr >= 50 else (AMBER if pwr >= 40 else LOSS)
-            bar_h   = max(4, int(pwr * 0.55))
-            bar_items.append(html.Div([
-                html.Div(style={"height": f"{bar_h}px", "background": bar_col,
-                                "borderRadius": "2px 2px 0 0", "opacity": "0.8",
-                                "width": "100%", "alignSelf": "flex-end"}),
-                html.Div(f"{pwr:.0f}%", style={"fontSize": "8px", "color": bar_col,
-                                                "fontFamily": MONO, "textAlign": "center",
-                                                "marginTop": "3px"}),
-                html.Div(lbl, style={"fontSize": "7px", "color": FADED,
-                                      "fontFamily": MONO, "textAlign": "center",
-                                      "marginTop": "1px", "whiteSpace": "nowrap",
-                                      "overflow": "hidden"}),
-            ], style={"display": "flex", "flexDirection": "column", "alignItems": "center",
-                      "flex": "1", "justifyContent": "flex-end", "height": "70px"}))
-        pct_above = rounds_above / max(1, rounds_total)
-        round_bar_section = html.Div([
-            html.Div([
-                html.Span("ROUND CONSISTENCY", style={"color": MUTED, "fontWeight": "600",
-                                                       "fontSize": "9px", "fontFamily": MONO,
-                                                       "letterSpacing": "0.1em",
-                                                       "textTransform": "uppercase"}),
-                html.Span(f"  {rounds_above}/{rounds_total} rounds >= 50% pairs won",
-                          style={"color": WIN if pct_above >= 0.6 else (AMBER if pct_above >= 0.4 else LOSS),
-                                 "fontSize": "9px", "fontFamily": MONO}),
-            ], style={"marginBottom": "10px"}),
-            html.Div(bar_items, style={"display": "flex", "gap": "4px",
-                                        "alignItems": "flex-end", "paddingBottom": "8px"}),
-        ], style={"background": CARD, "borderRadius": "10px",
-                  "padding": "18px 20px", "border": f"1px solid {BORDER}",
-                  "marginBottom": "14px"})
+    # ── Style helpers ─────────────────────────────────────────────────────────
+    TH = {"fontSize":"9px","color":FADED,"fontWeight":"500",
+          "textTransform":"uppercase","letterSpacing":"0.08em",
+          "padding":"8px 12px","borderBottom":f"1px solid {BORDER}",
+          "background":CARD2,"fontFamily":MONO,"whiteSpace":"nowrap"}
+    TD = lambda v, col=TEXT, bold=False: html.Td(v, style={
+        "padding":"9px 12px","fontSize":"11px","color":col,
+        "fontFamily":FONT,"fontWeight":"700" if bold else "400","whiteSpace":"nowrap"})
 
-
-    # ── Round-by-round charts ─────────────────────────────────────────────────
-    def _round_chart(subset, title, target, stripe):
-        data = subset[subset['Round'].notna() & subset['Year'].notna()].copy()
-        if data.empty:
-            return html.Div([
-                html.Div(title, style={"fontSize": "10px", "color": MUTED,
-                                        "fontFamily": FONT, "letterSpacing": "0.1em",
-                                        "textTransform": "uppercase", "marginBottom": "6px"}),
-                html.Div("no data", style={"color": FADED, "fontSize": "11px", "fontFamily": FONT}),
-            ], style={"padding": "16px", "marginBottom": "12px",
-                      "borderLeft": f"3px solid {stripe}22"})
-
-        data['Round'] = data['Round'].astype(int)
-        data['Year']  = data['Year'].astype(int)
-        data['_key']  = data['Year'] * 100 + data['Round']
-        data['_label']= 'R' + data['Round'].astype(str) + " '" + data['Year'].astype(str).str[-2:]
-
-        grouped = (data.groupby(['_key', '_label'])['W/L']
-                       .value_counts().unstack(fill_value=0)
-                       .sort_index(level='_key'))
-
-        labels  = [lbl for _, lbl in grouped.index]
-        wins    = [int(grouped.loc[idx,  1]) if  1 in grouped.columns else 0 for idx in grouped.index]
-        losses  = [int(grouped.loc[idx, -1]) if -1 in grouped.columns else 0 for idx in grouped.index]
-        pushes  = [int(grouped.loc[idx,  0]) if  0 in grouped.columns else 0 for idx in grouped.index]
-
-        BREAKEVEN = 57.0
-
-        totals  = [w + l + p for w, l, p in zip(wins, losses, pushes)]
-        decisive = [w + l for w, l in zip(wins, losses)]
-        win_pct = [round(w / d * 100, 1) if d > 0 else 0 for w, d in zip(wins, decisive)]
-
-        # Three-tier bar colours:
-        #   ≤ 57%         → red    (below breakeven)
-        #   57% < x < target → yellow (profitable but below target)
-        #   ≥ target      → green  (at or above target)
-        def _bar_color(pct):
-            if pct >= target:
-                return "#00c853"   # green — at/above target
-            elif pct > BREAKEVEN:
-                return "#f0b429"   # amber — profitable but below target
-            else:
-                return "#f87171"   # red — below breakeven
-
-        bar_colors = [_bar_color(p) for p in win_pct]
-        totals_txt = [f"{t}" for t in totals]
-        hover = [f"<b>{lbl}</b><br>{pct}%  ·  {w}W / {l}L / {p}P  ({t} bets)"
-                 for lbl, pct, w, l, p, t in zip(labels, win_pct, wins, losses, pushes, totals)]
-
-        n_rounds = len(labels)
-        fig = go.Figure()
-
-        fig.add_trace(go.Bar(
-            y=labels, x=win_pct,
-            orientation='h',
-            marker_color=bar_colors,
-            marker_line=dict(width=0),
-            text=[f"  {p}%" for p in win_pct],
-            textposition='outside',
-            textfont=dict(size=12, color=TEXT, family='Inter'),
-            hovertext=hover, hoverinfo='text',
-            showlegend=False,
-        ))
-
-        # Bet-count badge on left
-        fig.add_trace(go.Scatter(
-            x=[-4] * n_rounds, y=labels,
-            mode='text',
-            text=totals_txt,
-            textfont=dict(size=11, color=MUTED, family='Inter'),
-            hoverinfo='skip',
-            showlegend=False,
-        ))
-
-        # Breakeven line — 57%
-        fig.add_vline(
-            x=BREAKEVEN,
-            line=dict(color="#f87171", width=2.0, dash="dash"),
-            annotation=dict(
-                text=f"<b>  BE {BREAKEVEN:.0f}%</b>",
-                font=dict(size=11, color="#f87171", family="JetBrains Mono"),
-                xanchor="left", yanchor="bottom",
-                bgcolor="rgba(248,113,113,0.10)", borderpad=3,
-            ),
-        )
-
-        # Strategy target line
-        fig.add_vline(
-            x=target,
-            line=dict(color=stripe, width=2.0, dash="dot"),
-            annotation=dict(
-                text=f"<b>  {target}%</b>",
-                font=dict(size=12, color=stripe, family="JetBrains Mono"),
-                xanchor="left", yanchor="top",
-                bgcolor=f"rgba({int(stripe[1:3],16)},{int(stripe[3:5],16)},{int(stripe[5:7],16)},0.10)",
-                borderpad=3,
-            ),
-        )
-
-        fig.update_layout(
-            title=dict(
-                text=f"{title}",
-                font=dict(size=11, color=stripe, family='JetBrains Mono'), x=0,
-            ),
-            height=max(160, n_rounds * 28 + 70),
-            margin=dict(l=0, r=55, t=30, b=10),
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            yaxis=dict(
-                tickfont=dict(size=11, color=MUTED, family='JetBrains Mono'),
-                autorange='reversed',
-                gridcolor='rgba(0,0,0,0)', linecolor=BORDER,
-                ticksuffix="  ",
-            ),
-            xaxis=dict(
-                range=[-8, 115],
-                tickfont=dict(size=10, color=FADED, family='JetBrains Mono'), dtick=25,
-                gridcolor=BORDER, linecolor='rgba(0,0,0,0)', zerolinecolor=BORDER,
-            ),
-            showlegend=False,
-            font=dict(family='JetBrains Mono'),
-            hoverlabel=dict(bgcolor="rgba(9, 29, 38, 0.95)", bordercolor=BORDER, font_color=TEXT,
-                             font_family='JetBrains Mono', font_size=12),
-        )
-
-        return html.Div([
-            dcc.Graph(figure=fig, config={'displayModeBar': False}, style={"marginBottom": "0"}),
-        ], style={
-            "borderLeft": f"2px solid {stripe}30", "paddingLeft": "2px",
-            "marginBottom": "10px",
-        })
-
-    df_2025 = df[df['Year'] >= 2025] if 'Year' in df.columns else df
-
-    # ── Multi Log analytics section ───────────────────────────────────────────
-    def _pair_section(pdf):
-        if pdf is None or pdf.empty:
-            return html.Div()
-
-        def _wr(sub):
-            w = (sub['wl']=='W').sum(); l = (sub['wl']=='L').sum()
-            return round(w/(w+l)*100, 1) if (w+l) > 0 else 0
-
-        def _roi(sub):
-            s = sub['stake_num'].sum()
-            return round(sub['profit_num'].sum()/s*100, 1) if s and s > 0 else 0
-
-        TH = {"fontSize":"9px","color":FADED,"fontWeight":"500",
-              "textTransform":"uppercase","letterSpacing":"0.08em",
-              "padding":"8px 12px","borderBottom":f"1px solid {BORDER}",
-              "background":CARD2,"fontFamily":MONO,"whiteSpace":"nowrap"}
-        TD = lambda v, col=TEXT, bold=False: html.Td(v, style={
-            "padding":"9px 12px","fontSize":"11px","color":col,
-            "fontFamily":FONT,"fontWeight":"700" if bold else "400","whiteSpace":"nowrap"})
-
-        # By leg count
-        leg_rows = []
-        stripe_cycle = [S1, S2, S3, ACCENT, AMBER]
-        for legs_n in sorted(pdf['legs'].dropna().unique()):
-            sub = pdf[pdf['legs']==legs_n]
-            w   = int((sub['wl']=='W').sum()); l = int((sub['wl']=='L').sum())
-            pwr = _wr(sub); roi = _roi(sub)
+    # ── Hit distribution ──────────────────────────────────────────────────────
+    hit_section = html.Div()
+    if has_hits:
+        hit_rows = []
+        for h in sorted(pdf['hits'].dropna().unique(), reverse=True):
+            h   = int(h)
+            sub = pdf[pdf['hits'] == h]
+            w   = int((sub['wl'] == 'W').sum()); l = int((sub['wl'] == 'L').sum())
             prf = sub['profit_num'].sum(); stk = sub['stake_num'].sum()
-            pc  = WIN if prf >= 0 else LOSS; wrc = WIN if pwr >= 20 else LOSS
-            stripe = stripe_cycle[int(legs_n) % len(stripe_cycle)]
-            leg_rows.append(html.Tr([
+            roi_h  = round(prf / stk * 100, 1) if stk > 0 else 0
+            pc     = WIN if prf >= 0 else LOSS
+            stripe = WIN if h == 6 else (AMBER if h == 5 else (BLUE if h == 4 else LOSS))
+            hit_rows.append(html.Tr([
                 html.Td(style={"width":"3px","padding":"0","background":stripe,"borderRadius":"2px"}),
-                TD(f"{int(legs_n)}-leg", bold=True),
+                TD(f"{h}/6", bold=True),
                 TD(f"{len(sub)}"),
-                TD(f"{w}W · {l}L"),
-                html.Td(html.Span(f"{pwr:.1f}%", style={
-                    "background":f"{wrc}18","color":wrc,"border":f"1px solid {wrc}44",
-                    "borderRadius":"4px","padding":"2px 8px","fontSize":"11px",
-                    "fontWeight":"700","fontFamily":FONT}), style={"padding":"9px 12px"}),
-                TD(f"{roi:+.1f}%", WIN if roi>=0 else LOSS),
+                TD(f"{w}W \u00b7 {l}L"),
+                TD(f"{roi_h:+.1f}%", WIN if roi_h >= 0 else LOSS),
                 TD(f"${prf:+.2f}", pc, bold=True),
-                TD(f"${stk:.2f}", FADED),
             ], className="strat-row"))
-
-        # Totals
-        w_all=int((pdf['wl']=='W').sum()); l_all=int((pdf['wl']=='L').sum())
-        prf_all=pdf['profit_num'].sum(); stk_all=pdf['stake_num'].sum()
-        wr_all=_wr(pdf); roi_all=_roi(pdf); pc_all=WIN if prf_all>=0 else LOSS
-        leg_rows.append(html.Tr([
-            html.Td(style={"width":"3px","padding":"0","background":ACCENT,"borderRadius":"2px"}),
-            html.Td("TOTAL", style={"padding":"9px 12px","fontSize":"11px",
-                                    "color":ACCENT,"fontWeight":"700","fontFamily":FONT}),
-            TD(f"{len(pdf)}"), TD(f"{w_all}W · {l_all}L"),
-            html.Td(html.Span(f"{wr_all:.1f}%", style={
-                "background":f"{pc_all}18","color":pc_all,"border":f"1px solid {pc_all}44",
-                "borderRadius":"4px","padding":"2px 8px","fontSize":"11px",
-                "fontWeight":"700","fontFamily":FONT}), style={"padding":"9px 12px"}),
-            TD(f"{roi_all:+.1f}%", WIN if roi_all>=0 else LOSS),
-            TD(f"${prf_all:+.2f}", pc_all, bold=True),
-            TD(f"${stk_all:.2f}", FADED),
-        ], className="strat-row", style={"borderTop":f"2px solid {ACCENT}33"}))
-
-        # Round bars
-        rounds = sorted(pdf['Round'].dropna().unique())
-        max_abs = max((abs(pdf[pdf['Round']==r]['profit_num'].sum()) for r in rounds), default=1)
-        round_bars = []
-        for rnd in rounds:
-            sub=pdf[pdf['Round']==rnd]; prf=sub['profit_num'].sum()
-            stk=sub['stake_num'].sum(); roi=round(prf/stk*100,1) if stk>0 else 0
-            w=int((sub['wl']=='W').sum()); l=int((sub['wl']=='L').sum())
-            col=WIN if prf>=0 else LOSS
-            bar_w=max(2, abs(prf)/max_abs*100) if max_abs>0 else 2
-            round_bars.append(html.Div([
-                html.Div(f"R{int(rnd)}", style={"fontSize":"9px","color":MUTED,
-                    "fontFamily":MONO,"width":"24px","flexShrink":"0"}),
-                html.Div(style={"height":"6px","width":f"{bar_w}%","maxWidth":"60%",
-                    "background":col,"borderRadius":"3px","opacity":"0.75"}),
-                html.Div(f"${prf:+.0f}  ({roi:+.0f}%)  {w}W {l}L",
-                    style={"fontSize":"10px","color":col,"fontFamily":MONO,"marginLeft":"8px"}),
-            ], style={"display":"flex","alignItems":"center","gap":"6px","marginBottom":"5px"}))
-
-        # Player contribution
-        from collections import defaultdict
-        ps = defaultdict(lambda: {'multis':0,'wins':0,'profit':0.0})
-        for _, row in pdf.iterrows():
-            for p in (row.get('player_list') or []):
-                ps[p]['multis'] += 1
-                if row['wl']=='W': ps[p]['wins'] += 1
-                ps[p]['profit'] += row['profit_num'] or 0
-
-        player_rows = []
-        for p, s in sorted(ps.items(), key=lambda x: -x[1]['profit']):
-            pwr = round(s['wins']/s['multis']*100,1) if s['multis']>0 else 0
-            pc  = WIN if s['profit']>=0 else LOSS
-            player_rows.append(html.Tr([
-                TD(p, bold=True), TD(f"{s['multis']}"),
-                TD(f"{s['wins']}W · {s['multis']-s['wins']}L"),
-                TD(f"{pwr:.1f}%", WIN if pwr>=50 else LOSS),
-                TD(f"${s['profit']:+.2f}", pc, bold=True),
-            ]))
-
-        return html.Div([
-            html.Div("MULTI LOG  ·  combined PnL", style={
+        hit_section = html.Div([
+            html.Div("HIT DISTRIBUTION \u00b7 6-leg multis", style={
                 "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
                 "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
             html.Div(html.Table([
                 html.Thead(html.Tr(
                     [html.Th("", style={**TH,"width":"3px","padding":"0"})] +
-                    [html.Th(h, style=TH) for h in
-                     ["Legs","Multis","Record","Win Rate","ROI","Profit","Staked"]])),
-                html.Tbody(leg_rows),
-            ], style={"width":"100%","borderCollapse":"collapse"}),
-            style={"overflowX":"auto","marginBottom":"16px"}),
-            html.Div(round_bars, style={"marginBottom":"16px"}),
-            html.Div("PLAYER CONTRIBUTION", style={
-                "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
-                "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"8px"}),
-            html.Div(html.Table([
-                html.Thead(html.Tr([html.Th(h, style=TH) for h in
-                    ["Player","Multis","Record","Win Rate","P&L"]])),
-                html.Tbody(player_rows),
+                    [html.Th(h, style=TH) for h in ["Hits","Multis","Record","ROI","P&L"]]
+                )),
+                html.Tbody(hit_rows),
             ], style={"width":"100%","borderCollapse":"collapse"}),
             style={"overflowX":"auto"}),
         ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
                   "border":f"1px solid {BORDER}","marginBottom":"14px"})
 
-    pair_section = _pair_section(pair_df)
+    # ── Round-by-round bars ───────────────────────────────────────────────────
+    rounds  = sorted(pdf['Round'].dropna().unique())
+    max_abs = max((abs(pdf[pdf['Round'] == r]['profit_num'].sum()) for r in rounds), default=1)
+    round_bars = []
+    for rnd in rounds:
+        sub   = pdf[pdf['Round'] == rnd]
+        prf   = sub['profit_num'].sum(); stk = sub['stake_num'].sum()
+        roi_r = round(prf / stk * 100, 1) if stk > 0 else 0
+        w     = int((sub['wl'] == 'W').sum()); l = int((sub['wl'] == 'L').sum())
+        col   = WIN if prf >= 0 else LOSS
+        bar_w = max(2, abs(prf) / max_abs * 100) if max_abs > 0 else 2
+        round_bars.append(html.Div([
+            html.Div(f"R{int(rnd)}", style={"fontSize":"9px","color":MUTED,
+                "fontFamily":MONO,"width":"24px","flexShrink":"0"}),
+            html.Div(style={"height":"6px","width":f"{bar_w}%","maxWidth":"60%",
+                "background":col,"borderRadius":"3px","opacity":"0.75"}),
+            html.Div(f"${prf:+.0f}  ({roi_r:+.0f}%)  {w}W {l}L",
+                style={"fontSize":"10px","color":col,"fontFamily":MONO,"marginLeft":"8px"}),
+        ], style={"display":"flex","alignItems":"center","gap":"6px","marginBottom":"5px"}))
 
-    # ── Cumulative profit chart ───────────────────────────────────────────────
-    def _cumsum_chart(pdf):
-        if pdf is None or pdf.empty or pdf['profit_num'].isna().all():
-            return html.Div()
+    round_section = html.Div([
+        html.Div("ROUND BY ROUND", style={
+            "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
+            "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
+        html.Div(round_bars),
+    ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
+              "border":f"1px solid {BORDER}","marginBottom":"14px"})
+
+    # ── Player contribution ───────────────────────────────────────────────────
+    from collections import defaultdict as _dd
+    ps = _dd(lambda: {'multis': 0, 'wins': 0, 'profit': 0.0})
+    for _, row in pdf.iterrows():
+        for p in (row.get('player_list') or []):
+            ps[p]['multis']  += 1
+            if row['wl'] == 'W': ps[p]['wins'] += 1
+            ps[p]['profit']  += row['profit_num'] or 0
+
+    player_rows = []
+    for p, s in sorted(ps.items(), key=lambda x: -x[1]['profit']):
+        pwr = round(s['wins'] / s['multis'] * 100, 1) if s['multis'] > 0 else 0
+        pc  = WIN if s['profit'] >= 0 else LOSS
+        player_rows.append(html.Tr([
+            TD(p, bold=True), TD(f"{s['multis']}"),
+            TD(f"{s['wins']}W \u00b7 {s['multis'] - s['wins']}L"),
+            TD(f"{pwr:.1f}%", WIN if pwr >= 50 else LOSS),
+            TD(f"${s['profit']:+.2f}", pc, bold=True),
+        ]))
+
+    player_section = html.Div([
+        html.Div("PLAYER CONTRIBUTION", style={
+            "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
+            "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"8px"}),
+        html.Div(html.Table([
+            html.Thead(html.Tr([html.Th(h, style=TH)
+                for h in ["Player","Multis","Record","Win Rate","P&L"]])),
+            html.Tbody(player_rows),
+        ], style={"width":"100%","borderCollapse":"collapse"}),
+        style={"overflowX":"auto"}),
+    ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
+              "border":f"1px solid {BORDER}","marginBottom":"14px"})
+
+    # ── Cumulative P&L chart ──────────────────────────────────────────────────
+    cumsum_chart = html.Div()
+    if not pdf.empty and not pdf['profit_num'].isna().all():
         plot_df = pdf.copy()
         plot_df['cumsum'] = plot_df['profit_num'].cumsum()
-        xs=list(range(len(plot_df))); ys=plot_df['cumsum'].tolist()
-        rds=plot_df['Round'].tolist(); wls=plot_df['wl'].tolist()
-        prf=plot_df['profit_num'].tolist(); legs=plot_df['legs'].tolist()
-        hover=[f"<b>Multi {i+1}</b>  R{int(r) if r==r else '?'}  {int(lg)}-leg<br>"
-               f"{wl}  ${p:+.2f}  |  Cumulative: ${y:+.2f}"
-               for i,(r,wl,p,y,lg) in enumerate(zip(rds,wls,prf,ys,legs))]
+        xs  = list(range(len(plot_df))); ys = plot_df['cumsum'].tolist()
+        rds = plot_df['Round'].tolist(); wls = plot_df['wl'].tolist()
+        prf = plot_df['profit_num'].tolist()
+        hover = [f"<b>Multi {i+1}</b>  R{int(r) if r==r else '?'}<br>"
+                 f"{wl}  ${p:+.2f}  |  Cumulative: ${y:+.2f}"
+                 for i,(r,wl,p,y) in enumerate(zip(rds,wls,prf,ys))]
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines',
             line=dict(color=WIN, width=2), fill='tozeroy',
             fillcolor='rgba(45,212,191,0.08)',
             hovertext=hover, hoverinfo='text', showlegend=False))
-        neg_xs=[x for x,y in zip(xs,ys) if y<0]; neg_ys=[y for y in ys if y<0]
+        neg_xs = [x for x,y in zip(xs,ys) if y < 0]
+        neg_ys = [y for y in ys if y < 0]
         if neg_xs:
             fig.add_trace(go.Scatter(x=neg_xs, y=neg_ys, mode='markers',
-                marker=dict(color=LOSS,size=3,opacity=0.6),
+                marker=dict(color=LOSS, size=3, opacity=0.6),
                 hoverinfo='skip', showlegend=False))
         fig.add_hline(y=0, line=dict(color=FADED, width=1, dash='dot'))
         round_starts = {}
-        for i,r in enumerate(rds):
-            if r not in round_starts: round_starts[r]=i
-        for r,xi in round_starts.items():
-            if xi>0:
-                fig.add_vline(x=xi, line=dict(color=BORDER,width=1,dash='dot'),
+        for i, r in enumerate(rds):
+            if r not in round_starts: round_starts[r] = i
+        for r, xi in round_starts.items():
+            if xi > 0:
+                fig.add_vline(x=xi, line=dict(color=BORDER, width=1, dash='dot'),
                     annotation=dict(text=f"R{int(r)}",
-                        font=dict(size=9,color=FADED,family='JetBrains Mono'),
-                        xanchor='left',yanchor='top',bgcolor='rgba(0,0,0,0)'))
-        final=ys[-1] if ys else 0
+                        font=dict(size=9, color=FADED, family='JetBrains Mono'),
+                        xanchor='left', yanchor='top', bgcolor='rgba(0,0,0,0)'))
+        final = ys[-1] if ys else 0
         fig.update_layout(
-            title=dict(text=f"CUMULATIVE PROFIT  ·  all multis  ·  ${final:+.2f}",
-                font=dict(size=10,color=WIN if final>=0 else LOSS,family='JetBrains Mono'),x=0),
-            height=180, margin=dict(l=0,r=10,t=28,b=10),
+            title=dict(text=f"CUMULATIVE PROFIT \u00b7 6-leg R6+ \u00b7 ${final:+.2f}",
+                font=dict(size=10, color=WIN if final >= 0 else LOSS, family='JetBrains Mono'), x=0),
+            height=220, margin=dict(l=0, r=10, t=30, b=10),
             paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showticklabels=False,showgrid=False,linecolor='rgba(0,0,0,0)',zeroline=False),
-            yaxis=dict(tickfont=dict(size=10,color=FADED,family='JetBrains Mono'),
-                       gridcolor=BORDER,linecolor='rgba(0,0,0,0)',zeroline=False,tickprefix='$'),
-            hoverlabel=dict(bgcolor="rgba(9,29,38,0.95)",bordercolor=BORDER,
-                font_color=TEXT,font_family='JetBrains Mono',font_size=11),
+            xaxis=dict(showticklabels=False, showgrid=False,
+                       linecolor='rgba(0,0,0,0)', zeroline=False),
+            yaxis=dict(tickfont=dict(size=10, color=FADED, family='JetBrains Mono'),
+                       gridcolor=BORDER, linecolor='rgba(0,0,0,0)', zeroline=False, tickprefix='$'),
+            hoverlabel=dict(bgcolor="rgba(9,29,38,0.95)", bordercolor=BORDER,
+                font_color=TEXT, font_family='JetBrains Mono', font_size=11),
             showlegend=False)
-        return html.Div([dcc.Graph(figure=fig, config={'displayModeBar':False})],
+        cumsum_chart = html.Div(
+            [dcc.Graph(figure=fig, config={'displayModeBar': False})],
             style={"marginBottom":"14px","borderLeft":f"2px solid {WIN}30","paddingLeft":"2px"})
 
-    cumsum_chart = _cumsum_chart(pair_df)
-
+    # ── Layout ────────────────────────────────────────────────────────────────
     left_col = html.Div([
-        kpi_row,
-        strategy_section,
-        pair_section,
-    ], style={"flex": "1", "minWidth": "0"})
+        hit_section,
+        round_section,
+        player_section,
+    ], style={"flex":"1","minWidth":"0"})
 
     right_col = html.Div([
-        html.Div([
-            html.Span("WIN RATE BY ROUND", style={"color": MUTED, "fontWeight": "500",
-                                                   "fontSize": "9px", "fontFamily": MONO,
-                                                   "letterSpacing": "0.1em",
-                                                   "textTransform": "uppercase"}),
-            html.Span("  2025+  |  excl. pushes", style={"color": FADED, "fontWeight": "400",
-                                                           "fontSize": "9px", "fontFamily": MONO}),
-        ], style={"marginBottom": "14px"}),
+        html.Div("CUMULATIVE P&L \u00b7 6-leg multis R6+", style={
+            "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
+            "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
         cumsum_chart,
-        round_bar_section,
-        _round_chart(_all_strats(df_2025), "All - T1 + T2 Combined", 72.0, S3),
-        _round_chart(_t1(df_2025), "T1 - Wing / Ruck",  80.3, S_ACCENTS[0]),
-        _round_chart(_t2(df_2025), "T2 - Standard",     68.8, S_ACCENTS[1]),
-    ], className="fade-2", style={
-        "flex": "1", "minWidth": "0",
-        "background": CARD, "borderRadius": "10px",
-        "padding": "18px 20px",
-        "border": f"1px solid {BORDER}",
-    })
-
-    # ── Tackle line trend section ─────────────────────────────────────────────
-    line_trend_section = html.Div()
-    tackle_all = df[
-        (df['Type'].astype(str).str.strip() == 'Tackle') &
-        df['Line'].notna() &
-        df['Round'].notna() &
-        df['Position'].notna() &
-        (~df['Position'].astype(str).str.strip().isin(['', 'nan']))
-    ].copy()
-
-    if not tackle_all.empty:
-        tackle_all['Round']    = tackle_all['Round'].astype(int)
-        tackle_all['Position'] = tackle_all['Position'].astype(str).str.strip()
-        if 'Year' in tackle_all.columns:
-            tackle_all['Year'] = pd.to_numeric(tackle_all['Year'], errors='coerce').fillna(2026).astype(int)
-        else:
-            tackle_all['Year'] = 2026
-
-        # Build chronological (Year, Round) ordering with sequential integer x positions
-        # so there's no gap between 2025 and 2026 on the axis.
-        yr_rnd_pairs = (
-            tackle_all[['Year', 'Round']]
-            .drop_duplicates()
-            .sort_values(['Year', 'Round'])
-            .reset_index(drop=True)
-        )
-        yr_rnd_pairs['sort_key'] = yr_rnd_pairs.index  # 0, 1, 2, ... sequential
-        yr_rnd_pairs['tick_lbl'] = yr_rnd_pairs.apply(
-            lambda r: f"'25 R{int(r['Round'])}" if r['Year'] == 2025 else f"'26 R{int(r['Round'])}", axis=1
-        )
-
-        tackle_all = tackle_all.merge(yr_rnd_pairs[['Year', 'Round', 'sort_key', 'tick_lbl']],
-                                      on=['Year', 'Round'], how='left')
-
-        # Ordered tick lists for x-axis
-        all_sort_keys = yr_rnd_pairs['sort_key'].tolist()
-        all_tick_lbls = yr_rnd_pairs['tick_lbl'].tolist()
-
-        POS_COLORS = {
-            'Wing': '#0066ff', 'Ruck': '#00d4aa', 'InsM': '#a78bfa',
-            'KeyF': '#f59e0b', 'GenF': '#f87171', 'KeyD': '#34d399',
-            'GenD': '#fb923c', 'SmF':  '#e879f9', 'MedF': '#60a5fa',
-            'FwdMid': '#94a3b8',
-        }
-
-        def _hex_to_rgba(hex_col, alpha=0.13):
-            h = hex_col.lstrip('#')
-            r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-            return f'rgba({r},{g},{b},{alpha})'
-
-        # Per-position summary (all rounds combined)
-        pos_summary = (
-            tackle_all.groupby('Position')['Line']
-            .agg(count='count', mean='mean', std='std', min='min', max='max')
-            .reset_index()
-        )
-        n_rounds_col = (
-            tackle_all.groupby('Position')['sort_key']
-            .nunique().reset_index(name='n_rounds')
-        )
-        pos_summary = pos_summary.merge(n_rounds_col, on='Position')
-        pos_summary = pos_summary[pos_summary['count'] >= 3].sort_values('mean', ascending=False)
-        valid_pos   = pos_summary['Position'].tolist()
-
-        # Per-position per-(Year,Round) aggregation using sort_key for ordering
-        rnd_grouped = (
-            tackle_all[tackle_all['Position'].isin(valid_pos)]
-            .groupby(['Position', 'sort_key', 'tick_lbl'])['Line']
-            .agg(mean='mean', std='std', count='count')
-            .reset_index()
-        )
-        rnd_grouped['std'] = rnd_grouped['std'].fillna(0)
-
-        # Build chart
-        fig_lt = go.Figure()
-        for pos in valid_pos:
-            sub = rnd_grouped[rnd_grouped['Position'] == pos].sort_values('sort_key')
-            if sub.empty:
-                continue
-            col    = POS_COLORS.get(pos, '#888888')
-            xs     = sub['sort_key'].tolist()   # numeric positions for correct spacing
-            lbls   = sub['tick_lbl'].tolist()
-            means  = sub['mean'].tolist()
-            stds   = sub['std'].tolist()
-            upper  = [m + s for m, s in zip(means, stds)]
-            lower  = [max(0.0, m - s) for m, s in zip(means, stds)]
-
-            # Shaded std-dev band — linked to legend via legendgroup so clicking legend toggles both
-            if len(xs) > 1:
-                fig_lt.add_trace(go.Scatter(
-                    x=xs + xs[::-1], y=upper + lower[::-1],
-                    fill='toself', fillcolor=_hex_to_rgba(col),
-                    line=dict(width=0), hoverinfo='skip',
-                    showlegend=False, legendgroup=pos,
-                ))
-
-            # Mean line
-            fig_lt.add_trace(go.Scatter(
-                x=xs, y=means,
-                mode='lines+markers', name=pos,
-                line=dict(color=col, width=2),
-                marker=dict(size=5, color=col),
-                legendgroup=pos,
-                customdata=list(zip(stds, lbls)),
-                hovertemplate=(
-                    f'<b>{pos}</b><br>%{{customdata[1]}}: avg %{{y:.2f}} ± %{{customdata[0]:.2f}}<extra></extra>'
-                ),
-            ))
-
-        fig_lt.update_layout(
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            margin=dict(l=0, r=10, t=20, b=0), height=260,
-            legend=dict(font=dict(size=9, color=MUTED, family=MONO),
-                        bgcolor='rgba(0,0,0,0)', orientation='h',
-                        yanchor='bottom', y=1.02, xanchor='right', x=1),
-            xaxis=dict(
-                title=dict(text='Round', font=dict(size=9, color=FADED)),
-                tickfont=dict(size=9, color=MUTED), gridcolor='rgba(255,255,255,0.04)',
-                tickmode='array',
-                tickvals=all_sort_keys,
-                ticktext=all_tick_lbls,
-            ),
-            yaxis=dict(
-                title=dict(text='Avg Line', font=dict(size=9, color=FADED)),
-                tickfont=dict(size=9, color=MUTED), gridcolor='rgba(255,255,255,0.04)',
-            ),
-        )
-
-        # Summary table
-        tbl_rows = []
-        for _, row in pos_summary.iterrows():
-            pos  = row['Position']
-            col  = POS_COLORS.get(pos, '#888888')
-            std_txt = f"±{row['std']:.2f}" if not pd.isna(row['std']) else "—"
-            tbl_rows.append(html.Tr([
-                html.Td(pos, style={"padding": "8px 12px", "fontSize": "11px",
-                                     "color": col, "fontWeight": "600", "fontFamily": MONO,
-                                     "borderBottom": f"1px solid {BORDER}"}),
-                html.Td(str(int(row['count'])), style={"padding": "8px 10px", "fontSize": "11px",
-                                                        "color": TEXT, "fontFamily": MONO,
-                                                        "textAlign": "right",
-                                                        "borderBottom": f"1px solid {BORDER}"}),
-                html.Td(f"{int(row['n_rounds'])} rds", style={"padding": "8px 10px", "fontSize": "11px",
-                                                               "color": MUTED, "fontFamily": MONO,
-                                                               "borderBottom": f"1px solid {BORDER}"}),
-                html.Td(f"{row['mean']:.2f}", style={"padding": "8px 10px", "fontSize": "12px",
-                                                      "fontWeight": "700", "color": TEXT,
-                                                      "fontFamily": MONO,
-                                                      "borderBottom": f"1px solid {BORDER}"}),
-                html.Td(std_txt, style={"padding": "8px 10px", "fontSize": "11px",
-                                         "color": MUTED, "fontFamily": MONO,
-                                         "borderBottom": f"1px solid {BORDER}"}),
-                html.Td(f"{row['min']:.1f}–{row['max']:.1f}",
-                        style={"padding": "8px 10px", "fontSize": "11px",
-                               "color": FADED, "fontFamily": MONO,
-                               "borderBottom": f"1px solid {BORDER}"}),
-            ]))
-
-        tbl_hdr = {"fontSize": "9px", "color": FADED, "fontWeight": "500",
-                   "textTransform": "uppercase", "letterSpacing": "0.08em",
-                   "padding": "8px 10px", "borderBottom": f"1px solid {BORDER}",
-                   "background": CARD2, "fontFamily": MONO, "whiteSpace": "nowrap"}
-
-        line_trend_section = html.Div([
-            html.Div([
-                html.Span("TACKLE LINE ANALYSIS", style={
-                    "color": MUTED, "fontWeight": "600", "fontSize": "9px",
-                    "fontFamily": MONO, "letterSpacing": "0.1em", "textTransform": "uppercase",
-                }),
-                html.Span("  avg line per position by round  ·  shaded band = ±1 std dev  ·  all tackle rows",
-                          style={"color": FADED, "fontSize": "9px", "fontFamily": MONO}),
-            ], style={"marginBottom": "14px"}),
-            html.Div([
-                html.Div(
-                    dcc.Graph(figure=fig_lt, config={'displayModeBar': False}),
-                    style={"flex": "3", "minWidth": "0"},
-                ),
-                html.Div(
-                    html.Table([
-                        html.Thead(html.Tr([
-                            html.Th(h, style=tbl_hdr)
-                            for h in ["Pos", "Bets", "Rounds", "Avg", "±Std", "Range"]
-                        ])),
-                        html.Tbody(tbl_rows),
-                    ], style={"width": "100%", "borderCollapse": "collapse"}),
-                    style={"flex": "1", "minWidth": "220px", "overflowX": "auto"},
-                ),
-            ], style={"display": "flex", "gap": "20px", "alignItems": "flex-start"}),
-        ], style={
-            "background": CARD, "borderRadius": "10px", "padding": "18px 20px",
-            "border": f"1px solid {BORDER}", "marginTop": "14px",
-        })
+    ], style={"flex":"1","minWidth":"0","background":CARD,"borderRadius":"10px",
+              "padding":"18px 20px","border":f"1px solid {BORDER}"})
 
     return html.Div([
+        kpi_row,
         html.Div([left_col, right_col],
-                 style={"display": "flex", "gap": "14px", "alignItems": "flex-start"}),
-        line_trend_section,
-    ], style={"background": BG, "padding": "18px", "borderRadius": "8px", "minHeight": "100vh"})
-
+                 style={"display":"flex","gap":"14px","alignItems":"flex-start"}),
+    ], style={"background":BG,"padding":"18px","borderRadius":"8px","minHeight":"100vh"})
 
 # ── Analysis tab layout ───────────────────────────────────────────────────────
 def build_calibration_layout():
