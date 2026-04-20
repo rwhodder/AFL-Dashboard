@@ -2805,7 +2805,7 @@ def load_performance_data():
 
 
 def load_pair_log_data():
-    """Load Multi Log tab — supports 2–12 leg multis. Returns None on error."""
+    """Load Pair Log tab — supports 2–12 leg multis (LegN Player / LegN WL columns). Returns None on error."""
     client = get_sheets_client()
     if client is None:
         return None
@@ -2823,37 +2823,37 @@ def load_pair_log_data():
             except: return None
 
         df['Round']      = pd.to_numeric(df.get('Round', pd.Series()), errors='coerce')
-        df['Year']       = pd.to_numeric(df.get('Year',  pd.Series()), errors='coerce')
         df['stake_num']  = df['Stake'].apply(_num)  if 'Stake'  in df.columns else 0
         df['profit_num'] = df['Profit'].apply(_num) if 'Profit' in df.columns else None
-        df['odds_num']   = df['Odds'].apply(_num)   if 'Odds'   in df.columns else None
-        df['wl']         = df['W/L'].astype(str).str.strip() if 'W/L' in df.columns else ''
+        # Overall multi W/L is in 'WL' column
+        wl_col = 'WL' if 'WL' in df.columns else ('W/L' if 'W/L' in df.columns else None)
+        df['wl'] = df[wl_col].astype(str).str.strip() if wl_col else ''
 
-        # Parse up to 12 legs — columns Player1/Hit1 … Player12/Hit12
+        # Parse up to 12 legs — columns "LegN Player" / "LegN WL"
         MAX_LEGS = 12
-        players_cols = [f'Player{i}' for i in range(1, MAX_LEGS+1) if f'Player{i}' in df.columns]
-        hits_cols    = [f'Hit{i}'    for i in range(1, MAX_LEGS+1) if f'Hit{i}'    in df.columns]
+        players_cols = [f'Leg{i} Player' for i in range(1, MAX_LEGS+1) if f'Leg{i} Player' in df.columns]
+        wl_cols      = [f'Leg{i} WL'     for i in range(1, MAX_LEGS+1) if f'Leg{i} WL'     in df.columns]
 
         # Legs count — count non-empty player slots
         df['legs'] = df[players_cols].apply(
             lambda r: sum(1 for v in r if str(v).strip() not in ('', 'nan')), axis=1
         ) if players_cols else 0
 
-        # Hits count — count W hits across legs
+        # Hits count — count W results across individual legs
         def _hit(v):
-            s = str(v).strip()
-            if s in ('1', '1.0', 'W'): return 1
-            if s in ('-1', '-1.0', '0', '0.0', 'L'): return 0
+            s = str(v).strip().upper()
+            if s in ('W', '1', '1.0'):  return 1
+            if s in ('L', '-1', '0', '0.0', '-1.0'): return 0
             return None
 
-        if hits_cols:
-            df['hits'] = df[hits_cols].apply(
+        if wl_cols:
+            df['hits'] = df[wl_cols].apply(
                 lambda r: sum(_hit(v) for v in r if _hit(v) is not None), axis=1
             )
         else:
             df['hits'] = None
 
-        # Player list per row (for player-level breakdown)
+        # Player list per row (for player-level contribution table)
         if players_cols:
             df['player_list'] = df[players_cols].apply(
                 lambda r: [str(v).strip() for v in r if str(v).strip() not in ('', 'nan')], axis=1
@@ -2861,7 +2861,7 @@ def load_pair_log_data():
         else:
             df['player_list'] = [[]] * len(df)
 
-        # Only keep rows with a result
+        # Only keep rows with a resolved result
         df = df[df['wl'].isin(['W', 'L'])]
         return df
     except Exception as e:
