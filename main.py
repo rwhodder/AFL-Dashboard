@@ -4,7 +4,8 @@ import pytz
 from collections import defaultdict
 
 # ===== CONFIG =====
-OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"  # Replace with your actual API key
+import os as _os_env
+OPENWEATHER_API_KEY = _os_env.environ.get("OPENWEATHER_API_KEY", "")
 WEATHER_LOOKUP = {
 #VIC
 "MCG": (-37.8199, 144.9834),

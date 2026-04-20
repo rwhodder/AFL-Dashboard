@@ -18,7 +18,8 @@ from data_processor import load_and_prepare_data
 from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name
 
 # ===== CONSTANTS =====
-OPENWEATHER_API_KEY = "e76003c560c617b8ffb27f2dee7123f4"
+import os as _os_env
+OPENWEATHER_API_KEY = _os_env.environ.get("OPENWEATHER_API_KEY", "")
 
 # ── Google Sheets config ───────────────────────────────────────────────────────
 # 1. Go to https://console.cloud.google.com
