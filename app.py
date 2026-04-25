@@ -2302,19 +2302,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         ], style={"display": "flex", "flexWrap": "wrap"}),
     ], style={"marginRight": "20px", "marginBottom": "14px"})
 
-    bankroll_row = html.Div([
-        html.Div([
-            html.Div("Bankroll ($)", style=label_style),
-            dcc.Input(id='bankroll-input', type='number', value=30, min=10, step=5,
-                      style={**input_style, "width": "90px"}),
-        ], style={"marginRight": "20px"}),
-        html.Div([
-            html.Div("Round risk (%)", style=label_style),
-            dcc.Input(id='round-risk-input', type='number', value=20, min=5, max=100, step=5,
-                      style={**input_style, "width": "70px"}),
-        ], style={"marginRight": "20px"}),
-        html.Div(id='rr-top-n-input', style={"display": "none"}),
-    ], style={"display": "flex", "alignItems": "flex-end", "marginBottom": "14px"})
+    html.Div(id='rr-top-n-input', style={"display": "none"})
 
     # ── Header ────────────────────────────────────────────────────────────────
     mb_header = html.Div([
@@ -2344,7 +2332,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
 
     layout = html.Div([
         mb_header,
-        bankroll_row,
         team_chips,
         staking_legend,
         strategy_wr_panel,
@@ -2438,71 +2425,6 @@ app.layout = dbc.Container([
             dbc.Tab(label="🧠 Analysis",          tab_id="tab-analysis",     labelClassName="fw-bold text-warning"),
             dbc.Tab(label="🔬 Calibration",       tab_id="tab-calibration",  labelClassName="fw-bold text-info"),
         ], id="stat-tabs", active_tab="tab-performance"),
-        html.Span("💰", id="bankroll-info-btn", style={
-            "cursor": "pointer", "fontSize": "20px",
-            "marginLeft": "12px", "alignSelf": "center", "opacity": "0.85",
-        }),
-        dbc.Tooltip(
-            html.Div([
-                html.Div("BANKROLL FRAMEWORK", style={
-                    "fontWeight": "700", "fontSize": "11px", "letterSpacing": "0.12em",
-                    "color": "#ff6200", "marginBottom": "10px", "textTransform": "uppercase",
-                }),
-                html.Div([
-                    html.Span("Round budget: ", style={"color": "rgba(225, 217, 207, 0.55)"}),
-                    html.Span("50% of bankroll", style={"color": "#2dd4bf", "fontWeight": "700"}),
-                ], style={"marginBottom": "10px", "fontSize": "13px"}),
-                html.Table([
-                    html.Thead(html.Tr([
-                        html.Th("Window",          style={"color": "rgba(225, 217, 207, 0.55)", "fontWeight": "500", "paddingRight": "14px", "paddingBottom": "6px", "fontSize": "10px"}),
-                        html.Th("Allocation",      style={"color": "rgba(225, 217, 207, 0.55)", "fontWeight": "500", "paddingRight": "14px", "paddingBottom": "6px", "fontSize": "10px"}),
-                        html.Th("~Pairs",          style={"color": "rgba(225, 217, 207, 0.55)", "fontWeight": "500", "paddingRight": "14px", "paddingBottom": "6px", "fontSize": "10px"}),
-                        html.Th("$/pair",          style={"color": "rgba(225, 217, 207, 0.55)", "fontWeight": "600", "paddingBottom": "6px", "fontSize": "11px"}),
-                    ])),
-                    html.Tbody([
-                        html.Tr([
-                            html.Td("Thu (intra-game)",    style={"color": "#e1d9cf", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px"}),
-                            html.Td("15% → $37",           style={"color": "#fbbf24", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px"}),
-                            html.Td("13",                  style={"color": "#e1d9cf", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px", "textAlign": "center"}),
-                            html.Td("$2.85",               style={"color": "#2dd4bf", "paddingBottom": "4px", "fontSize": "12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("Fri (cross-game)",    style={"color": "#e1d9cf", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px"}),
-                            html.Td("30% → $75",           style={"color": "#fbbf24", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px"}),
-                            html.Td("~15",                 style={"color": "#e1d9cf", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px", "textAlign": "center"}),
-                            html.Td("$5.00",               style={"color": "#2dd4bf", "paddingBottom": "4px", "fontSize": "12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("Sat AM (cross-game)", style={"color": "#e1d9cf", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px"}),
-                            html.Td("30% → $75",           style={"color": "#fbbf24", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px"}),
-                            html.Td("~15",                 style={"color": "#e1d9cf", "paddingRight": "14px", "paddingBottom": "4px", "fontSize": "12px", "textAlign": "center"}),
-                            html.Td("$5.00",               style={"color": "#2dd4bf", "paddingBottom": "4px", "fontSize": "12px"}),
-                        ]),
-                        html.Tr([
-                            html.Td("Sat night (Sun×Sun)", style={"color": "#e1d9cf", "paddingRight": "14px", "fontSize": "12px"}),
-                            html.Td("25% → $63",           style={"color": "#fbbf24", "paddingRight": "14px", "fontSize": "12px"}),
-                            html.Td("~10",                 style={"color": "#e1d9cf", "paddingRight": "14px", "fontSize": "12px", "textAlign": "center"}),
-                            html.Td("$6.30",               style={"color": "#2dd4bf", "fontSize": "12px"}),
-                        ]),
-                    ]),
-                ], style={"borderCollapse": "collapse", "width": "100%", "marginBottom": "10px"}),
-                html.Div([
-                    html.Span("⚠ Circuit breaker: ", style={"color": "#ff6200", "fontWeight": "600"}),
-                    html.Span("if bankroll < $300, drop to 35% round exposure",
-                              style={"color": "rgba(225, 217, 207, 0.55)"}),
-                ], style={"fontSize": "11px", "marginTop": "4px"}),
-            ], style={"padding": "4px 2px", "fontFamily": "Inter, sans-serif"}),
-            target="bankroll-info-btn",
-            placement="bottom",
-            style={
-                "maxWidth": "420px",
-                "background": "rgba(9, 29, 38, 0.96)",
-                "border": "1px solid rgba(225, 217, 207, 0.12)",
-                "borderRadius": "8px",
-                "padding": "14px 16px",
-                "boxShadow": "0 8px 32px rgba(0,0,0,0.6)",
-            },
-        ),
     ], style={"display": "flex", "alignItems": "flex-end", "marginBottom": "12px"}),
 
     dbc.Row([
