@@ -1394,10 +1394,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
             print(f"multi_builder: {stat_type} — no data")
             continue
         flagged = df[df['Bet Priority'].astype(str).str.strip() != ''].copy()
-        print(f"multi_builder: {stat_type} — {len(df)} rows, {len(flagged)} flagged, priorities: {df['Bet Priority'].value_counts().to_dict()}")
-        if stat_type == 'tackles':
-            for _, row in df.iterrows():
-                print(f"  TACKLE ROW: player={row.get('Player','?')} line={row.get('Line','?')} pos={row.get('Position','?')} opp={row.get('Opponent','?')} dvp={row.get('DvP','?')} travel={row.get('Travel Fatigue','?')} avl={row.get('Avg vs Line','?')} priority={row.get('Bet Priority','?')}")
         flagged['Stat'] = label
         all_bets.append(flagged)
         # All tackle rows with a line value (for display table)
@@ -2112,32 +2108,42 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
             "fontFamily": FONT, "marginRight": "8px", "letterSpacing": "0.05em",
         })
 
-    # ── Staking legend ────────────────────────────────────────────────────────
+    # ── Hard filters panel ────────────────────────────────────────────────────
+    FILTER_OK   = "#2dd4bf"
+    FILTER_WARN = "#f87171"
+    FILTER_DIM  = "rgba(225,217,207,0.35)"
+
+    def _filter_pill(label, note=None):
+        return html.Div([
+            html.Span("✓ ", style={"color": FILTER_OK, "fontWeight": "700", "fontSize": "10px"}),
+            html.Span(label, style={"color": D_TEXT, "fontSize": "11px", "fontFamily": MONO,
+                                    "fontWeight": "600"}),
+            html.Span(f"  {note}", style={"color": FILTER_DIM, "fontSize": "10px",
+                                          "fontFamily": MONO}) if note else None,
+        ], style={"display": "flex", "alignItems": "center", "gap": "2px",
+                  "padding": "5px 10px", "borderRadius": "5px",
+                  "background": "rgba(45,212,191,0.05)",
+                  "border": f"1px solid rgba(45,212,191,0.15)"})
+
     staking_legend = html.Div([
+        html.Div("HARD FILTERS", style={
+            "fontSize": "9px", "fontWeight": "600", "color": FILTER_DIM,
+            "letterSpacing": "0.12em", "textTransform": "uppercase",
+            "fontFamily": MONO, "marginBottom": "8px",
+        }),
         html.Div([
-            _tag("T1", "#2dd4bf", "rgba(45,212,191,0.12)"),
-            html.Span("Wing/Ruck — 77.1% WR · always in best 7",
-                      style={"color": D_MUT, "fontSize": "12px", "fontFamily": FONT}),
-        ], style={"display": "flex", "alignItems": "center", "marginRight": "20px"}),
-        html.Div([
-            _tag("T2", "#f9744b", "rgba(249,116,75,0.12)"),
-            html.Span("Standard — 69.5% WR · ranked by consistency + AvL + DvP",
-                      style={"color": D_MUT, "fontSize": "12px", "fontFamily": FONT}),
-        ], style={"display": "flex", "alignItems": "center", "marginRight": "20px"}),
-        html.Div([
-            html.Span("Combo plan: ", style={"color": D_FADED, "fontSize": "11px", "fontFamily": FONT}),
-            html.Span("3-6 legs: single entry  .  7+: C(7,6)=7 picks",
-                      style={"color": D_MUT, "fontSize": "11px", "fontFamily": MONO}),
-        ]),
-        html.Div([
-            html.Span("Jackpot: ", style={"color": "#fbbf24", "fontSize": "11px", "fontFamily": FONT}),
-            html.Span("7+ legs adds 1x jackpot entry (7-12 leg format, capped at 12)",
-                      style={"color": D_MUT, "fontSize": "11px", "fontFamily": MONO}),
-        ]),
-    ], style={"display": "flex", "alignItems": "center", "flexWrap": "wrap", "gap": "8px",
-              "marginBottom": "16px", "padding": "10px 14px",
-              "background": D_CARD2, "borderRadius": "6px",
-              "border": f"1px solid {D_BORDER}22"})
+            _filter_pill("Line ≥ 4.0"),
+            _filter_pill("Not vs GCS", "People First humidity"),
+            _filter_pill("Not MedF"),
+            _filter_pill("Not FwdMid", "revisit n=50"),
+            _filter_pill("Not GEE home", "GMHBA narrow ground"),
+            _filter_pill("AvL < 10%", "exempt: Wing · Ruck · GenD"),
+        ], style={"display": "flex", "flexWrap": "wrap", "gap": "6px"}),
+    ], style={
+        "marginBottom": "14px", "padding": "12px 14px",
+        "background": D_CARD2, "borderRadius": "6px",
+        "border": f"1px solid {D_BORDER}",
+    })
 
     # ── Placed capacity summary ───────────────────────────────────────────────
     placed_summary = html.Div()
