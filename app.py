@@ -713,7 +713,7 @@ def _load_bet_history():
             _BET_HISTORY['df'] = df
             return df
 
-        _BET_HISTORY['df'] = df[['Position', 'DvP', 'Opponent', 'win']].copy()
+        _BET_HISTORY['df'] = df[['Position', 'DvP', 'Opponent', 'win', 'Round', 'Year']].copy()
         return _BET_HISTORY['df']
 
     except Exception as e:
@@ -2083,6 +2083,113 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         "border": f"1px solid {D_BORDER}",
     })
 
+    # ── Strategy win rate panel ───────────────────────────────────────────────
+    def _strategy_wr_panel():
+        hist = _load_bet_history()
+        if hist.empty:
+            return html.Div()
+        hist = hist.copy()
+        hist['Round'] = pd.to_numeric(hist['Round'], errors='coerce')
+        hist['Year']  = pd.to_numeric(hist['Year'],  errors='coerce')
+        h2026 = hist[hist['Year'] == 2026]
+        if h2026.empty:
+            return html.Div()
+
+        total = len(h2026)
+        wins  = int(h2026['win'].sum())
+        wr    = wins / total * 100 if total else 0
+
+        def _kpi(label, value, sub=None, color=D_TEXT):
+            return html.Div([
+                html.Div(value, style={"fontSize": "20px", "fontWeight": "700",
+                                       "color": color, "fontFamily": MONO,
+                                       "lineHeight": "1.1"}),
+                html.Div(label, style={"fontSize": "9px", "color": D_MUT,
+                                       "fontFamily": MONO, "letterSpacing": "0.08em",
+                                       "textTransform": "uppercase", "marginTop": "2px"}),
+                html.Div(sub, style={"fontSize": "10px", "color": D_FADED,
+                                     "fontFamily": MONO, "marginTop": "1px"}) if sub else None,
+            ], style={"textAlign": "center", "padding": "8px 14px",
+                      "background": D_CARD2, "borderRadius": "6px",
+                      "border": f"1px solid {D_BORDER}", "minWidth": "80px"})
+
+        wr_color = "#2dd4bf" if wr >= 63 else ("#f9744b" if wr >= 58 else "#f87171")
+
+        # Per-round breakdown (current year)
+        round_rows = []
+        for rnd in sorted(h2026['Round'].dropna().unique()):
+            r  = h2026[h2026['Round'] == rnd]
+            rw = int(r['win'].sum())
+            rn = len(r)
+            rwr = rw / rn * 100 if rn else 0
+            rc  = "#2dd4bf" if rwr >= 65 else ("#f9744b" if rwr >= 55 else "#f87171")
+            round_rows.append(html.Div([
+                html.Span(f"R{int(rnd)}", style={"color": D_MUT, "fontSize": "10px",
+                                                  "fontFamily": MONO, "minWidth": "22px"}),
+                html.Div(style={
+                    "height": "8px", "borderRadius": "3px",
+                    "background": rc, "opacity": "0.75",
+                    "width": f"{rwr:.0f}%", "minWidth": "4px",
+                    "flex": "1", "maxWidth": "120px",
+                }),
+                html.Span(f"{rwr:.0f}% ({rn})", style={"color": rc, "fontSize": "10px",
+                                                         "fontFamily": MONO, "minWidth": "60px",
+                                                         "textAlign": "right"}),
+            ], style={"display": "flex", "alignItems": "center", "gap": "8px",
+                      "marginBottom": "4px"}))
+
+        # Per-position breakdown
+        pos_rows = []
+        for pos in sorted(h2026['Position'].unique()):
+            p  = h2026[h2026['Position'] == pos]
+            pw = int(p['win'].sum())
+            pn = len(p)
+            pwr = pw / pn * 100 if pn else 0
+            pc  = "#2dd4bf" if pwr >= 65 else ("#f9744b" if pwr >= 55 else "#f87171")
+            pos_rows.append(html.Div([
+                html.Span(pos, style={"color": D_MUT, "fontSize": "10px",
+                                      "fontFamily": MONO, "minWidth": "44px"}),
+                html.Span(f"{pwr:.0f}%", style={"color": pc, "fontSize": "10px",
+                                                  "fontFamily": MONO, "fontWeight": "600",
+                                                  "minWidth": "34px"}),
+                html.Span(f"({pn})", style={"color": D_FADED, "fontSize": "10px",
+                                             "fontFamily": MONO}),
+            ], style={"display": "flex", "alignItems": "center", "gap": "6px",
+                      "marginBottom": "3px"}))
+
+        return html.Div([
+            html.Div("STRATEGY WIN RATE · 2026", style={
+                "fontSize": "9px", "fontWeight": "600", "color": D_MUT,
+                "letterSpacing": "0.12em", "textTransform": "uppercase",
+                "fontFamily": MONO, "marginBottom": "10px",
+            }),
+            html.Div([
+                _kpi("Overall WR", f"{wr:.1f}%", f"{wins}W / {total-wins}L", wr_color),
+                _kpi("Legs", str(total), "qualifying"),
+            ], style={"display": "flex", "gap": "8px", "marginBottom": "12px",
+                      "flexWrap": "wrap"}),
+            html.Div([
+                html.Div([
+                    html.Div("BY ROUND", style={"fontSize": "9px", "color": D_FADED,
+                                                 "fontFamily": MONO, "letterSpacing": "0.1em",
+                                                 "marginBottom": "6px"}),
+                    *round_rows,
+                ], style={"flex": "1", "minWidth": "160px"}),
+                html.Div([
+                    html.Div("BY POSITION", style={"fontSize": "9px", "color": D_FADED,
+                                                    "fontFamily": MONO, "letterSpacing": "0.1em",
+                                                    "marginBottom": "6px"}),
+                    *pos_rows,
+                ], style={"flex": "1", "minWidth": "120px"}),
+            ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
+        ], style={
+            "marginBottom": "14px", "padding": "12px 14px",
+            "background": D_CARD2, "borderRadius": "6px",
+            "border": f"1px solid {D_BORDER}",
+        })
+
+    strategy_wr_panel = _strategy_wr_panel()
+
     # ── Placed capacity summary ───────────────────────────────────────────────
     placed_summary = html.Div()
     if pre_placed:
@@ -2240,6 +2347,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         bankroll_row,
         team_chips,
         staking_legend,
+        strategy_wr_panel,
         _section([
             _sec_title("Active legs", n_active),
             html.Div(
