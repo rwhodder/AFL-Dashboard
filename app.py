@@ -1388,7 +1388,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     #   all_rows  — every row with a Line, used for the full legs table
     all_bets = []
     all_rows = []
-    for stat_type, label in [('disposals', 'Disposals'), ('marks', 'Marks'), ('tackles', 'Tackles')]:
+    for stat_type, label in [('tackles', 'Tackles')]:
         df = processed_data_by_stat.get(stat_type)
         if df is None or df.empty:
             print(f"multi_builder: {stat_type} — no data")
@@ -1461,12 +1461,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     MONO      = "var(--mono, 'JetBrains Mono', monospace)"
 
     # ── Heat matrix helpers ───────────────────────────────────────────────────
-    def _tier_heat(v):
-        v = str(v)
-        if v == 'T1': return "rgba(45,212,191,0.12)", "#2dd4bf"
-        if v == 'T2': return "rgba(249,116,75,0.12)", "#f9744b"
-        return D_CARD, D_MUT
-
     def _line_heat(v):
         try: v = float(v)
         except: return D_CARD, D_MUT
@@ -1482,14 +1476,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         if v <= 0:   return "rgba(45,212,191,0.08)", "#7dd3fc"
         if v <= 5:   return "rgba(249,116,75,0.10)", "#f9744b"
         if v <= 10:  return "rgba(249,116,75,0.08)", "#d84f2a"
-        return "rgba(248,113,113,0.10)", "#f87171"
-
-    def _lc_heat(v):
-        try: v = float(str(v).replace('%', ''))
-        except: return D_CARD, D_MUT
-        if v >= 65: return "rgba(45,212,191,0.12)", "#2dd4bf"
-        if v >= 55: return "rgba(45,212,191,0.08)", "#7dd3fc"
-        if v >= 45: return "rgba(249,116,75,0.10)", "#f9744b"
         return "rgba(248,113,113,0.10)", "#f87171"
 
     def _dvp_heat(v):
@@ -1511,14 +1497,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     def _travel_heat(v):
         v = str(v)
         if 'Long Travel' in v: return "rgba(249, 116, 75, 0.12)", "#f9744b"
-        return D_CARD, D_MUT
-
-    def _pairs_heat(v):
-        try: v = int(v)
-        except: return D_CARD, D_MUT
-        if v >= 4: return "rgba(45, 212, 191, 0.12)", "#2dd4bf"
-        if v >= 2: return "rgba(45, 212, 191, 0.07)", "#7dd3fc"
-        if v == 1: return "#2e2200", "#fbbf24"
         return D_CARD, D_MUT
 
     def _wr_heat(v):
@@ -1617,7 +1595,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                                       "fontSize": "12px", "padding": "12px"})
     else:
         dt_cols = [
-            {'name': 'Tier',    'id': 'Bet Priority',     'type': 'text'},
             {'name': 'Stat',    'id': 'Stat',             'type': 'text'},
             {'name': 'Player',  'id': 'Player',           'type': 'text'},
             {'name': 'Team',    'id': 'Team',             'type': 'text'},
@@ -1641,11 +1618,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         ]
 
         cond_styles = [
-            # ── Tier ──────────────────────────────────────────────────────
-            {'if': {'filter_query': '{Bet Priority} = "T1"', 'column_id': 'Bet Priority'},
-             'backgroundColor': 'rgba(45,212,191,0.12)', 'color': '#2dd4bf', 'fontWeight': '700'},
-            {'if': {'filter_query': '{Bet Priority} = "T2"', 'column_id': 'Bet Priority'},
-             'backgroundColor': 'rgba(249,116,75,0.12)', 'color': '#f9744b', 'fontWeight': '700'},
             # ── Hist WR ───────────────────────────────────────────────────
             {'if': {'filter_query': '{_wr_pct} >= 65', 'column_id': 'Hist WR'},
              'backgroundColor': 'rgba(45,212,191,0.12)', 'color': '#2dd4bf'},
@@ -1760,7 +1732,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                 'textOverflow': 'ellipsis',
             },
             style_cell_conditional=[
-                {'if': {'column_id': 'Bet Priority'},    'minWidth': '55px',  'maxWidth': '55px'},
                 {'if': {'column_id': 'Stat'},            'minWidth': '65px',  'maxWidth': '65px'},
                 {'if': {'column_id': 'Player'},          'minWidth': '130px', 'maxWidth': '180px'},
                 {'if': {'column_id': 'Team'},            'minWidth': '48px',  'maxWidth': '48px'},
@@ -1782,9 +1753,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     # ── Build hedge picks ──────────────────────────────────────────────────────
     bets_list = active_upcoming.to_dict('records') if not active_upcoming.empty else []
 
-    n_t1 = int((active_upcoming['Bet Priority'] == 'T1').sum()) if not active_upcoming.empty else 0
-    n_t2 = int((active_upcoming['Bet Priority'] == 'T2').sum()) if not active_upcoming.empty else 0
-
     # Build pre_placed counts from checked_ids store (for placed summary display)
     pre_placed: dict = {}
     for pair_id in (checked_ids or []):
@@ -1792,9 +1760,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         if len(parts) == 2:
             pre_placed[parts[0]] = pre_placed.get(parts[0], 0) + 1
             pre_placed[parts[1]] = pre_placed.get(parts[1], 0) + 1
-    t1_cap = 99  # no hard cap in hedge mode — kept for placed_summary display
-    t2_cap = 99
-
     # Sort by AvL ascending (most negative = strongest value first)
     def _avl_rank_key(row):
         avl_s = str(row.get('Avg vs Line', ''))
@@ -1844,8 +1809,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         for leg in jackpot_info['pick']:
             leg_reuse[leg['Player']] = leg_reuse.get(leg['Player'], 0) + 1
 
-    portfolio = []  # kept for legacy store compatibility
-
     # ── Hedge picks display ────────────────────────────────────────────────────
     SKIP = (fmt_name == "SKIP")
 
@@ -1874,12 +1837,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     for i, pick in enumerate(hedge_picks, 1):
         leg_rows = []
         for leg in pick:
-            tier  = str(leg.get('Bet Priority', '')).strip()
-            t_col = "#2dd4bf" if tier == 'T1' else "#f9744b"
             leg_rows.append(html.Tr([
-                html.Td(tier, style={"color": t_col, "fontWeight": "700",
-                                     "fontSize": "10px", "fontFamily": MONO,
-                                     "padding": "4px 8px", "whiteSpace": "nowrap"}),
                 html.Td(leg.get('Player',''), style={"color": D_TEXT, "fontSize": "11px",
                                                       "fontFamily": MONO, "padding": "4px 8px",
                                                       "whiteSpace": "nowrap"}),
@@ -1947,12 +1905,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     if jackpot_info:
         jp_leg_rows = []
         for leg in jackpot_info['pick']:
-            tier  = str(leg.get('Bet Priority', '')).strip()
-            t_col = "#2dd4bf" if tier == 'T1' else "#f9744b"
             jp_leg_rows.append(html.Tr([
-                html.Td(tier, style={"color": t_col, "fontWeight": "700",
-                                     "fontSize": "10px", "fontFamily": MONO,
-                                     "padding": "4px 8px", "whiteSpace": "nowrap"}),
                 html.Td(leg.get('Player',''), style={"color": D_TEXT, "fontSize": "11px",
                                                       "fontFamily": MONO, "padding": "4px 8px",
                                                       "whiteSpace": "nowrap"}),
@@ -2031,17 +1984,10 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     # ── Leg exposure chart (picks per player) ────────────────────────────────
     freq: dict = leg_reuse  # already built above
 
-    # Get tier for each player for colour coding
-    player_tier = {}
-    if not active_upcoming.empty:
-        for _, row in active_upcoming.iterrows():
-            player_tier[row['Player']] = row['Bet Priority']
-
     sorted_players = sorted(freq, key=lambda x: freq[x], reverse=True)
     bar_vals   = [freq[p] for p in sorted_players]
-    bar_labels = [f"{p} ({player_tier.get(p, 'T2')})" for p in sorted_players]
-    bar_colors = ["#2dd4bf" if player_tier.get(p) == 'T1' else "#f9744b"
-                  for p in sorted_players]
+    bar_labels = sorted_players
+    bar_colors = [D_ACCENT] * len(sorted_players)
 
     freq_fig = go.Figure(go.Bar(
         x=bar_vals,
@@ -2070,12 +2016,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
             "textTransform": "uppercase", "letterSpacing": "0.1em",
             "fontFamily": FONT, "marginBottom": "8px",
         }),
-        html.Div([
-            html.Span("■ ", style={"color": "#2dd4bf"}),
-            html.Span("T1  ", style={"color": D_MUT, "fontSize": "11px", "fontFamily": FONT}),
-            html.Span("■ ", style={"color": "#fbbf24"}),
-            html.Span("T2", style={"color": D_MUT, "fontSize": "11px", "fontFamily": FONT}),
-        ], style={"marginBottom": "8px"}),
         dcc.Graph(figure=freq_fig, config={"displayModeBar": False},
                   style={"width": "100%"}),
     ], style={
@@ -2091,8 +2031,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                 for l in pick]
 
     pairings_store_data = {
-        'pairings':      [],
-        'suggested':     [],
         'hedge_picks':   [_serialise_legs(p) for p in hedge_picks],
         'hedge_format':  fmt_name,
         'hedge_meta':    hedge_meta,
@@ -2148,27 +2086,17 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     # ── Placed capacity summary ───────────────────────────────────────────────
     placed_summary = html.Div()
     if pre_placed:
-        # In hedge mode, cap = number of hedge picks (max appearances per player)
         n_picks = len(hedge_picks) if hedge_picks else 1
-        t1_cap = n_picks
-        t2_cap = n_picks
-
-        # Build per-player tier lookup
-        tier_lookup = {}
-        if not active_upcoming.empty:
-            for _, row in active_upcoming.iterrows():
-                tier_lookup[row['Player']] = row['Bet Priority']
 
         cards = []
         for player, count in sorted(pre_placed.items(), key=lambda x: -x[1]):
-            cap      = t1_cap if tier_lookup.get(player) == 'T1' else t2_cap
-            remaining = max(0, cap - count)
+            remaining = max(0, n_picks - count)
             full      = remaining == 0
             color     = "#f87171" if full else ("#f9744b" if remaining == 1 else "#2dd4bf")
             cards.append(html.Div([
                 html.Div(player, style={"fontWeight": "600", "fontSize": "11px",
                                         "color": D_TEXT, "fontFamily": FONT}),
-                html.Div(f"{count}/{cap} placed · {remaining} remaining",
+                html.Div(f"{count}/{n_picks} picks · {remaining} remaining",
                          style={"fontSize": "10px", "color": color, "fontFamily": FONT,
                                 "marginTop": "2px"}),
             ], style={
