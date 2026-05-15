@@ -19,6 +19,8 @@ from dabble_scraper import get_pickem_data_for_dashboard, normalize_player_name
 
 # ===== CONSTANTS =====
 import os as _os_env
+from dotenv import load_dotenv as _load_dotenv
+_load_dotenv()
 OPENWEATHER_API_KEY = _os_env.environ.get("OPENWEATHER_API_KEY", "")
 
 # ── Google Sheets config ───────────────────────────────────────────────────────
@@ -30,7 +32,6 @@ OPENWEATHER_API_KEY = _os_env.environ.get("OPENWEATHER_API_KEY", "")
 GOOGLE_SHEET_ID          = "10GNqW9nE2fmacbdRQZtga3u8nGQlXch066GYQ9JgX7w"
 GOOGLE_CREDENTIALS_FILE  = "google_credentials.json"
 GOOGLE_SHEET_TAB         = "Bet Log"   # change if your tab has a different name
-PAIR_LOG_TAB             = "Pair Log"  # Google Sheet tab for pair performance history
 ROUND_CACHE_FILE         = "round_cache.json"   # local cache of scraped lines per round
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -82,11 +83,26 @@ GEE_HOME_ROUNDS = _load_gee_home_rounds()
 
 def _passes_bet_filters(row) -> bool:
     """
-    Shared hard-filter logic applied to both the bet history (for clean WR computation)
-    and the live _wr_qualifies gate.
+    Hard-filter logic — applied to both bet history (WR computation) and live _wr_qualifies.
     Works with both dicts and pandas Series.
-    Does NOT check Stadium (not in sheet) — GMHBA is handled separately via GEE_HOME_ROUNDS
-    or the live Stadium field.
+
+    Hard avoids (confirmed by LC-conditional cross-tab analysis, Apr 2026):
+      - Line < 3                    (29% at LC 50-60%, independent of LC band)
+      - Line >= 6                   (54% post-filters; 53% 6.0-6.9, 56% 7.0+; bad across all LC bands)
+      - MedF position               (24% at LC<40% where most MedF bets sit)
+      - GCS as opponent             (33% total, 13% at LC<50%)
+      - GEE home round              (10% at LC 50-60% as opponent, GMHBA congestion)
+      - AvL > +10%                  (46.6% WR, n=266)
+      - Rain weather                (50.0% WR, n=34 — wet ball suppresses tackle counts)
+      - LC < 50%                    (sub-T2 threshold — no qualifying tier, hard avoid)
+
+    NOT here (handled elsewhere):
+      - Neutral DvP                 → T2-only skip in calculate_bet_flag() (fine at T0/T1)
+      - ADE team block              → T2-only skip in calculate_bet_flag()
+
+    Removed (cross-tab showed no independent signal above LC):
+      - Last 5 > Line               (identical or worse within each LC band)
+      - FwdMid position             (57% overall, no consistent within-band weakness)
     """
     def get(key, fallback=''):
         try:
@@ -96,8 +112,6 @@ def _passes_bet_filters(row) -> bool:
             return fallback
 
     position = get('Position')
-    dvp      = get('DvP')
-    travel   = get('Travel Fatigue')
     opponent = get('Opponent')
     team     = get('Team')
 
@@ -106,10 +120,10 @@ def _passes_bet_filters(row) -> bool:
     except (ValueError, TypeError):
         return False
 
-    if line_val < 4:                                                     return False
-    if opponent in TACKLE_BAD_OPPONENTS:                                 return False
-    if position == 'MedF':                                               return False
-    if position == 'FwdMid':                                             return False
+    if line_val < 3:                           return False
+    if line_val >= 6:                          return False
+    if opponent in TACKLE_BAD_OPPONENTS:       return False
+    if position == 'MedF':                     return False
 
     # GEE home round — block both teams in that game
     try:
@@ -119,11 +133,33 @@ def _passes_bet_filters(row) -> bool:
     except (ValueError, TypeError):
         pass
 
-    # AvL filter (Wing/Ruck/GenD bypass — structural role-based edge, not matchup-dependent)
-    if position not in ('Wing', 'Ruck', 'GenD'):
+    # AvL > +10%: player's career avg is 10%+ above the line → hard avoid
+    # Values from Sheets are "2000%" format (number in %-cell × 100); live app "+5.2%" text.
+    # Detect scale: if |parsed| > 100, it's the Sheets format → divide by 100.
+    avl_raw = get('Avg vs Line')
+    if avl_raw:
         try:
-            avl = float(get('Avg vs Line').replace('%', '').replace('+', ''))
-            if avl >= 10.0:
+            avl_num = float(avl_raw.replace('%', '').replace('+', ''))
+            if abs(avl_num) > 100:
+                avl_num /= 100.0
+            if avl_num > 10.0:
+                return False
+        except (ValueError, TypeError):
+            pass
+
+    # Rain: wet ball suppresses tackle counts → hard avoid
+    weather = get('Weather')
+    if weather and 'rain' in weather.lower():
+        return False
+
+    # LC < 50%: below minimum qualifying tier (T2 floor) → hard avoid
+    lc_raw = get('Line Consistency')
+    if lc_raw:
+        try:
+            lc_num = float(lc_raw.replace('%', '').strip())
+            if lc_num <= 1.0:
+                lc_num *= 100
+            if lc_num < 50:
                 return False
         except (ValueError, TypeError):
             pass
@@ -578,80 +614,114 @@ def calculate_score(player_row, team_weather):
 # Opponents where tackle unders consistently lose (42–47% WR historically)
 TACKLE_BAD_OPPONENTS = {'GCS'}  # GEE removed: handled by GMHBA stadium check (home-only); SYD removed: 71.4% WR — coincidental
 
+# Player teams with structural outperformance across all LC bands (LC × Team cross-tab, Apr 2026)
+TACKLE_EDGE_TEAMS = {'WCE'}        # 88% at LC 60-70% (n=8), 86% at LC≥70% (n=7), 69% at LC<50% (n=26)
+
+# Player teams where T2 (LC 50-60%) specifically underperforms — block T2 only, T0/T1 still valid
+TACKLE_AVOID_T2_TEAMS = {'ADE'}    # 12% at LC 50-60% (n=8); LC≥60%: 100% n=4, 67% n=3 — fine above
+
 
 def calculate_bet_flag(player_row, stat_type='disposals'):
     """
-    Two-tier tackle-unders-only strategy.
+    Tackle-unders strategy — LC-driven tiering (Apr 2026 cross-tab analysis).
 
-    AVOID — reject if any are true:
-      - Line < 4                                    (67% post-filter vs 61% raw for 3-3.9)
-      - Opponent = GCS                               (33% WR post filters — People First humidity)
-      - GMHBA / Kardinia Park (any position)         (39.5% WR n=43 — narrow ground congestion)
-      - GEE home round (both teams affected)
-      - MedF position                               (41% WR raw)
-      - FwdMid position                             (49% WR raw — blanket avoid, revisit at n=50)
-      - AvL >= 10% [non-Wing/Ruck/GenD]             (51% WR for InsM at AvL>=10%)
+    HARD AVOIDS (any true → skip):
+      - Line < 3                (48.6% WR)
+      - Line >= 6               (54% post-filters; bad across all LC bands)
+      - MedF position           (24% at LC<40% where most MedF bets sit)
+      - GCS opponent            (36.4% WR, n=22)
+      - GEE home round          (GMHBA narrow ground)
+      - GMHBA stadium
+      - AvL > +10%              (46.6% WR, n=266)
+      - Rain weather            (50.0% WR, n=34)
 
-    T1: Wing / Ruck / GenD  OR  AvL < -20%  [bypass AvL filter]
-    T2: Everything else that passes
+    T2-ONLY SKIPS (inside lc_50 branch):
+      - Neutral DvP             (52% at LC 50-60%; 100% at LC≥60% — do NOT skip T0/T1)
+      - ADE player team         (12% at LC 50-60%; T0/T1 still valid)
+
+    T0 (~87% WR):   LC >= 70%
+    T1 (~68% WR):   LC 60–70%
+    T2 (~60% WR):   LC 50–60%
     """
     try:
-        # Only tackle unders have a statistical edge
         if stat_type != 'tackles':
             return {"priority": "", "description": ""}
 
-        position = player_row.get('Position',      player_row.get('position',       ''))
-        dvp      = player_row.get('DvP',            player_row.get('dvp',            ''))
-        travel   = player_row.get('Travel Fatigue', player_row.get('travel_fatigue', ''))
-        opponent = player_row.get('Opponent',       player_row.get('opponent',       ''))
-        line_str = player_row.get('Line', '')
+        def _get(key, alt=None):
+            v = player_row.get(key, player_row.get(alt or key, ''))
+            return '' if v is None else str(v).strip()
 
-        if not line_str or line_str == "":
+        position = _get('Position', 'position')
+        opponent = _get('Opponent', 'opponent')
+        line_str = _get('Line')
+
+        if not line_str:
             return {"priority": "", "description": ""}
         try:
             line_value = float(line_str)
         except (ValueError, TypeError):
             return {"priority": "", "description": ""}
 
-        # ── Step 1: Hard avoids (no exceptions) ───────────────────────────────
-        if line_value < 4:
+        # ── Hard avoids ───────────────────────────────────────────────────────
+        if line_value < 3:
             return {"priority": "", "description": ""}
-
+        if line_value >= 6:
+            return {"priority": "", "description": ""}
         if opponent in TACKLE_BAD_OPPONENTS:
             return {"priority": "", "description": ""}
-
         if position == 'MedF':
             return {"priority": "", "description": ""}
 
-        if position == 'FwdMid':
-            return {"priority": "", "description": ""}
-
-        # GMHBA/Kardinia Park: congestion inflates tackle counts for ALL positions.
-        # Data: 39.5% WR (n=43) vs 57.7% elsewhere — no position is safe here.
         stadium = str(player_row.get('Stadium', player_row.get('stadium', '')))
         if any(g.lower() in stadium.lower() for g in NARROW_GROUNDS_NO_TACKLE):
             return {"priority": "", "description": ""}
 
-        # ── Step 2: T1 bypass (exempt from AvL filter) ────────────────────────
-        # Position-based: Wing/Ruck/GenD go under structurally regardless of matchup
-        if position in ('Wing', 'Ruck', 'GenD'):
-            return {"priority": "T1", "description": "T1 Wing/Ruck/GenD — structural under 67% WR"}
+        # AvL > +10%: career avg is 10%+ above line
+        avl_str = _get('Avg vs Line', 'avg_vs_line')
+        avl_value = None
+        if avl_str:
+            try:
+                avl_value = float(avl_str.replace('%', '').replace('+', ''))
+            except (ValueError, TypeError):
+                avl_value = None
 
-        # AvL-based: Dabble has set the line >20% above actual average
-        avl_str = str(player_row.get('Avg vs Line', player_row.get('avg_vs_line', '')))
-        try:
-            avl_value = float(avl_str.replace('%', '').replace('+', ''))
-        except (ValueError, TypeError):
-            avl_value = 0.0
-
-        if avl_value < -20.0:
-            return {"priority": "T1", "description": "T1 AvL < -20% — Dabble line set too high, 65% WR"}
-
-        # ── Step 3: Post-T1 avoids ─────────────────────────────────────────────
-        if avl_value >= 10.0:
+        if avl_value is not None and avl_value > 10.0:
             return {"priority": "", "description": ""}
 
-        return {"priority": "T2", "description": "T2 Standard — passes all filters"}
+        # Rain: wet ball suppresses tackle counts
+        weather = _get('Weather')
+        if weather and 'rain' in weather.lower():
+            return {"priority": "", "description": ""}
+
+        # ── Parse LC ──────────────────────────────────────────────────────────
+        lc_str = _get('Line Consistency')
+        lc_value = None
+        if lc_str:
+            try:
+                lc_value = float(lc_str.replace('%', ''))
+            except (ValueError, TypeError):
+                lc_value = None
+
+        # ── Tiering (LC-driven, Apr 2026 cross-tab) ───────────────────────────
+        team    = _get('Team', 'team')
+        dvp     = _get('DvP', 'dvp')
+        lc_70   = lc_value  is not None and lc_value  >= 70.0
+        lc_60   = lc_value  is not None and lc_value  >= 60.0
+        lc_50   = lc_value  is not None and lc_value  >= 50.0
+        edge    = f"  ⭐{team}" if team in TACKLE_EDGE_TEAMS else ""
+
+        if lc_70:
+            return {"priority": "T0", "description": f"T0  LC {lc_value:.0f}%{edge}"}
+        if lc_60:
+            return {"priority": "T1", "description": f"T1  LC {lc_value:.0f}%{edge}"}
+        if lc_50:
+            if team in TACKLE_AVOID_T2_TEAMS:
+                return {"priority": "", "description": ""}
+            if dvp and 'Neutral' in dvp:
+                return {"priority": "", "description": ""}
+            return {"priority": "T2", "description": f"T2  LC {lc_value:.0f}%{edge}"}
+
+        return {"priority": "", "description": ""}
 
     except Exception as e:
         print(f"ERROR in calculate_bet_flag: {e}")
@@ -661,65 +731,114 @@ def calculate_bet_flag(player_row, stat_type='disposals'):
 # =============================================================================
 # HISTORICAL WIN-RATE LOOKUP
 # Used by the legs table to show contextual WR for each flagged bet.
-# Data is lazy-loaded once per session from Google Sheets and cached.
+# Cached with a 5-minute TTL so browser refreshes stay fast but data
+# stays current throughout a weekend session.
 # =============================================================================
 
-_BET_HISTORY: dict = {'df': None}  # module-level cache
+BET_HISTORY_TTL = 1800  # seconds — re-fetch after 30 minutes
+_BET_HISTORY: dict = {'df': None, 'cached_at': None}
+_BET_HISTORY_LOCK = __import__('threading').Lock()
+
+_RAW_SHEET: dict = {'records': None, 'cached_at': None}
+_RAW_SHEET_LOCK = __import__('threading').Lock()
+
+def _load_raw_sheet():
+    """Single cached fetch of all Bet Log records. All other sheet readers call this."""
+    now = datetime.now()
+    if (_RAW_SHEET['records'] is not None and
+            _RAW_SHEET['cached_at'] is not None and
+            (now - _RAW_SHEET['cached_at']).total_seconds() < BET_HISTORY_TTL):
+        return _RAW_SHEET['records']
+
+    with _RAW_SHEET_LOCK:
+        now = datetime.now()
+        if (_RAW_SHEET['records'] is not None and
+                _RAW_SHEET['cached_at'] is not None and
+                (now - _RAW_SHEET['cached_at']).total_seconds() < BET_HISTORY_TTL):
+            return _RAW_SHEET['records']
+
+        client = get_sheets_client()
+        if client is None:
+            return None
+        try:
+            records = client.open_by_key(GOOGLE_SHEET_ID).worksheet(GOOGLE_SHEET_TAB).get_all_records()
+            _RAW_SHEET['records'] = records
+            _RAW_SHEET['cached_at'] = datetime.now()
+            return records
+        except Exception as e:
+            print(f"WARN: _load_raw_sheet failed: {e}")
+            return _RAW_SHEET['records']  # return stale data if available
+
+
+def _invalidate_bet_history():
+    """Force the next _load_bet_history() call to re-fetch from Sheets."""
+    _BET_HISTORY['df'] = None
+    _BET_HISTORY['cached_at'] = None
 
 
 def _load_bet_history():
     """
-    Lazy-load historical tackle bet rows from Google Sheets.
+    Load historical tackle bet rows from Google Sheets.
     Returns a DataFrame with Position, DvP, Opponent, W/L columns (already resolved).
-    Caches result so it's only fetched once per process.
+    Cached for BET_HISTORY_TTL seconds; re-fetches automatically when stale.
     """
-    if _BET_HISTORY['df'] is not None:
+    now = datetime.now()
+    if (_BET_HISTORY['df'] is not None and
+            _BET_HISTORY['cached_at'] is not None and
+            (now - _BET_HISTORY['cached_at']).total_seconds() < BET_HISTORY_TTL):
         return _BET_HISTORY['df']
 
-    client = get_sheets_client()
-    if client is None:
-        _BET_HISTORY['df'] = pd.DataFrame()
-        return _BET_HISTORY['df']
-
-    try:
-        sheet     = client.open_by_key(GOOGLE_SHEET_ID)
-        worksheet = sheet.worksheet(GOOGLE_SHEET_TAB)
-        records   = worksheet.get_all_records()
-        if not records:
-            _BET_HISTORY['df'] = pd.DataFrame()
+    with _BET_HISTORY_LOCK:
+        # Re-check inside lock — another thread may have fetched while we waited
+        now = datetime.now()
+        if (_BET_HISTORY['df'] is not None and
+                _BET_HISTORY['cached_at'] is not None and
+                (now - _BET_HISTORY['cached_at']).total_seconds() < BET_HISTORY_TTL):
             return _BET_HISTORY['df']
 
-        df = pd.DataFrame(records)
+        try:
+            records = _load_raw_sheet()
+            if not records:
+                _BET_HISTORY['df'] = pd.DataFrame()
+                _BET_HISTORY['cached_at'] = datetime.now()
+                return _BET_HISTORY['df']
 
-        # Keep only Tackle rows with a concrete W/L result
-        df = df[df.get('Type', pd.Series()).astype(str).str.strip() == 'Tackle']
-        df = df[df['W/L'].astype(str).str.strip().isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])]
-        if df.empty:
-            _BET_HISTORY['df'] = df
-            return df
+            df = pd.DataFrame(records)
 
-        df['W/L']      = pd.to_numeric(df['W/L'], errors='coerce')
-        df['win']      = (df['W/L'] == 1).astype(int)
-        for col in ('Position', 'DvP', 'Opponent', 'Team', 'Travel Fatigue',
-                    'Line', 'Avg vs Line', 'Line Consistency', 'Year', 'Round'):
-            if col not in df.columns:
-                df[col] = ''
-            df[col] = df[col].astype(str).str.strip()
+            # Keep only Tackle rows with a concrete W/L result
+            if 'Type' in df.columns:
+                df = df[df['Type'].astype(str).str.strip() == 'Tackle'].copy()
+            df = df[df['W/L'].astype(str).str.strip().isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])]
+            if df.empty:
+                _BET_HISTORY['df'] = df
+                _BET_HISTORY['cached_at'] = datetime.now()
+                return df
 
-        # Apply all hard filters so WR is computed only on clean, qualifying legs
-        mask = df.apply(_passes_bet_filters, axis=1)
-        df = df[mask]
-        if df.empty:
-            _BET_HISTORY['df'] = df
-            return df
+            df['W/L']      = pd.to_numeric(df['W/L'], errors='coerce')
+            df['win']      = (df['W/L'] == 1).astype(int)
+            for col in ('Position', 'DvP', 'Opponent', 'Team', 'Travel Fatigue',
+                        'Line', 'Avg vs Line', 'Line Consistency',
+                        'Last 5 Tackles', 'Avg Tackles', 'Year', 'Round', 'Strategy'):
+                if col not in df.columns:
+                    df[col] = ''
+                df[col] = df[col].astype(str).str.strip()
 
-        _BET_HISTORY['df'] = df[['Position', 'DvP', 'Opponent', 'win', 'Round', 'Year']].copy()
-        return _BET_HISTORY['df']
+            # Apply all hard filters so WR is computed only on clean, qualifying legs
+            mask = df.apply(_passes_bet_filters, axis=1)
+            df = df[mask]
+            if df.empty:
+                _BET_HISTORY['df'] = df
+                _BET_HISTORY['cached_at'] = datetime.now()
+                return df
 
-    except Exception as e:
-        print(f"WARN: _load_bet_history failed: {e}")
-        _BET_HISTORY['df'] = pd.DataFrame()
-        return _BET_HISTORY['df']
+            _BET_HISTORY['df'] = df[['Position', 'DvP', 'Opponent', 'win', 'Round', 'Year', 'Strategy']].copy()
+            _BET_HISTORY['cached_at'] = datetime.now()
+            return _BET_HISTORY['df']
+
+        except Exception as e:
+            print(f"WARN: _load_bet_history failed: {e}")
+            _BET_HISTORY['df'] = pd.DataFrame()
+            return _BET_HISTORY['df']
 
 
 def get_leg_historical_wr(position: str, dvp: str, opponent: str) -> str:
@@ -898,8 +1017,106 @@ def add_pickem_lines_to_dataframe(df, stat_type='disposals'):
         return df
 
 
+def _load_tackle_avgs():
+    """Load scraped tackle averages CSV → (avg_map, last5_map, gbg_df)."""
+    try:
+        avgs = pd.read_csv("afl_player_tackle_avgs.csv")
+        avgs['PlayerFmt'] = avgs['PlayerFmt'].str.strip()
+        avg_map   = dict(zip(avgs['PlayerFmt'], avgs['career_avg']))
+        last5_map = dict(zip(avgs['PlayerFmt'], avgs['last5_avg']))
+
+        # Dabble display name → CSV PlayerFmt (names that differ beyond apostrophes)
+        _dabble_aliases = {
+            "Alixzander Tauru":   "Alix Tauru",
+            "Archer May":         "Archie May",
+            "Bailey J. Williams": "Bailey Williams",
+            "Christopher Scerri": "Chris Scerri",
+            "Connor O'Sullivan":  "Connor OSullivan",
+            "Finn O'Sullivan":    "Finn OSullivan",
+            "Harrison Petty":     "Harry Petty",
+            "Harry O'Farrell":    "Harry OFarrell",
+            "James O'Donnell":    "James ODonnell",
+            "Jordan De Goey":     "Jordan de Goey",
+            "Kieran Briggs":      "Kieren Briggs",
+            "Lachie Shultz":      "Lachie Schultz",
+            "Mark O'Connor":      "Mark OConnor",
+            "Massimo D'Ambrosio": "Massimo DAmbrosio",
+            "Mitchell Hinge":     "Mitch Hinge",
+            "Reilly O'Brien":     "Reilly OBrien",
+            "Thomas Edwards":     "Tom Edwards",
+            "Thomas Sims":        "Tom Sims",
+            "Xavier O'Halloran":  "Xavier OHalloran",
+        }
+        for dabble_name, csv_name in _dabble_aliases.items():
+            if csv_name in avg_map:
+                avg_map[dabble_name]   = avg_map[csv_name]
+                last5_map[dabble_name] = last5_map.get(csv_name)
+
+        gbg25 = pd.read_csv("afl_tackles_2025_gbg.csv")
+        gbg26 = pd.read_csv("afl_tackles_2026_gbg.csv")
+        gbg = pd.concat([gbg25, gbg26], ignore_index=True)
+        name_map = {
+            "Jaeger OMeara":    "Jaeger O'Meara",
+            "Nathan ODriscoll": "Nathan O'Driscoll",
+            "Leo Lombard":      "Leonardo Lombard",
+            "Matt Carroll":     "Matthew Carroll",
+        }
+        def fmt(raw):
+            s = str(raw).strip()
+            if ',' not in s:
+                return s
+            parts = s.split(',', 1)
+            n = f"{parts[1].strip()} {parts[0].strip()}"
+            return name_map.get(n, n)
+        gbg['Player'] = gbg['Player'].apply(fmt)
+        return avg_map, last5_map, gbg
+    except Exception as e:
+        print(f"Tackle avg load error: {e}")
+        return {}, {}, pd.DataFrame()
+
+
 def add_line_analysis_columns(df, stat_type='disposals'):
     print(f"Adding line analysis for {stat_type}...")
+
+    # For tackles, use scraped averages (2025+2026 game-by-game)
+    if stat_type == 'tackles':
+        try:
+            avg_map, last5_map, gbg = _load_tackle_avgs()
+            df['Avg vs Line']     = ""
+            df['Line Consistency'] = ""
+            df['Avg Tackles']     = ""
+            df['Last 5 Tackles']  = ""
+            for idx, row in df.iterrows():
+                player = str(row.get('Player', row.get('player', ''))).strip()
+                line_str = str(row.get('Line', '')).strip()
+                if not player or not line_str:
+                    continue
+                try:
+                    line_value = float(line_str)
+                except (ValueError, TypeError):
+                    continue
+                career = avg_map.get(player)
+                last5  = last5_map.get(player)
+                if career is not None:
+                    avl = (career - line_value) / line_value * 100
+                    df.at[idx, 'Avg vs Line']    = f"{avl:+.1f}%"
+                    df.at[idx, 'Avg Tackles']    = f"{career:.1f}"
+                if last5 is not None:
+                    df.at[idx, 'Last 5 Tackles'] = f"{float(last5):.1f}"
+                if not gbg.empty:
+                    grp = gbg[gbg['Player'] == player]['Tackles']
+                    if len(grp) >= 3:
+                        lc = (grp < line_value).sum() / len(grp) * 100
+                        df.at[idx, 'Line Consistency'] = f"{lc:.1f}%"
+            return df
+        except Exception as e:
+            print(f"Error in tackles line analysis: {e}")
+            df['Avg vs Line']     = ""
+            df['Line Consistency'] = ""
+            df['Avg Tackles']     = ""
+            df['Last 5 Tackles']  = ""
+            return df
+
     try:
         stats_df = pd.read_csv("afl_player_stats.csv", skiprows=3).fillna(0)
 
@@ -1156,20 +1373,22 @@ def process_data_for_dashboard(stat_type='disposals'):
         result = add_pickem_lines_to_dataframe(players, stat_type)
         result = add_line_analysis_columns(result, stat_type)
 
+        tackle_cols = [c for c in ['Avg Tackles', 'Last 5 Tackles'] if c in result.columns]
         result = result[['player', 'team', 'opponent', 'position', 'travel_fatigue',
                           'weather', 'dvp', 'Line', 'Avg vs Line', 'Line Consistency',
-                          'stadium']].copy()
+                          'stadium'] + tackle_cols].copy()
 
         result = add_score_to_dataframe(result, team_weather)
         result = add_bet_flag_to_dataframe(result, stat_type)
 
         display = result[['player', 'team', 'opponent', 'position', 'travel_fatigue',
                            'weather', 'dvp', 'Line', 'Avg vs Line', 'Line Consistency',
-                           'stadium', 'Bet_Priority', 'Units']].copy()
+                           'stadium', 'Bet_Priority', 'Units'] + tackle_cols].copy()
 
-        display.columns = ['Player', 'Team', 'Opponent', 'Position', 'Travel Fatigue',
-                           'Weather', 'DvP', 'Line', 'Avg vs Line', 'Line Consistency',
-                           'Stadium', 'Bet Priority', 'Units']
+        base_cols = ['Player', 'Team', 'Opponent', 'Position', 'Travel Fatigue',
+                     'Weather', 'DvP', 'Line', 'Avg vs Line', 'Line Consistency',
+                     'Stadium', 'Bet Priority', 'Units']
+        display.columns = base_cols + tackle_cols
 
         display = display[display['Line'] != ""].copy()
 
@@ -1198,8 +1417,9 @@ def process_data_for_dashboard(stat_type='disposals'):
 # ===== MULTI BUILDER =====
 
 STRATEGY_WR_MAP = {
-    "T1": 73.5,   # Premium — Wing/Ruck or Strong Unders DvP
-    "T2": 63.0,   # Standard
+    "T0": 87.0,   # LC >= 70%   (train/test avg: 91.7% / 86.4%)
+    "T1": 68.0,   # LC 60-70%   (train/test avg: 75.0% / 65.4%)
+    "T2": 60.0,   # LC 50-60%  (train/test avg: 60.7% / 67.6%)
 }
 
 
@@ -1336,12 +1556,13 @@ def build_hedge_picks(legs_by_quality):
                 {"min_wins": 4, "tiers": [(4, 0.5), (5, 2.5), (6, 25.0)], "breakeven": "53.2%"},
                 None)
 
-    else:  # n >= 7 — balanced 6-leg picks across all available legs
-        def _balanced_picks(legs, n_picks, pick_size, team_cap=2):
+    else:  # n >= 7 — balanced picks
+        def _balanced_picks(legs, n_picks, pick_size, team_cap=2, game_cap=3):
             """
             Generate n_picks of pick_size legs, balancing exposure across all legs.
-            Each round: sort by (current_exposure ASC, WR_rank ASC), pick first
-            pick_size that respect team_cap. Relax cap if needed to fill the pick.
+            Each round: sort by (current_exposure ASC, quality_rank ASC), pick first
+            pick_size that respect team_cap and game_cap. Relax caps if needed to fill.
+            Game identity is frozenset({team, opponent}) so SYD vs NTH == NTH vs SYD.
             """
             quality_rank = {l['Player']: i for i, l in enumerate(legs)}
             exposure     = {l['Player']: 0 for l in legs}
@@ -1351,15 +1572,17 @@ def build_hedge_picks(legs_by_quality):
                     legs,
                     key=lambda l: (exposure[l['Player']], quality_rank[l['Player']])
                 )
-                team_counts, pick = {}, []
+                team_counts, game_counts, pick = {}, {}, []
                 for leg in candidates:
                     if len(pick) >= pick_size:
                         break
                     team = leg.get('Team', '')
-                    if team_counts.get(team, 0) < team_cap:
+                    game = frozenset({team, leg.get('Opponent', '')})
+                    if (team_counts.get(team, 0) < team_cap and
+                            game_counts.get(game, 0) < game_cap):
                         pick.append(leg)
                         team_counts[team] = team_counts.get(team, 0) + 1
-                # Relax team cap if still short
+                        game_counts[game] = game_counts.get(game, 0) + 1
                 if len(pick) < pick_size:
                     for leg in candidates:
                         if leg not in pick and len(pick) < pick_size:
@@ -1369,13 +1592,27 @@ def build_hedge_picks(legs_by_quality):
                 picks.append(pick)
             return picks
 
-        n_combos    = min(n, 7)
-        combo_picks = _balanced_picks(legs_by_quality, n_combos, 6, team_cap=2)
-        combo_meta  = {"min_wins": 4, "tiers": [(4, 0.5), (5, 2.5), (6, 25.0)], "breakeven": "53.2%"}
-        jp_n        = min(n, 12)
+        jp_n = min(n, 12)
+
+        if n >= 9:
+            # 9 balanced 8-leg picks from all available legs.
+            # Each leg appears in ~(9×8/n) tickets — at n=12 that's ~6/9 = 67%.
+            # game_cap=3 prevents >3 legs from same game per ticket (SYD/NTH correlation guard).
+            combo_picks = _balanced_picks(legs_by_quality, 9, 8, team_cap=2, game_cap=3)
+            combo_meta  = {"min_wins": 6, "tiers": [(6, 2.0), (7, 5.0), (8, 75.0)], "breakeven": "53.3%"}
+            payout_desc = "6/8 -> 2x  .  7/8 -> 5x  .  8/8 -> 75x  .  breakeven 53.3%"
+            fmt_label   = f"8-leg Hedge  .  9 balanced picks from {n} available"
+        else:  # n == 7 or 8 — leave-one-out 6-leg (top 7 legs)
+            pool        = legs_by_quality[:7]
+            combo_picks = [[pool[j] for j in range(len(pool)) if j != i]
+                           for i in range(len(pool))]
+            combo_meta  = {"min_wins": 4, "tiers": [(4, 0.5), (5, 2.5), (6, 25.0)], "breakeven": "53.2%"}
+            payout_desc = "4/6 -> 0.5x  .  5/6 -> 2.5x  .  6/6 -> 25.0x  .  breakeven 53.2%"
+            fmt_label   = f"6-leg Hedge  .  {len(pool)} leave-one-out picks"
+
         return (
-            f"6-leg Hedge  .  {n_combos} balanced picks from {n} available",
-            "4/6 -> 0.5x  .  5/6 -> 2.5x  .  6/6 -> 25.0x  .  breakeven 53.2%",
+            fmt_label,
+            payout_desc,
             combo_picks,
             combo_meta,
             _jackpot(jp_n),
@@ -1549,7 +1786,10 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
             table_upcoming['Player'].astype(str) + '_' + table_upcoming['Team'].astype(str)
         )
 
-        active_upcoming = table_upcoming[table_upcoming.apply(_wr_qualifies, axis=1)].copy()
+        active_upcoming = table_upcoming[
+            table_upcoming.apply(_wr_qualifies, axis=1) &
+            table_upcoming['Bet Priority'].isin(['T0', 'T1', 'T2'])
+        ].copy()
         if excluded and not active_upcoming.empty:
             active_upcoming = active_upcoming[~active_upcoming['Team'].isin(excluded)].copy()
         if excluded_leg_ids and not active_upcoming.empty:
@@ -1568,8 +1808,13 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
 
     # ── Prepare hidden columns for sort + conditional styling ────────────────
     if not table_upcoming.empty:
+        table_upcoming['_excl'] = table_upcoming['id'].apply(
+            lambda x: '×' if x in excluded_leg_ids else ''
+        )
         table_upcoming['_active'] = table_upcoming.apply(
-            lambda r: 0 if r.get('id', '') in excluded_leg_ids else int(_wr_qualifies(r)),
+            lambda r: 0 if r.get('id', '') in excluded_leg_ids else int(
+                _wr_qualifies(r) and r.get('Bet Priority', '') in ('T0', 'T1', 'T2')
+            ),
             axis=1
         )
         table_upcoming['_wr_pct'] = table_upcoming['Hist WR'].apply(
@@ -1595,14 +1840,18 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                                       "fontSize": "12px", "padding": "12px"})
     else:
         dt_cols = [
+            {'name': '',        'id': '_excl',            'type': 'text'},
             {'name': 'Stat',    'id': 'Stat',             'type': 'text'},
             {'name': 'Player',  'id': 'Player',           'type': 'text'},
             {'name': 'Team',    'id': 'Team',             'type': 'text'},
             {'name': 'Opp',     'id': 'Opponent',         'type': 'text'},
             {'name': 'Pos',     'id': 'Position',         'type': 'text'},
+            {'name': 'Tier',    'id': 'Bet Priority',     'type': 'text'},
             {'name': 'Line',    'id': 'Line',             'type': 'numeric'},
             {'name': 'AvL',     'id': 'Avg vs Line',      'type': 'text'},
             {'name': 'Cons',    'id': 'Line Consistency', 'type': 'text'},
+            {'name': 'Avg',     'id': 'Avg Tackles',      'type': 'text'},
+            {'name': 'L5',      'id': 'Last 5 Tackles',   'type': 'text'},
             {'name': 'DvP',     'id': 'DvP',              'type': 'text'},
             {'name': 'Weather', 'id': 'Weather',          'type': 'text'},
             {'name': 'Travel',  'id': 'Travel Fatigue',   'type': 'text'},
@@ -1618,6 +1867,19 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         ]
 
         cond_styles = [
+            # ── Exclude toggle column ─────────────────────────────────────
+            {'if': {'column_id': '_excl'},
+             'cursor': 'pointer', 'textAlign': 'center',
+             'color': 'rgba(225,217,207,0.25)', 'fontSize': '13px'},
+            {'if': {'filter_query': '{_excl} = "×"', 'column_id': '_excl'},
+             'color': '#f87171', 'fontWeight': '700'},
+            # ── Tier ──────────────────────────────────────────────────────
+            {'if': {'filter_query': '{Bet Priority} = "T0"', 'column_id': 'Bet Priority'},
+             'backgroundColor': 'rgba(45,212,191,0.18)', 'color': '#2dd4bf', 'fontWeight': '700'},
+            {'if': {'filter_query': '{Bet Priority} = "T1"', 'column_id': 'Bet Priority'},
+             'backgroundColor': 'rgba(249,116,75,0.14)', 'color': '#f9744b', 'fontWeight': '700'},
+            {'if': {'filter_query': '{Bet Priority} = "T2"', 'column_id': 'Bet Priority'},
+             'backgroundColor': 'rgba(248,113,113,0.12)', 'color': '#f87171', 'fontWeight': '700'},
             # ── Hist WR ───────────────────────────────────────────────────
             {'if': {'filter_query': '{_wr_pct} >= 65', 'column_id': 'Hist WR'},
              'backgroundColor': 'rgba(45,212,191,0.12)', 'color': '#2dd4bf'},
@@ -1654,24 +1916,26 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
              'backgroundColor': 'rgba(249,116,75,0.10)', 'color': '#f9744b'},
             {'if': {'filter_query': '{Line} < 3.5', 'column_id': 'Line'},
              'backgroundColor': 'rgba(248,113,113,0.10)', 'color': '#f87171'},
-            # ── AvL (uses hidden _avl_num) ────────────────────────────────
+            # ── AvL: negative = line above avg = good (new formula convention) ─
+            # < -10%: 73-87% WR  |  -10 to 0: 71%  |  0-10: caution  |  >+10: hard avoid
             {'if': {'filter_query': '{_avl_num} <= -10', 'column_id': 'Avg vs Line'},
-             'backgroundColor': 'rgba(45,212,191,0.12)', 'color': '#2dd4bf'},
+             'backgroundColor': 'rgba(45,212,191,0.14)', 'color': '#2dd4bf'},
             {'if': {'filter_query': '{_avl_num} > -10 && {_avl_num} <= 0', 'column_id': 'Avg vs Line'},
              'backgroundColor': 'rgba(45,212,191,0.08)', 'color': '#7dd3fc'},
-            {'if': {'filter_query': '{_avl_num} > 0 && {_avl_num} <= 5', 'column_id': 'Avg vs Line'},
+            {'if': {'filter_query': '{_avl_num} > 0 && {_avl_num} <= 10', 'column_id': 'Avg vs Line'},
              'backgroundColor': 'rgba(249,116,75,0.10)', 'color': '#f9744b'},
-            {'if': {'filter_query': '{_avl_num} > 5', 'column_id': 'Avg vs Line'},
-             'backgroundColor': 'rgba(248,113,113,0.10)', 'color': '#f87171'},
-            # ── Consistency (uses hidden _cons_num) ───────────────────────
-            {'if': {'filter_query': '{_cons_num} >= 65', 'column_id': 'Line Consistency'},
-             'backgroundColor': 'rgba(45,212,191,0.12)', 'color': '#2dd4bf'},
-            {'if': {'filter_query': '{_cons_num} >= 55 && {_cons_num} < 65', 'column_id': 'Line Consistency'},
+            {'if': {'filter_query': '{_avl_num} > 10', 'column_id': 'Avg vs Line'},
+             'backgroundColor': 'rgba(248,113,113,0.12)', 'color': '#f87171'},
+            # ── LC: perfectly monotonic signal ────────────────────────────
+            # >= 60%: 78-86% WR  |  50-60%: 65%  |  40-50%: 57%  |  <40%: 48%
+            {'if': {'filter_query': '{_cons_num} >= 60', 'column_id': 'Line Consistency'},
+             'backgroundColor': 'rgba(45,212,191,0.14)', 'color': '#2dd4bf'},
+            {'if': {'filter_query': '{_cons_num} >= 50 && {_cons_num} < 60', 'column_id': 'Line Consistency'},
              'backgroundColor': 'rgba(45,212,191,0.08)', 'color': '#7dd3fc'},
-            {'if': {'filter_query': '{_cons_num} >= 45 && {_cons_num} < 55', 'column_id': 'Line Consistency'},
+            {'if': {'filter_query': '{_cons_num} >= 40 && {_cons_num} < 50', 'column_id': 'Line Consistency'},
              'backgroundColor': 'rgba(249,116,75,0.10)', 'color': '#f9744b'},
-            {'if': {'filter_query': '{_cons_num} < 45', 'column_id': 'Line Consistency'},
-             'backgroundColor': 'rgba(248,113,113,0.10)', 'color': '#f87171'},
+            {'if': {'filter_query': '{_cons_num} < 40', 'column_id': 'Line Consistency'},
+             'backgroundColor': 'rgba(248,113,113,0.12)', 'color': '#f87171'},
             # ── Weather ───────────────────────────────────────────────────
             {'if': {'filter_query': '{Weather} contains "Strong"', 'column_id': 'Weather'},
              'backgroundColor': 'rgba(45,212,191,0.12)', 'color': '#2dd4bf'},
@@ -1697,8 +1961,6 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
             data=table_upcoming.to_dict('records'),
             columns=dt_cols,
             hidden_columns=['_active', '_wr_pct', '_avl_num', '_cons_num', 'id'],
-            row_selectable='multi',
-            selected_row_ids=excluded_row_ids,
             sort_action='native',
             sort_by=[],
             page_action='none',
@@ -1732,11 +1994,13 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                 'textOverflow': 'ellipsis',
             },
             style_cell_conditional=[
+                {'if': {'column_id': '_excl'},           'minWidth': '24px',  'maxWidth': '24px', 'width': '24px'},
                 {'if': {'column_id': 'Stat'},            'minWidth': '65px',  'maxWidth': '65px'},
                 {'if': {'column_id': 'Player'},          'minWidth': '130px', 'maxWidth': '180px'},
                 {'if': {'column_id': 'Team'},            'minWidth': '48px',  'maxWidth': '48px'},
                 {'if': {'column_id': 'Opponent'},        'minWidth': '48px',  'maxWidth': '48px'},
                 {'if': {'column_id': 'Position'},        'minWidth': '50px',  'maxWidth': '50px'},
+                {'if': {'column_id': 'Bet Priority'},   'minWidth': '42px',  'maxWidth': '42px'},
                 {'if': {'column_id': 'Line'},            'minWidth': '48px',  'maxWidth': '48px'},
                 {'if': {'column_id': 'Avg vs Line'},     'minWidth': '52px',  'maxWidth': '52px'},
                 {'if': {'column_id': 'Line Consistency'},'minWidth': '52px',  'maxWidth': '60px'},
@@ -1760,13 +2024,22 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         if len(parts) == 2:
             pre_placed[parts[0]] = pre_placed.get(parts[0], 0) + 1
             pre_placed[parts[1]] = pre_placed.get(parts[1], 0) + 1
-    # Sort by AvL ascending (most negative = strongest value first)
-    def _avl_rank_key(row):
+    # Sort by hierarchy: Tier (T0 > T1 > T2) → LC% descending → AvL ascending
+    def _quality_key(row):
+        tier = str(row.get('Strategy', ''))
+        tier_order = {'T0': 0, 'T1': 1, 'T2': 2}.get(tier, 3)
+        lc_s = str(row.get('Line Consistency', ''))
+        try:
+            lc = float(lc_s.replace('%', '').strip())
+            if lc <= 1.0: lc *= 100
+        except:
+            lc = 0.0
         avl_s = str(row.get('Avg vs Line', ''))
-        try:    return float(avl_s.replace('%', '').replace('+', ''))
-        except: return 0.0
+        try:    avl = float(avl_s.replace('%', '').replace('+', '').strip())
+        except: avl = 0.0
+        return (tier_order, -lc, avl)
 
-    sorted_legs = sorted(bets_list, key=_avl_rank_key)
+    sorted_legs = sorted(bets_list, key=_quality_key)
 
     # Enforce max-2-per-team when selecting the best-7 for C(7,6)
     # Greedy: walk down WR rank, skip a team once it hits the cap.
@@ -1836,7 +2109,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     pick_cards = []
     for i, pick in enumerate(hedge_picks, 1):
         leg_rows = []
-        for leg in pick:
+        for leg in sorted(pick, key=lambda l: (l.get('Team', ''), l.get('Player', ''))):
             leg_rows.append(html.Tr([
                 html.Td(leg.get('Player',''), style={"color": D_TEXT, "fontSize": "11px",
                                                       "fontFamily": MONO, "padding": "4px 8px",
@@ -1852,19 +2125,43 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                                                               "fontWeight": "600"}),
             ]))
 
-        # ── Team concentration indicator ──────────────────────────────────────
+        # ── Concentration indicators ──────────────────────────────────────────
         from collections import Counter as _Counter
+
+        def _game_key(leg):
+            t, o = leg.get('Team', ''), leg.get('Opponent', '')
+            return f"{min(t,o)} v {max(t,o)}"
+
         team_counts = _Counter(leg.get('Team','') for leg in pick)
-        max_same    = max(team_counts.values()) if team_counts else 0
+        game_counts = _Counter(_game_key(leg) for leg in pick)
+
+        max_same      = max(team_counts.values()) if team_counts else 0
+        max_same_game = max(game_counts.values()) if game_counts else 0
+
+        # Team concentration
         if max_same >= 4:
-            conc_col  = "#f87171"   # red  — n=4 historically -EV
-            conc_text = f"⚠ {max_same} from same team — historically -EV"
+            conc_col  = "#f87171"
+            conc_text = f"⚠ {max_same} same team"
         elif max_same == 3:
-            conc_col  = "#fbbf24"   # amber — watch
-            conc_text = f"~ {max_same} from same team — watch"
+            conc_col  = "#fbbf24"
+            conc_text = f"~ {max_same} same team"
         else:
-            conc_col  = "#2dd4bf"   # teal — diverse
-            conc_text = f"✓ max {max_same} per team"
+            conc_col  = "#2dd4bf"
+            conc_text = f"✓ team ≤{max_same}"
+
+        # Game concentration
+        if max_same_game >= 4:
+            game_conc_col  = "#f87171"
+            game_conc_text = f"⚠ {max_same_game} same game — correlated"
+        elif max_same_game == 3:
+            game_conc_col  = "#fbbf24"
+            game_conc_text = f"~ {max_same_game} same game"
+        else:
+            game_conc_col  = "#2dd4bf"
+            game_conc_text = f"✓ game ≤{max_same_game}"
+
+        worst_col = "#f87171" if (max_same >= 4 or max_same_game >= 4) else \
+                    "#fbbf24" if (max_same >= 3 or max_same_game >= 3) else "#2dd4bf"
 
         team_badges = [
             html.Span(f"{team} ×{cnt}", style={
@@ -1885,6 +2182,11 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                     "fontSize": "9px", "fontFamily": MONO, "color": conc_col,
                     "marginRight": "10px",
                 }),
+                html.Span("·", style={"color": D_MUT, "marginRight": "10px", "fontSize": "9px"}),
+                html.Span(game_conc_text, style={
+                    "fontSize": "9px", "fontFamily": MONO, "color": game_conc_col,
+                    "marginRight": "10px",
+                }),
                 *team_badges,
             ], style={"display": "flex", "alignItems": "center",
                       "marginBottom": "6px", "flexWrap": "wrap"}),
@@ -1892,7 +2194,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                        style={"borderCollapse": "collapse", "width": "100%"}),
         ], style={
             "background": D_CARD2,
-            "border": f"1px solid {conc_col}55" if max_same >= 3 else f"1px solid {D_BORDER}",
+            "border": f"1px solid {worst_col}55" if (max_same >= 3 or max_same_game >= 3) else f"1px solid {D_BORDER}",
             "borderRadius": "6px", "padding": "10px 12px", "marginBottom": "8px",
         }))
 
@@ -1904,7 +2206,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
     # ── Jackpot section (n >= 7) ──────────────────────────────────────────────
     if jackpot_info:
         jp_leg_rows = []
-        for leg in jackpot_info['pick']:
+        for leg in sorted(jackpot_info['pick'], key=lambda l: (l.get('Team', ''), l.get('Player', ''))):
             jp_leg_rows.append(html.Tr([
                 html.Td(leg.get('Player',''), style={"color": D_TEXT, "fontSize": "11px",
                                                       "fontFamily": MONO, "padding": "4px 8px",
@@ -1920,19 +2222,38 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                                                               "fontWeight": "600"}),
             ]))
 
-        # Team concentration for jackpot pick
+        # Concentration for jackpot pick
         from collections import Counter as _Counter
+
+        def _game_key_jp(leg):
+            t, o = leg.get('Team', ''), leg.get('Opponent', '')
+            return f"{min(t,o)} v {max(t,o)}"
+
         jp_team_counts = _Counter(leg.get('Team','') for leg in jackpot_info['pick'])
-        jp_max_same    = max(jp_team_counts.values()) if jp_team_counts else 0
+        jp_game_counts = _Counter(_game_key_jp(leg) for leg in jackpot_info['pick'])
+
+        jp_max_same      = max(jp_team_counts.values()) if jp_team_counts else 0
+        jp_max_same_game = max(jp_game_counts.values()) if jp_game_counts else 0
+
         if jp_max_same >= 4:
             jp_conc_col  = "#f87171"
-            jp_conc_text = f"⚠ {jp_max_same} from same team — historically -EV"
+            jp_conc_text = f"⚠ {jp_max_same} same team"
         elif jp_max_same == 3:
             jp_conc_col  = "#fbbf24"
-            jp_conc_text = f"~ {jp_max_same} from same team — watch"
+            jp_conc_text = f"~ {jp_max_same} same team"
         else:
             jp_conc_col  = "#2dd4bf"
-            jp_conc_text = f"✓ max {jp_max_same} per team"
+            jp_conc_text = f"✓ team ≤{jp_max_same}"
+
+        if jp_max_same_game >= 4:
+            jp_game_conc_col  = "#f87171"
+            jp_game_conc_text = f"⚠ {jp_max_same_game} same game — correlated"
+        elif jp_max_same_game == 3:
+            jp_game_conc_col  = "#fbbf24"
+            jp_game_conc_text = f"~ {jp_max_same_game} same game"
+        else:
+            jp_game_conc_col  = "#2dd4bf"
+            jp_game_conc_text = f"✓ game ≤{jp_max_same_game}"
 
         jp_team_badges = [
             html.Span(f"{team} ×{cnt}", style={
@@ -1964,6 +2285,11 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                     }),
                     html.Span(jp_conc_text, style={
                         "fontSize": "9px", "fontFamily": MONO, "color": jp_conc_col,
+                        "marginRight": "10px",
+                    }),
+                    html.Span("·", style={"color": D_MUT, "marginRight": "10px", "fontSize": "9px"}),
+                    html.Span(jp_game_conc_text, style={
+                        "fontSize": "9px", "fontFamily": MONO, "color": jp_game_conc_col,
                         "marginRight": "10px",
                     }),
                     *jp_team_badges,
@@ -2070,12 +2396,15 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
             "fontFamily": MONO, "marginBottom": "8px",
         }),
         html.Div([
-            _filter_pill("Line ≥ 4.0"),
-            _filter_pill("Not vs GCS", "People First humidity"),
+            _filter_pill("Line ≥ 3.0"),
+            _filter_pill("Not vs GCS", "33% total, 13% at LC<50%"),
             _filter_pill("Not MedF"),
-            _filter_pill("Not FwdMid", "revisit n=50"),
-            _filter_pill("Not GEE home", "GMHBA narrow ground"),
-            _filter_pill("AvL < 10%", "exempt: Wing · Ruck · GenD"),
+            _filter_pill("Not GEE home", "GMHBA — 10% at LC 50-60%"),
+            _filter_pill("No Rain"),
+            _filter_pill("AvL > +10% avoid"),
+            _filter_pill("T2: Neutral DvP skip", "100% at LC≥60% — T0/T1 unaffected"),
+            _filter_pill("ADE T2 block", "12% at LC 50-60% — T0/T1 OK"),
+            _filter_pill("⭐ WCE edge", "88% at LC 60-70%, 86% at LC≥70%"),
         ], style={"display": "flex", "flexWrap": "wrap", "gap": "6px"}),
     ], style={
         "marginBottom": "14px", "padding": "12px 14px",
@@ -2091,38 +2420,84 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         hist = hist.copy()
         hist['Round'] = pd.to_numeric(hist['Round'], errors='coerce')
         hist['Year']  = pd.to_numeric(hist['Year'],  errors='coerce')
-        h2026 = hist[hist['Year'] == 2026]
+        h2026 = hist[hist['Year'] == 2026].copy()
         if h2026.empty:
             return html.Div()
 
-        total = len(h2026)
-        wins  = int(h2026['win'].sum())
-        wr    = wins / total * 100 if total else 0
+        def _wr_col(wr):
+            return "#2dd4bf" if wr >= 65 else ("#f9744b" if wr >= 55 else "#f87171")
 
-        def _kpi(label, value, sub=None, color=D_TEXT):
-            return html.Div([
-                html.Div(value, style={"fontSize": "20px", "fontWeight": "700",
-                                       "color": color, "fontFamily": MONO,
-                                       "lineHeight": "1.1"}),
-                html.Div(label, style={"fontSize": "9px", "color": D_MUT,
-                                       "fontFamily": MONO, "letterSpacing": "0.08em",
-                                       "textTransform": "uppercase", "marginTop": "2px"}),
-                html.Div(sub, style={"fontSize": "10px", "color": D_FADED,
-                                     "fontFamily": MONO, "marginTop": "1px"}) if sub else None,
-            ], style={"textAlign": "center", "padding": "8px 14px",
-                      "background": D_CARD2, "borderRadius": "6px",
-                      "border": f"1px solid {D_BORDER}", "minWidth": "80px"})
+        # ── Tier KPI cards ────────────────────────────────────────────────────
+        tier_cards = []
+        tier_cfg = [
+            ("T0", 87.0, "#2dd4bf"),
+            ("T1", 68.0, "#f9744b"),
+            ("T2", 60.0, "#f87171"),
+        ]
+        for tier, target, t_col in tier_cfg:
+            sub = h2026[h2026['Strategy'] == tier]
+            n   = len(sub)
+            w   = int(sub['win'].sum()) if n else 0
+            wr  = w / n * 100 if n else 0
+            col = _wr_col(wr) if n else D_FADED
+            delta = wr - target
+            delta_str = f"{delta:+.1f}% vs {target:.0f}% target" if n else "no data"
+            tier_cards.append(html.Div([
+                html.Div([
+                    html.Span(tier, style={"fontSize": "11px", "fontWeight": "700",
+                                           "color": t_col, "fontFamily": MONO,
+                                           "marginRight": "6px"}),
+                    html.Span(f"{wr:.1f}%" if n else "—", style={
+                        "fontSize": "20px", "fontWeight": "700",
+                        "color": col, "fontFamily": MONO}),
+                ], style={"display": "flex", "alignItems": "baseline", "gap": "4px"}),
+                html.Div(f"{w}W / {n-w}L  ({n} legs)", style={
+                    "fontSize": "10px", "color": D_FADED, "fontFamily": MONO, "marginTop": "2px"}),
+                html.Div(delta_str, style={
+                    "fontSize": "9px", "fontFamily": MONO, "marginTop": "2px",
+                    "color": "#2dd4bf" if delta >= 0 else "#f87171"}),
+            ], style={"padding": "8px 12px", "background": D_CARD2, "borderRadius": "6px",
+                      "border": f"1px solid {t_col}33", "flex": "1", "minWidth": "110px"}))
 
-        wr_color = "#2dd4bf" if wr >= 63 else ("#f9744b" if wr >= 58 else "#f87171")
+        # Overall — tiered legs only (T0+T1+T2)
+        tiered   = h2026[h2026['Strategy'].isin(['T0', 'T1', 'T2'])]
+        total    = len(tiered)
+        wins     = int(tiered['win'].sum())
+        wr       = wins / total * 100 if total else 0
+        tier_cards.append(html.Div([
+            html.Div([
+                html.Span("ALL", style={"fontSize": "11px", "fontWeight": "700",
+                                        "color": D_MUT, "fontFamily": MONO, "marginRight": "6px"}),
+                html.Span(f"{wr:.1f}%", style={"fontSize": "20px", "fontWeight": "700",
+                                                "color": _wr_col(wr), "fontFamily": MONO}),
+            ], style={"display": "flex", "alignItems": "baseline", "gap": "4px"}),
+            html.Div(f"{wins}W / {total-wins}L  ({total} legs)", style={
+                "fontSize": "10px", "color": D_FADED, "fontFamily": MONO, "marginTop": "2px"}),
+            html.Div("T0 + T1 + T2 only", style={
+                "fontSize": "9px", "color": D_FADED, "fontFamily": MONO, "marginTop": "2px"}),
+        ], style={"padding": "8px 12px", "background": D_CARD2, "borderRadius": "6px",
+                  "border": f"1px solid {D_BORDER}", "flex": "1", "minWidth": "110px"}))
 
-        # Per-round breakdown (current year)
+        # ── Per-round breakdown with tier mini-bars (tiered legs only) ──────────
         round_rows = []
-        for rnd in sorted(h2026['Round'].dropna().unique()):
-            r  = h2026[h2026['Round'] == rnd]
-            rw = int(r['win'].sum())
-            rn = len(r)
+        for rnd in sorted(tiered['Round'].dropna().unique()):
+            r   = tiered[tiered['Round'] == rnd]
+            rw  = int(r['win'].sum())
+            rn  = len(r)
             rwr = rw / rn * 100 if rn else 0
-            rc  = "#2dd4bf" if rwr >= 65 else ("#f9744b" if rwr >= 55 else "#f87171")
+            rc  = _wr_col(rwr)
+
+            # per-tier counts for this round
+            tier_bits = []
+            for tier, _, tc in tier_cfg:
+                tn = len(r[r['Strategy'] == tier])
+                if tn:
+                    tier_bits.append(html.Span(f"{tier}:{tn}", style={
+                        "fontSize": "8px", "fontFamily": MONO, "color": tc,
+                        "background": f"{tc}15", "borderRadius": "2px",
+                        "padding": "0px 4px", "marginLeft": "3px",
+                    }))
+
             round_rows.append(html.Div([
                 html.Span(f"R{int(rnd)}", style={"color": D_MUT, "fontSize": "10px",
                                                   "fontFamily": MONO, "minWidth": "22px"}),
@@ -2130,57 +2505,79 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
                     "height": "8px", "borderRadius": "3px",
                     "background": rc, "opacity": "0.75",
                     "width": f"{rwr:.0f}%", "minWidth": "4px",
-                    "flex": "1", "maxWidth": "120px",
+                    "flex": "1", "maxWidth": "100px",
                 }),
                 html.Span(f"{rwr:.0f}% ({rn})", style={"color": rc, "fontSize": "10px",
-                                                         "fontFamily": MONO, "minWidth": "60px",
+                                                         "fontFamily": MONO, "minWidth": "58px",
                                                          "textAlign": "right"}),
-            ], style={"display": "flex", "alignItems": "center", "gap": "8px",
-                      "marginBottom": "4px"}))
-
-        # Per-position breakdown
-        pos_rows = []
-        for pos in sorted(h2026['Position'].unique()):
-            p  = h2026[h2026['Position'] == pos]
-            pw = int(p['win'].sum())
-            pn = len(p)
-            pwr = pw / pn * 100 if pn else 0
-            pc  = "#2dd4bf" if pwr >= 65 else ("#f9744b" if pwr >= 55 else "#f87171")
-            pos_rows.append(html.Div([
-                html.Span(pos, style={"color": D_MUT, "fontSize": "10px",
-                                      "fontFamily": MONO, "minWidth": "44px"}),
-                html.Span(f"{pwr:.0f}%", style={"color": pc, "fontSize": "10px",
-                                                  "fontFamily": MONO, "fontWeight": "600",
-                                                  "minWidth": "34px"}),
-                html.Span(f"({pn})", style={"color": D_FADED, "fontSize": "10px",
-                                             "fontFamily": MONO}),
+                *tier_bits,
             ], style={"display": "flex", "alignItems": "center", "gap": "6px",
-                      "marginBottom": "3px"}))
+                      "marginBottom": "4px", "flexWrap": "wrap"}))
+
+        # ── Per-tier by round table ───────────────────────────────────────────
+        tier_rnd_rows = []
+        rounds = sorted(tiered['Round'].dropna().unique())
+        for tier, _, tc in tier_cfg:
+            cols = []
+            for rnd in rounds:
+                sub = h2026[(h2026['Round'] == rnd) & (h2026['Strategy'] == tier)]
+                n   = len(sub)
+                w   = int(sub['win'].sum()) if n else 0
+                wr_t = w / n * 100 if n else None
+                cols.append(html.Td(
+                    f"{wr_t:.0f}%" if wr_t is not None else "—",
+                    style={"padding": "3px 8px", "fontSize": "10px", "fontFamily": MONO,
+                           "textAlign": "center",
+                           "color": _wr_col(wr_t) if wr_t is not None else D_FADED}
+                ))
+            tier_rnd_rows.append(html.Tr([
+                html.Td(tier, style={"padding": "3px 8px", "fontSize": "10px",
+                                     "fontFamily": MONO, "color": tc, "fontWeight": "700"}),
+                *cols,
+            ]))
+
+        tier_rnd_table = html.Table([
+            html.Thead(html.Tr([
+                html.Th("", style={"padding": "3px 8px", "fontSize": "9px",
+                                   "fontFamily": MONO, "color": D_FADED}),
+                *[html.Th(f"R{int(r)}", style={"padding": "3px 8px", "fontSize": "9px",
+                                               "fontFamily": MONO, "color": D_FADED,
+                                               "textAlign": "center"})
+                  for r in rounds],
+            ])),
+            html.Tbody(tier_rnd_rows),
+        ], style={"borderCollapse": "collapse", "width": "100%", "marginTop": "8px"})
+
+        cached_at = _BET_HISTORY.get('cached_at')
+        ts_str = f"  ·  as of {cached_at.strftime('%H:%M')}" if cached_at else ""
 
         return html.Div([
-            html.Div("STRATEGY WIN RATE · 2026", style={
-                "fontSize": "9px", "fontWeight": "600", "color": D_MUT,
-                "letterSpacing": "0.12em", "textTransform": "uppercase",
-                "fontFamily": MONO, "marginBottom": "10px",
-            }),
             html.Div([
-                _kpi("Overall WR", f"{wr:.1f}%", f"{wins}W / {total-wins}L", wr_color),
-                _kpi("Legs", str(total), "qualifying"),
-            ], style={"display": "flex", "gap": "8px", "marginBottom": "12px",
-                      "flexWrap": "wrap"}),
+                html.Span("STRATEGY WIN RATE · 2026", style={
+                    "fontSize": "9px", "fontWeight": "600", "color": D_MUT,
+                    "letterSpacing": "0.12em", "textTransform": "uppercase",
+                    "fontFamily": MONO,
+                }),
+                html.Span(ts_str, style={
+                    "fontSize": "9px", "color": D_FADED, "fontFamily": MONO,
+                }),
+            ], style={"display": "flex", "alignItems": "center",
+                      "gap": "4px", "marginBottom": "10px"}),
+            html.Div(tier_cards, style={"display": "flex", "gap": "8px",
+                                        "marginBottom": "12px", "flexWrap": "wrap"}),
             html.Div([
                 html.Div([
                     html.Div("BY ROUND", style={"fontSize": "9px", "color": D_FADED,
                                                  "fontFamily": MONO, "letterSpacing": "0.1em",
                                                  "marginBottom": "6px"}),
                     *round_rows,
-                ], style={"flex": "1", "minWidth": "160px"}),
+                ], style={"flex": "1", "minWidth": "200px"}),
                 html.Div([
-                    html.Div("BY POSITION", style={"fontSize": "9px", "color": D_FADED,
-                                                    "fontFamily": MONO, "letterSpacing": "0.1em",
-                                                    "marginBottom": "6px"}),
-                    *pos_rows,
-                ], style={"flex": "1", "minWidth": "120px"}),
+                    html.Div("BY TIER × ROUND", style={"fontSize": "9px", "color": D_FADED,
+                                                         "fontFamily": MONO, "letterSpacing": "0.1em",
+                                                         "marginBottom": "2px"}),
+                    tier_rnd_table,
+                ], style={"flex": "1", "minWidth": "200px"}),
             ], style={"display": "flex", "gap": "16px", "flexWrap": "wrap"}),
         ], style={
             "marginBottom": "14px", "padding": "12px 14px",
@@ -2338,7 +2735,7 @@ def build_multi_builder_layout(checked_ids=None, rr_top_n=4, excluded_teams=None
         _section([
             _sec_title("Active legs", n_active),
             html.Div(
-                "Check rows to exclude them from picks",
+                "Click × column to exclude/include a leg",
                 style={"fontSize": "11px", "color": "rgba(225,217,207,0.4)",
                        "fontFamily": FONT, "marginBottom": "6px", "fontStyle": "italic"}
             ),
@@ -2415,16 +2812,11 @@ app.layout = dbc.Container([
     dcc.Store(id='excluded-teams-store', storage_type='local', data=[]),
     dcc.Store(id='excluded-legs-store',  storage_type='local', data=[]),
 
-    # Auto-refresh performance tracker every 5 minutes
-    dcc.Interval(id='perf-interval', interval=5*60*1000, n_intervals=0),
-
     html.Div([
         dbc.Tabs([
-            dbc.Tab(label="📊 Performance",       tab_id="tab-performance",  labelClassName="fw-bold text-primary"),
             dbc.Tab(label="🎯 Multi Builder",     tab_id="tab-multi",        labelClassName="fw-bold text-success"),
             dbc.Tab(label="🧠 Analysis",          tab_id="tab-analysis",     labelClassName="fw-bold text-warning"),
-            dbc.Tab(label="🔬 Calibration",       tab_id="tab-calibration",  labelClassName="fw-bold text-info"),
-        ], id="stat-tabs", active_tab="tab-performance"),
+        ], id="stat-tabs", active_tab="tab-multi"),
     ], style={"display": "flex", "alignItems": "flex-end", "marginBottom": "12px"}),
 
     dbc.Row([
@@ -2468,9 +2860,6 @@ app.layout = dbc.Container([
 
     # ── Multi builder (shown for Multi Builder tab) ───────────────────────
     html.Div(id="multi-builder-content"),
-
-    # ── Performance tracker (shown for Performance tab) ───────────────────
-    html.Div(id="performance-content"),
 
     # ── Analysis (shown for Analysis tab) ─────────────────────────────────
     html.Div(id="analysis-content"),
@@ -2665,465 +3054,11 @@ def refresh_markets(n_clicks):
 
 
 
-# ── Performance tracker helpers ───────────────────────────────────────────────
-
-STRATEGY_LABELS = {
-    "T1": "T1 · Premium Tackle Under",
-    "T2": "T2 · Standard Tackle Under",
-    # legacy — keep for old bet log rows
-    "1": "P1 · Tackle Mod Travel",
-    "2": "P2 · Mark multi-confirm",
-    "3": "P3 · KeyF Mark",
-    "4": "P4 · Tackle Strong Unders",
-    "5": "P5 · Mark Strong Unders",
-    "6": "P6 · GenF Tackle",
-}
-
-STRATEGY_TARGET_WR = {
-    "T1": 73.5, "T2": 63.0,
-    # legacy
-    "1": 95.7, "2": 90.0, "3": 85.0,
-    "4": 79.3, "5": 73.3, "6": 69.8,
-}
 
 
-def load_performance_data():
-    """
-    Read the master Google Sheet and return a cleaned dataframe
-    containing only rows that have both a Bet Priority and a W/L result.
-    Returns None if the sheet cannot be read.
-    """
-    client = get_sheets_client()
-    if client is None:
-        return None
-    try:
-        sheet     = client.open_by_key(GOOGLE_SHEET_ID)
-        worksheet = sheet.worksheet(GOOGLE_SHEET_TAB)
-        records   = worksheet.get_all_records()
-        if not records:
-            return pd.DataFrame()
-        df = pd.DataFrame(records)
-        # Keep only rows that have a W/L result
-        df = df[df['W/L'].astype(str).str.strip().isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])]
-        df['W/L']            = pd.to_numeric(df['W/L'],   errors='coerce')
-        df['Round']          = pd.to_numeric(df['Round'], errors='coerce')
-        df['Year']           = pd.to_numeric(df['Year'],  errors='coerce')
-        df['Line']           = pd.to_numeric(df.get('Line', pd.Series(dtype=float)), errors='coerce')
-        df['Avg vs Line']    = pd.to_numeric(
-            df.get('Avg vs Line', pd.Series(dtype=float))
-              .astype(str).str.replace('%','').str.replace('+',''), errors='coerce')
-        df['Strategy']       = df['Strategy'].astype(str).str.strip()
-        df['Type']           = df['Type'].astype(str).str.strip()
-        df['Position']       = df.get('Position',       pd.Series('', index=df.index)).astype(str).str.strip()
-        df['DvP']            = df.get('DvP',            pd.Series('', index=df.index)).astype(str).str.strip()
-        df['Travel Fatigue'] = df.get('Travel Fatigue', pd.Series('', index=df.index)).astype(str).str.strip()
-        df['Opponent']       = df.get('Opponent',       pd.Series('', index=df.index)).astype(str).str.strip()
-
-        # Re-derive Strategy for Tackle rows where it was never stored.
-        # Uses the same logic as calculate_bet_flag() against the columns already
-        # in the sheet — Line, Avg vs Line, Position, DvP, Travel Fatigue, Opponent.
-        # Stadium filter is skipped (not stored), so a tiny number of edge cases
-        # (GMHBA / Kardinia) might slip through — acceptable for historical analysis.
-        def _infer_strategy(row):
-            if row['Strategy'] in ('T1', 'T2'):
-                return row['Strategy']          # already set — leave it
-            if row['Type'] != 'Tackle':
-                return row['Strategy']          # only applies to tackle bets
-
-            position = row['Position']
-            dvp      = row['DvP']
-            travel   = row['Travel Fatigue']
-            opponent = row['Opponent']
-
-            # Base avoid filters
-            try:
-                line_val = float(row.get('Line', 0) or 0)
-            except (ValueError, TypeError):
-                return ''
-            if line_val < 4:                                   return ''
-            if opponent in TACKLE_BAD_OPPONENTS:               return ''
-            if position == 'MedF':                             return ''
-            if position == 'FwdMid':                           return ''
-
-            # T1: Wing/Ruck/GenD — no AvL filter
-            if position in ('Wing', 'Ruck', 'GenD'):
-                return 'T1'
-
-            # T1: AvL < -20% — Dabble line set too high
-            try:
-                avl = float(str(row.get('Avg vs Line', '') or '').replace('%','').replace('+',''))
-            except (ValueError, TypeError):
-                avl = 0.0
-            if avl < -20.0:                                    return 'T1'
-
-            # AvL filter (post T1 bypass)
-            if avl >= 10.0:                                    return ''
-
-            return 'T2'
-
-        df['Strategy'] = df.apply(_infer_strategy, axis=1)
-        return df
-    except Exception as e:
-        print(f"WARN: Performance data load error: {e}")
-        return None
-
-
-def load_pair_log_data():
-    """Load Pair Log tab — supports 2–12 leg multis (LegN Player / LegN WL columns). Returns None on error."""
-    client = get_sheets_client()
-    if client is None:
-        return None
-    try:
-        sheet   = client.open_by_key(GOOGLE_SHEET_ID)
-        ws      = sheet.worksheet(PAIR_LOG_TAB)
-        records = ws.get_all_records()
-        if not records:
-            return pd.DataFrame()
-        df = pd.DataFrame(records)
-        df.columns = [c.strip() for c in df.columns]
-
-        def _num(s):
-            try: return float(str(s).replace('$','').replace(',','').replace('+','').replace('%','').strip())
-            except: return None
-
-        df['Round']      = pd.to_numeric(df.get('Round', pd.Series()), errors='coerce')
-        df['stake_num']  = df['Stake'].apply(_num)  if 'Stake'  in df.columns else 0
-        df['profit_num'] = df['Profit'].apply(_num) if 'Profit' in df.columns else None
-        # Overall multi W/L is in 'WL' column
-        wl_col = 'WL' if 'WL' in df.columns else ('W/L' if 'W/L' in df.columns else None)
-        df['wl'] = df[wl_col].astype(str).str.strip() if wl_col else ''
-
-        # Parse up to 12 legs — columns "LegN Player" / "LegN WL"
-        MAX_LEGS = 12
-        players_cols = [f'Leg{i} Player' for i in range(1, MAX_LEGS+1) if f'Leg{i} Player' in df.columns]
-        wl_cols      = [f'Leg{i} WL'     for i in range(1, MAX_LEGS+1) if f'Leg{i} WL'     in df.columns]
-
-        # Legs count — count non-empty player slots
-        df['legs'] = df[players_cols].apply(
-            lambda r: sum(1 for v in r if str(v).strip() not in ('', 'nan')), axis=1
-        ) if players_cols else 0
-
-        # Hits count — count W results across individual legs
-        def _hit(v):
-            s = str(v).strip().upper()
-            if s in ('W', '1', '1.0'):  return 1
-            if s in ('L', '-1', '0', '0.0', '-1.0'): return 0
-            return None
-
-        if wl_cols:
-            df['hits'] = df[wl_cols].apply(
-                lambda r: sum(_hit(v) for v in r if _hit(v) is not None), axis=1
-            )
-        else:
-            df['hits'] = None
-
-        # Player list per row (for player-level contribution table)
-        if players_cols:
-            df['player_list'] = df[players_cols].apply(
-                lambda r: [str(v).strip() for v in r if str(v).strip() not in ('', 'nan')], axis=1
-            )
-        else:
-            df['player_list'] = [[]] * len(df)
-
-        # Only keep rows with a resolved result
-        df = df[df['wl'].isin(['W', 'L'])]
-        return df
-    except Exception as e:
-        print(f"Multi log load error: {e}")
-        return None
-
-
-def make_metric_card(label, value, sub=None, color="#2dd4bf", css_class="kpi-cyan"):
-    """Glass KPI card — colour through border and number only."""
-    MONO = "var(--mono, 'JetBrains Mono', monospace)"
-    FONT = "var(--display, 'Inter', sans-serif)"
-    return html.Div([
-        html.Div(label, style={
-            "fontSize": "9px", "color": "rgba(225, 217, 207, 0.45)",
-            "textTransform": "uppercase", "letterSpacing": "0.10em",
-            "fontWeight": "500", "marginBottom": "10px",
-            "fontFamily": MONO,
-        }),
-        html.Div(value, style={
-            "fontSize": "34px", "fontWeight": "700", "color": color,
-            "lineHeight": "1", "marginBottom": "8px",
-            "fontFamily": FONT,
-            "letterSpacing": "-0.02em",
-        }),
-        html.Div(sub, style={
-            "fontSize": "11px", "color": "rgba(225, 217, 207, 0.45)",
-            "fontFamily": MONO,
-            "lineHeight": "1.5",
-        }) if sub else None,
-    ], className=css_class, style={
-        "background": "rgba(18, 77, 84, 0.45)",
-        "backdropFilter": "blur(12px)",
-        "borderRadius": "10px",
-        "padding": "16px 18px",
-        "flex": "1",
-        "border": "1px solid rgba(225, 217, 207, 0.10)",
-        "borderLeft": f"3px solid {color}",
-        "minWidth": "150px",
-    })
-
-
-def _wr(sub):
-    """Win rate % excl pushes, or 0 if no data."""
-    w = (sub['W/L'] == 1).sum()
-    p = (sub['W/L'] == 0).sum()
-    n = len(sub) - p
-    return round(w / n * 100, 1) if n > 0 else 0
-
-
-def build_performance_layout(df, pair_df=None):
-
-    # ── Palette ───────────────────────────────────────────────────────────────
-    BG     = "#0a0a0a"
-    CARD   = "#111111"
-    CARD2  = "#0d0d0d"
-    BORDER = "rgba(255,255,255,0.06)"
-    TEXT   = "#f0f0f0"
-    MUTED  = "rgba(240,240,240,0.5)"
-    FADED  = "rgba(240,240,240,0.25)"
-    BLUE   = "#0066ff"
-    WIN    = "#00d4aa"
-    LOSS   = "#ff4d6d"
-    AMBER  = "#f59e0b"
-    FONT   = "var(--display, 'Inter', sans-serif)"
-    MONO   = "var(--mono, 'JetBrains Mono', monospace)"
-    SHADOW = "0 4px 24px rgba(0,0,0,0.4)"
-
-    # ── Filter: multis from Round 6+ ─────────────────────────────────────────
-    pdf = pd.DataFrame()
-    if pair_df is not None and not pair_df.empty:
-        mask = pair_df['Round'].notna() & (pd.to_numeric(pair_df['Round'], errors='coerce') >= 6)
-        pdf  = pair_df[mask].copy()
-
-    if pdf.empty:
-        return dbc.Alert("No multi data from Round 6+ yet.", color="info", className="mt-3")
-
-    # ── KPIs ──────────────────────────────────────────────────────────────────
-    wins      = int((pdf['wl'] == 'W').sum())
-    losses    = int((pdf['wl'] == 'L').sum())
-    total     = wins + losses
-    multi_wr  = round(wins / total * 100, 1) if total > 0 else 0
-    total_pnl = pdf['profit_num'].sum() if 'profit_num' in pdf.columns else 0
-    total_stk = pdf['stake_num'].sum()  if 'stake_num'  in pdf.columns else 0
-    roi       = round(total_pnl / total_stk * 100, 1) if total_stk > 0 else 0
-
-    has_hits     = 'hits' in pdf.columns and pdf['hits'].notna().any()
-    leg_hit_rate = None
-    if has_hits:
-        leg_hit_rate = round(pdf['hits'].sum() / pdf['legs'].sum() * 100, 1) \
-                       if pdf['legs'].sum() > 0 else None
-
-    def _kpi(title, value, sub, color):
-        return html.Div([
-            html.Div(title, style={"fontSize":"9px","fontWeight":"600","color":FADED,
-                                   "letterSpacing":"0.12em","textTransform":"uppercase",
-                                   "fontFamily":MONO,"marginBottom":"10px"}),
-            html.Div(value, style={"fontSize":"24px","fontWeight":"800","color":color,
-                                   "fontFamily":MONO,"letterSpacing":"-0.02em",
-                                   "lineHeight":"1","marginBottom":"8px"}),
-            html.Div(sub, style={"fontSize":"10px","color":MUTED,"fontFamily":MONO}),
-        ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px","flex":"1",
-                  "border":f"1px solid {BORDER}","borderTop":f"3px solid {color}",
-                  "boxShadow":SHADOW,"minWidth":"0"})
-
-    wr_col  = WIN if multi_wr >= 50 else (AMBER if multi_wr >= 40 else LOSS)
-    pnl_col = WIN if total_pnl >= 0 else LOSS
-    roi_col = WIN if roi >= 0 else LOSS
-    hit_col = WIN if (leg_hit_rate or 0) >= 80 else AMBER
-    rnd_rng = (f"R{int(pdf['Round'].min())}\u2013R{int(pdf['Round'].max())}"
-               if not pdf.empty else "R6+")
-
-    kpi_row = html.Div([
-        _kpi("Multi Win Rate",  f"{multi_wr}%",  f"{wins}W \u00b7 {losses}L \u00b7 {rnd_rng}", wr_col),
-        _kpi("Net P&L",         f"${total_pnl:+.2f}", f"${total_stk:.0f} staked \u00b7 {total} multis", pnl_col),
-        _kpi("ROI",             f"{roi:+.1f}%",  "profit \u00f7 total staked", roi_col),
-        _kpi("Leg Hit Rate",
-             f"{leg_hit_rate}%" if leg_hit_rate is not None else "\u2014",
-             "avg legs won per multi", hit_col),
-    ], style={"display":"flex","gap":"12px","marginBottom":"14px"})
-
-    # ── Style helpers ─────────────────────────────────────────────────────────
-    TH = {"fontSize":"9px","color":FADED,"fontWeight":"500",
-          "textTransform":"uppercase","letterSpacing":"0.08em",
-          "padding":"8px 12px","borderBottom":f"1px solid {BORDER}",
-          "background":CARD2,"fontFamily":MONO,"whiteSpace":"nowrap"}
-    TD = lambda v, col=TEXT, bold=False: html.Td(v, style={
-        "padding":"9px 12px","fontSize":"11px","color":col,
-        "fontFamily":FONT,"fontWeight":"700" if bold else "400","whiteSpace":"nowrap"})
-
-    # ── Hit distribution ──────────────────────────────────────────────────────
-    hit_section = html.Div()
-    if has_hits:
-        hit_rows = []
-        for h in sorted(pdf['hits'].dropna().unique(), reverse=True):
-            h   = int(h)
-            sub = pdf[pdf['hits'] == h]
-            w   = int((sub['wl'] == 'W').sum()); l = int((sub['wl'] == 'L').sum())
-            prf = sub['profit_num'].sum(); stk = sub['stake_num'].sum()
-            roi_h  = round(prf / stk * 100, 1) if stk > 0 else 0
-            pc     = WIN if prf >= 0 else LOSS
-            stripe = WIN if h == 6 else (AMBER if h == 5 else (BLUE if h == 4 else LOSS))
-            hit_rows.append(html.Tr([
-                html.Td(style={"width":"3px","padding":"0","background":stripe,"borderRadius":"2px"}),
-                TD(f"{h}/6", bold=True),
-                TD(f"{len(sub)}"),
-                TD(f"{w}W \u00b7 {l}L"),
-                TD(f"{roi_h:+.1f}%", WIN if roi_h >= 0 else LOSS),
-                TD(f"${prf:+.2f}", pc, bold=True),
-            ], className="strat-row"))
-        hit_section = html.Div([
-            html.Div("HIT DISTRIBUTION \u00b7 6-leg multis", style={
-                "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
-                "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
-            html.Div(html.Table([
-                html.Thead(html.Tr(
-                    [html.Th("", style={**TH,"width":"3px","padding":"0"})] +
-                    [html.Th(h, style=TH) for h in ["Hits","Multis","Record","ROI","P&L"]]
-                )),
-                html.Tbody(hit_rows),
-            ], style={"width":"100%","borderCollapse":"collapse"}),
-            style={"overflowX":"auto"}),
-        ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
-                  "border":f"1px solid {BORDER}","marginBottom":"14px"})
-
-    # ── Round-by-round bars ───────────────────────────────────────────────────
-    rounds  = sorted(pdf['Round'].dropna().unique())
-    max_abs = max((abs(pdf[pdf['Round'] == r]['profit_num'].sum()) for r in rounds), default=1)
-    round_bars = []
-    for rnd in rounds:
-        sub   = pdf[pdf['Round'] == rnd]
-        prf   = sub['profit_num'].sum(); stk = sub['stake_num'].sum()
-        roi_r = round(prf / stk * 100, 1) if stk > 0 else 0
-        w     = int((sub['wl'] == 'W').sum()); l = int((sub['wl'] == 'L').sum())
-        col   = WIN if prf >= 0 else LOSS
-        bar_w = max(2, abs(prf) / max_abs * 100) if max_abs > 0 else 2
-        round_bars.append(html.Div([
-            html.Div(f"R{int(rnd)}", style={"fontSize":"9px","color":MUTED,
-                "fontFamily":MONO,"width":"24px","flexShrink":"0"}),
-            html.Div(style={"height":"6px","width":f"{bar_w}%","maxWidth":"60%",
-                "background":col,"borderRadius":"3px","opacity":"0.75"}),
-            html.Div(f"${prf:+.0f}  ({roi_r:+.0f}%)  {w}W {l}L",
-                style={"fontSize":"10px","color":col,"fontFamily":MONO,"marginLeft":"8px"}),
-        ], style={"display":"flex","alignItems":"center","gap":"6px","marginBottom":"5px"}))
-
-    round_section = html.Div([
-        html.Div("ROUND BY ROUND", style={
-            "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
-            "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
-        html.Div(round_bars),
-    ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
-              "border":f"1px solid {BORDER}","marginBottom":"14px"})
-
-    # ── Player contribution ───────────────────────────────────────────────────
-    from collections import defaultdict as _dd
-    ps = _dd(lambda: {'multis': 0, 'wins': 0, 'profit': 0.0})
-    for _, row in pdf.iterrows():
-        for p in (row.get('player_list') or []):
-            ps[p]['multis']  += 1
-            if row['wl'] == 'W': ps[p]['wins'] += 1
-            ps[p]['profit']  += row['profit_num'] or 0
-
-    player_rows = []
-    for p, s in sorted(ps.items(), key=lambda x: -x[1]['profit']):
-        pwr = round(s['wins'] / s['multis'] * 100, 1) if s['multis'] > 0 else 0
-        pc  = WIN if s['profit'] >= 0 else LOSS
-        player_rows.append(html.Tr([
-            TD(p, bold=True), TD(f"{s['multis']}"),
-            TD(f"{s['wins']}W \u00b7 {s['multis'] - s['wins']}L"),
-            TD(f"{pwr:.1f}%", WIN if pwr >= 50 else LOSS),
-            TD(f"${s['profit']:+.2f}", pc, bold=True),
-        ]))
-
-    player_section = html.Div([
-        html.Div("PLAYER CONTRIBUTION", style={
-            "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
-            "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"8px"}),
-        html.Div(html.Table([
-            html.Thead(html.Tr([html.Th(h, style=TH)
-                for h in ["Player","Multis","Record","Win Rate","P&L"]])),
-            html.Tbody(player_rows),
-        ], style={"width":"100%","borderCollapse":"collapse"}),
-        style={"overflowX":"auto"}),
-    ], style={"background":CARD,"borderRadius":"10px","padding":"18px 20px",
-              "border":f"1px solid {BORDER}","marginBottom":"14px"})
-
-    # ── Cumulative P&L chart ──────────────────────────────────────────────────
-    cumsum_chart = html.Div()
-    if not pdf.empty and not pdf['profit_num'].isna().all():
-        plot_df = pdf.copy()
-        plot_df['cumsum'] = plot_df['profit_num'].cumsum()
-        xs  = list(range(len(plot_df))); ys = plot_df['cumsum'].tolist()
-        rds = plot_df['Round'].tolist(); wls = plot_df['wl'].tolist()
-        prf = plot_df['profit_num'].tolist()
-        hover = [f"<b>Multi {i+1}</b>  R{int(r) if r==r else '?'}<br>"
-                 f"{wl}  ${p:+.2f}  |  Cumulative: ${y:+.2f}"
-                 for i,(r,wl,p,y) in enumerate(zip(rds,wls,prf,ys))]
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines',
-            line=dict(color=WIN, width=2), fill='tozeroy',
-            fillcolor='rgba(45,212,191,0.08)',
-            hovertext=hover, hoverinfo='text', showlegend=False))
-        neg_xs = [x for x,y in zip(xs,ys) if y < 0]
-        neg_ys = [y for y in ys if y < 0]
-        if neg_xs:
-            fig.add_trace(go.Scatter(x=neg_xs, y=neg_ys, mode='markers',
-                marker=dict(color=LOSS, size=3, opacity=0.6),
-                hoverinfo='skip', showlegend=False))
-        fig.add_hline(y=0, line=dict(color=FADED, width=1, dash='dot'))
-        round_starts = {}
-        for i, r in enumerate(rds):
-            if r not in round_starts: round_starts[r] = i
-        for r, xi in round_starts.items():
-            if xi > 0:
-                fig.add_vline(x=xi, line=dict(color=BORDER, width=1, dash='dot'),
-                    annotation=dict(text=f"R{int(r)}",
-                        font=dict(size=9, color=FADED, family='JetBrains Mono'),
-                        xanchor='left', yanchor='top', bgcolor='rgba(0,0,0,0)'))
-        final = ys[-1] if ys else 0
-        fig.update_layout(
-            title=dict(text=f"CUMULATIVE PROFIT \u00b7 6-leg R6+ \u00b7 ${final:+.2f}",
-                font=dict(size=10, color=WIN if final >= 0 else LOSS, family='JetBrains Mono'), x=0),
-            height=220, margin=dict(l=0, r=10, t=30, b=10),
-            paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
-            xaxis=dict(showticklabels=False, showgrid=False,
-                       linecolor='rgba(0,0,0,0)', zeroline=False),
-            yaxis=dict(tickfont=dict(size=10, color=FADED, family='JetBrains Mono'),
-                       gridcolor=BORDER, linecolor='rgba(0,0,0,0)', zeroline=False, tickprefix='$'),
-            hoverlabel=dict(bgcolor="rgba(9,29,38,0.95)", bordercolor=BORDER,
-                font_color=TEXT, font_family='JetBrains Mono', font_size=11),
-            showlegend=False)
-        cumsum_chart = html.Div(
-            [dcc.Graph(figure=fig, config={'displayModeBar': False})],
-            style={"marginBottom":"14px","borderLeft":f"2px solid {WIN}30","paddingLeft":"2px"})
-
-    # ── Layout ────────────────────────────────────────────────────────────────
-    left_col = html.Div([
-        hit_section,
-        round_section,
-        player_section,
-    ], style={"flex":"1","minWidth":"0"})
-
-    right_col = html.Div([
-        html.Div("CUMULATIVE P&L \u00b7 6-leg multis R6+", style={
-            "color":MUTED,"fontWeight":"500","fontSize":"9px","fontFamily":MONO,
-            "letterSpacing":"0.1em","textTransform":"uppercase","marginBottom":"12px"}),
-        cumsum_chart,
-    ], style={"flex":"1","minWidth":"0","background":CARD,"borderRadius":"10px",
-              "padding":"18px 20px","border":f"1px solid {BORDER}"})
-
-    return html.Div([
-        kpi_row,
-        html.Div([left_col, right_col],
-                 style={"display":"flex","gap":"14px","alignItems":"flex-start"}),
-    ], style={"background":BG,"padding":"18px","borderRadius":"8px","minHeight":"100vh"})
-
-# ── Analysis tab layout ───────────────────────────────────────────────────────
-def build_calibration_layout():
+def build_combined_layout():
     import math
+    from math import comb
 
     BG     = "#0a0a0a"
     CARD   = "#111111"
@@ -3134,55 +3069,102 @@ def build_calibration_layout():
     WIN    = "#00d4aa"
     LOSS   = "#ff4d6d"
     AMBER  = "#f59e0b"
-    BLUE   = "#0066ff"
     MONO   = "var(--mono, 'JetBrains Mono', monospace)"
 
-    # ── Load bet history from Google Sheets ───────────────────────────────────
-    client = get_sheets_client()
-    if client is None:
+    # ── Load data ─────────────────────────────────────────────────────────────
+    records = _load_raw_sheet()
+    if records is None:
         return dbc.Alert("⚠️ Google Sheets not configured.", color="warning", className="mt-3")
-
-    try:
-        sheet   = client.open_by_key(GOOGLE_SHEET_ID)
-        ws      = sheet.worksheet(GOOGLE_SHEET_TAB)
-        records = ws.get_all_records()
-    except Exception as e:
-        return dbc.Alert(f"⚠️ Could not load sheet: {e}", color="warning", className="mt-3")
-
-    df = pd.DataFrame(records)
-    if df.empty:
+    if not records:
         return dbc.Alert("No data in sheet yet.", color="info", className="mt-3")
 
-    # Keep only Tackle rows with resolved W/L, passing all hard filters
-    df = df[df.get('Type', pd.Series()).astype(str).str.strip() == 'Tackle']
-    df = df[df['W/L'].astype(str).str.strip().isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])]
-    df['W/L']     = pd.to_numeric(df['W/L'], errors='coerce')
-    df['win']     = (df['W/L'] == 1).astype(int)
-    df['hist_wr'] = df.get('Hist WR', pd.Series('', index=df.index)).astype(str).str.strip()
-    df['conf']    = df.get('Confidence', pd.Series('', index=df.index)).astype(str).str.strip()
-    df['rng']     = df.get('Range', pd.Series('', index=df.index)).astype(str).str.strip()
+    raw = pd.DataFrame(records)
+    raw.columns = [c.strip() for c in raw.columns]
+    if 'Type' in raw.columns:
+        raw = raw[raw['Type'].astype(str).str.strip() == 'Tackle'].copy()
+    else:
+        raw = raw.copy()  # guarantee ownership so column additions always persist
+    for col in ('Year', 'Round', 'Player', 'Team', 'Opponent', 'Position', 'W/L', 'Strategy',
+                'Line', 'Avg vs Line', 'Line Consistency', 'DvP', 'Weather', 'Travel Fatigue',
+                'Hist WR', 'Confidence', 'Subjective Avoid Reason', 'Actual'):
+        if col not in raw.columns:
+            raw[col] = ''
+        raw[col] = raw[col].astype(str).str.strip()
+    raw['year_num'] = pd.to_numeric(raw['Year'],  errors='coerce')
+    raw['rnd_num']  = pd.to_numeric(raw['Round'], errors='coerce')
+    raw['wl']       = pd.to_numeric(raw['W/L'],   errors='coerce')
 
-    # Apply the same hard filters so calibration stats reflect only qualifying legs
-    df = df[df.apply(_passes_bet_filters, axis=1)].copy()
+    # Resolved rows only
+    resolved = raw[raw['W/L'].isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])].copy()
+    resolved['win'] = (resolved['wl'] == 1).astype(int)
 
-    df_with_wr = df[df['hist_wr'].str.contains('%', na=False)].copy()
+    def _p_avl(s):
+        try:    return float(str(s).replace('%', '').replace('+', ''))
+        except: return None
 
-    def parse_wr(s):
+    def _p_line(s):
+        try:    return float(str(s))
+        except: return None
+
+    def _p_dvp(s):
+        for kw in ('Strong Unders', 'Moderate Unders', 'Slight Unders', 'Neutral',
+                   'Slight Easy', 'Moderate Easy', 'Strong Easy'):
+            if kw in str(s):
+                return kw
+        return 'Other'
+
+    def _p_lc(s):
         try:
-            pct_part, n_part = str(s).split('%')
-            return float(pct_part.strip()), int(n_part.strip().strip('()'))
-        except Exception:
+            v = float(str(s).replace('%', '').strip())
+            return v * 100 if v <= 1.0 else v  # normalise 0-1 → 0-100 if needed
+        except:
+            return None
+
+    resolved['_avl']  = resolved['Avg vs Line'].apply(_p_avl)
+    resolved['_line'] = resolved['Line'].apply(_p_line)
+    resolved['_dvp']  = resolved['DvP'].apply(_p_dvp)
+    resolved['_pos']  = resolved['Position'].astype(str).str.strip()
+    resolved['_lc']   = resolved['Line Consistency'].apply(_p_lc)
+
+    # 4 analytical subsets: year × filter level
+    df25_raw = resolved[resolved['year_num'] == 2025].copy()
+    df26_raw = resolved[resolved['year_num'] == 2026].copy()
+    df25_hf  = df25_raw[df25_raw.apply(_passes_bet_filters, axis=1)].copy()
+    df26_hf  = df26_raw[df26_raw.apply(_passes_bet_filters, axis=1)].copy()
+
+    # 2026 strategy performance (T0/T1/T2 + hard filters — the full qualifying gate)
+    df26_strat   = df26_hf[df26_hf['Strategy'].isin(['T0', 'T1', 'T2'])].copy()
+    rounds_avail = sorted(df26_strat['rnd_num'].dropna().astype(int).unique()) if not df26_strat.empty else []
+    max_round    = rounds_avail[-1] if rounds_avail else "?"
+    _w = (df26_strat['wl'] == 1).sum()
+    _l = (df26_strat['wl'] == -1).sum()
+    WR = _w / (_w + _l) if (_w + _l) > 0 else 0.689
+
+    # Hist WR parsing for meta-calibration
+    def _parse_hist(s):
+        try:
+            pct, n_part = str(s).split('%')
+            return float(pct.strip()), int(n_part.strip().strip('()'))
+        except:
             return None, 0
 
-    df_with_wr[['pred_wr', 'pred_n']] = pd.DataFrame(
-        df_with_wr['hist_wr'].apply(lambda s: list(parse_wr(s))).tolist(),
-        index=df_with_wr.index
-    )
-    df_with_wr = df_with_wr.dropna(subset=['pred_wr'])
+    for _df in [df25_hf, df26_hf]:
+        _df['_hwr']   = _df['Hist WR'].astype(str).str.strip()
+        _df['_hwr_p'] = _df['_hwr'].apply(lambda s: _parse_hist(s)[0])
+        _df['_hwr_n'] = _df['_hwr'].apply(lambda s: _parse_hist(s)[1])
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # ── Style helpers ─────────────────────────────────────────────────────────
+    TH   = {"padding": "7px 10px", "fontSize": "10px", "fontFamily": MONO,
+             "color": MUTED, "fontWeight": "600", "textAlign": "right",
+             "borderBottom": f"1px solid {BORDER}", "whiteSpace": "nowrap"}
+    TH_L = {**TH, "textAlign": "left"}
+    TD   = {"padding": "6px 10px", "fontSize": "11px", "fontFamily": MONO,
+             "color": TEXT, "textAlign": "right",
+             "borderBottom": "1px solid rgba(255,255,255,0.04)"}
+    TD_L = {**TD, "textAlign": "left"}
+
     def _card(children, extra=None):
-        s = {"background": CARD, "borderRadius": "10px", "padding": "20px 22px",
+        s = {"background": CARD, "borderRadius": "10px", "padding": "18px 20px",
              "border": f"1px solid {BORDER}", "marginBottom": "16px"}
         if extra:
             s.update(extra)
@@ -3192,589 +3174,18 @@ def build_calibration_layout():
         return html.Div(txt, style={
             "color": MUTED, "fontWeight": "600", "fontSize": "9px",
             "fontFamily": MONO, "letterSpacing": "0.12em",
-            "textTransform": "uppercase", "marginBottom": "12px",
+            "textTransform": "uppercase", "marginBottom": "10px",
         })
-
-    TH = {"padding": "8px 14px", "fontSize": "10px", "fontFamily": MONO,
-          "color": MUTED, "fontWeight": "600", "textAlign": "right",
-          "borderBottom": f"1px solid {BORDER}", "whiteSpace": "nowrap"}
-    TH_L = {**TH, "textAlign": "left"}
-    TD = {"padding": "8px 14px", "fontSize": "12px", "fontFamily": MONO,
-          "color": TEXT, "textAlign": "right",
-          "borderBottom": f"1px solid rgba(255,255,255,0.04)"}
-    TD_L = {**TD, "textAlign": "left"}
-
-    def _wr_color(pct):
-        if pct is None: return FADED
-        if pct >= 65:   return WIN
-        if pct >= 56:   return BLUE
-        if pct >= 50:   return AMBER
-        return LOSS
-
-    def _bar(actual, predicted=None, width=120):
-        filled = max(0, min(100, actual or 0))
-        color  = _wr_color(actual)
-        bar = html.Div(style={
-            "display": "flex", "alignItems": "center", "gap": "6px"
-        }, children=[
-            html.Div(style={"position": "relative", "width": f"{width}px", "height": "6px",
-                            "background": "rgba(255,255,255,0.08)", "borderRadius": "3px"}, children=[
-                html.Div(style={"position": "absolute", "left": "0", "top": "0",
-                                "height": "6px", "borderRadius": "3px",
-                                "width": f"{filled}%", "background": color}),
-                # predicted marker
-                *([] if predicted is None else [
-                    html.Div(style={"position": "absolute", "top": "-2px",
-                                    "left": f"{min(100,max(0,predicted))}%",
-                                    "width": "2px", "height": "10px",
-                                    "background": "rgba(255,255,255,0.5)",
-                                    "transform": "translateX(-50%)"})
-                ])
-            ]),
-        ])
-        return bar
-
-    def _n_badge(n):
-        return html.Span(f"n={n}", style={
-            "fontSize": "9px", "fontFamily": MONO, "color": FADED,
-            "background": "rgba(255,255,255,0.05)", "borderRadius": "4px",
-            "padding": "1px 5px",
-        })
-
-    def _diff_span(actual, predicted):
-        if actual is None or predicted is None:
-            return html.Span("—", style={"color": FADED})
-        diff = actual - predicted
-        color = WIN if diff >= 0 else LOSS
-        return html.Span(f"{diff:+.1f}%", style={"color": color, "fontWeight": "600"})
 
     def _se(p, n):
         if n < 2: return 0
         return math.sqrt(p / 100 * (1 - p / 100) / n) * 100
 
-    # ── Summary banner ────────────────────────────────────────────────────────
-    total_n    = len(df)
-    with_wr_n  = len(df_with_wr)
-    overall_wr = df['win'].mean() * 100 if not df.empty else 0
-    above_56   = df_with_wr[df_with_wr['pred_wr'] >= 56]
-    above_wr   = above_56['win'].mean() * 100 if not above_56.empty else 0
-
-    banner = html.Div([
-        html.Div([
-            html.Div(f"{overall_wr:.1f}%", style={"fontSize": "28px", "fontWeight": "700",
-                                                    "color": _wr_color(overall_wr), "fontFamily": MONO}),
-            html.Div("overall tackle WR", style={"fontSize": "10px", "color": MUTED,
-                                                  "fontFamily": MONO, "marginTop": "2px"}),
-        ], style={"textAlign": "center", "padding": "0 24px"}),
-        html.Div(style={"width": "1px", "background": BORDER, "margin": "0 8px"}),
-        html.Div([
-            html.Div(f"{above_wr:.1f}%", style={"fontSize": "28px", "fontWeight": "700",
-                                                  "color": _wr_color(above_wr), "fontFamily": MONO}),
-            html.Div("WR on ≥56% predicted legs", style={"fontSize": "10px", "color": MUTED,
-                                                           "fontFamily": MONO, "marginTop": "2px"}),
-        ], style={"textAlign": "center", "padding": "0 24px"}),
-        html.Div(style={"width": "1px", "background": BORDER, "margin": "0 8px"}),
-        html.Div([
-            html.Div(f"{with_wr_n}", style={"fontSize": "28px", "fontWeight": "700",
-                                             "color": TEXT, "fontFamily": MONO}),
-            html.Div(f"legs with Hist WR  (of {total_n} total)", style={"fontSize": "10px", "color": MUTED,
-                                                                          "fontFamily": MONO, "marginTop": "2px"}),
-        ], style={"textAlign": "center", "padding": "0 24px"}),
-    ], style={"display": "flex", "justifyContent": "center", "alignItems": "center",
-              "background": CARD, "borderRadius": "10px", "padding": "20px",
-              "border": f"1px solid {BORDER}", "marginBottom": "20px"})
-
-    # ── TABLE 1: Calibration — predicted WR bucket vs actual WR ──────────────
-    BUCKETS = [
-        ("<50%",   None, 50),
-        ("50–55%", 50,   55),
-        ("55–60%", 55,   60),
-        ("60–65%", 60,   65),
-        ("65–70%", 65,   70),
-        ("70%+",   70,   None),
-    ]
-
-    calib_rows = []
-    for label, lo, hi in BUCKETS:
-        mask = pd.Series([True] * len(df_with_wr), index=df_with_wr.index)
-        if lo is not None:
-            mask &= df_with_wr['pred_wr'] >= lo
-        if hi is not None:
-            mask &= df_with_wr['pred_wr'] < hi
-        sub = df_with_wr[mask]
-        n   = len(sub)
-        if n == 0:
-            calib_rows.append(html.Tr([
-                html.Td(label, style=TD_L),
-                html.Td("—", style=TD), html.Td("—", style=TD),
-                html.Td("—", style=TD), html.Td("", style=TD),
-            ]))
-            continue
-        pred_mid = ((lo or 45) + (hi or 75)) / 2
-        actual   = sub['win'].mean() * 100
-        diff     = actual - pred_mid
-        se       = _se(actual, n)
-        calib_rows.append(html.Tr([
-            html.Td(label, style=TD_L),
-            html.Td(f"{pred_mid:.0f}%", style={**TD, "color": MUTED}),
-            html.Td([
-                html.Span(f"{actual:.1f}%", style={"color": _wr_color(actual), "fontWeight": "600"}),
-                html.Span(f" ±{se:.1f}", style={"color": FADED, "fontSize": "10px"}),
-            ], style=TD),
-            html.Td(_diff_span(actual, pred_mid), style=TD),
-            html.Td([_bar(actual, pred_mid), html.Span(" ", style={"display": "inline-block", "width": "6px"}), _n_badge(n)],
-                    style={**TD, "display": "flex", "alignItems": "center", "gap": "8px"}),
-        ]))
-
-    calib_table = html.Table([
-        html.Thead(html.Tr([
-            html.Th("Predicted bucket", style=TH_L),
-            html.Th("Pred mid",         style=TH),
-            html.Th("Actual WR",        style=TH),
-            html.Th("Δ",                style=TH),
-            html.Th("Visual",           style=TH),
-        ])),
-        html.Tbody(calib_rows),
-    ], style={"width": "100%", "borderCollapse": "collapse"})
-
-    calib_card = _card([
-        _label("1 — Calibration: does predicted WR match actual WR?"),
-        html.Div("White marker = predicted midpoint. Bar = actual. Δ = actual − predicted.",
-                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "14px"}),
-        calib_table,
-    ])
-
-    # ── TABLE 2: Cascade level vs actual WR ───────────────────────────────────
-    # Infer cascade level from sample size: Level 1 (n≥5 specific), Level 2/3 have larger n
-    # Best proxy: use pred_n as a rough signal — low n = Level 1 (most specific)
-    CASCADE_LEVELS = [
-        ("Level 1 — Position + DvP + Opponent",  5,   None, 20),
-        ("Level 2 — Position + DvP",             20,  None, 60),
-        ("Level 3 — Position only",              60,  None, None),
-    ]
-
-    casc_rows = []
-    for label, n_lo, n_mid, n_hi in CASCADE_LEVELS:
-        mask = pd.Series([True] * len(df_with_wr), index=df_with_wr.index)
-        if n_lo  is not None: mask &= df_with_wr['pred_n'] >= n_lo
-        if n_hi  is not None: mask &= df_with_wr['pred_n'] <  n_hi
-        sub = df_with_wr[mask]
-        n   = len(sub)
-        if n == 0:
-            casc_rows.append(html.Tr([
-                html.Td(label, style=TD_L),
-                html.Td("—", style=TD), html.Td("—", style=TD), html.Td("", style=TD),
-            ]))
-            continue
-        actual   = sub['win'].mean() * 100
-        pred_avg = sub['pred_wr'].mean()
-        se       = _se(actual, n)
-        casc_rows.append(html.Tr([
-            html.Td(label, style=TD_L),
-            html.Td([
-                html.Span(f"{actual:.1f}%", style={"color": _wr_color(actual), "fontWeight": "600"}),
-                html.Span(f" ±{se:.1f}", style={"color": FADED, "fontSize": "10px"}),
-            ], style=TD),
-            html.Td(_diff_span(actual, pred_avg), style=TD),
-            html.Td([_bar(actual, pred_avg), html.Span(" ", style={"display": "inline-block", "width": "6px"}), _n_badge(n)],
-                    style={**TD, "display": "flex", "alignItems": "center", "gap": "8px"}),
-        ]))
-
-    casc_table = html.Table([
-        html.Thead(html.Tr([
-            html.Th("Cascade level", style=TH_L),
-            html.Th("Actual WR",     style=TH),
-            html.Th("Δ vs predicted avg", style=TH),
-            html.Th("Visual",        style=TH),
-        ])),
-        html.Tbody(casc_rows),
-    ], style={"width": "100%", "borderCollapse": "collapse"})
-
-    casc_note = html.Div(
-        "Cascade level inferred from predicted sample size: Level 1 n<20, Level 2 n=20–59, Level 3 n≥60.",
-        style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginTop": "10px"})
-
-    casc_card = _card([
-        _label("2 — Cascade level: does more specificity = more accuracy?"),
-        html.Div("If Level 1 > Level 3 in actual WR, the specific lookup is adding real signal.",
-                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "14px"}),
-        casc_table,
-        casc_note,
-    ])
-
-    # ── TABLE 3: Confidence tier vs actual WR ─────────────────────────────────
-    CONF_ORDER = [("High", WIN), ("Med", BLUE), ("Low", AMBER), ("—", FADED)]
-
-    conf_rows = []
-    for conf_label, color in CONF_ORDER:
-        sub = df_with_wr[df_with_wr['conf'] == conf_label] if conf_label != "—" else df[df['conf'] == "—"]
-        n   = len(sub)
-        if n == 0:
-            conf_rows.append(html.Tr([
-                html.Td(conf_label, style={**TD_L, "color": color}),
-                html.Td("—", style=TD), html.Td("—", style=TD), html.Td("", style=TD),
-            ]))
-            continue
-        actual = sub['win'].mean() * 100
-        se     = _se(actual, n)
-        pred_avg = sub['pred_wr'].mean() if 'pred_wr' in sub.columns and not sub['pred_wr'].isna().all() else None
-        conf_rows.append(html.Tr([
-            html.Td(conf_label, style={**TD_L, "color": color, "fontWeight": "600"}),
-            html.Td([
-                html.Span(f"{actual:.1f}%", style={"color": _wr_color(actual), "fontWeight": "600"}),
-                html.Span(f" ±{se:.1f}", style={"color": FADED, "fontSize": "10px"}),
-            ], style=TD),
-            html.Td(_diff_span(actual, pred_avg), style=TD),
-            html.Td([_bar(actual, pred_avg), html.Span(" ", style={"display": "inline-block", "width": "6px"}), _n_badge(n)],
-                    style={**TD, "display": "flex", "alignItems": "center", "gap": "8px"}),
-        ]))
-
-    conf_table = html.Table([
-        html.Thead(html.Tr([
-            html.Th("Confidence",    style=TH_L),
-            html.Th("Actual WR",     style=TH),
-            html.Th("Δ vs predicted avg", style=TH),
-            html.Th("Visual",        style=TH),
-        ])),
-        html.Tbody(conf_rows),
-    ], style={"width": "100%", "borderCollapse": "collapse"})
-
-    conf_card = _card([
-        _label("3 — Confidence tier: does higher sample size = higher accuracy?"),
-        html.Div("Should show High > Med > Low. If not, sample-size thresholds need revisiting.",
-                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "14px"}),
-        conf_table,
-    ])
-
-    # ── TABLE 4: Above/below threshold breakdown ───────────────────────────────
-    threshold_rows = []
-    for label, mask_fn, color in [
-        ("≥56% predicted  (bet zone)",   lambda d: d['pred_wr'] >= 56, WIN),
-        ("<56% predicted  (avoid zone)", lambda d: d['pred_wr'] <  56, LOSS),
-        ("No Hist WR  (—)",              None,                          FADED),
-    ]:
-        if mask_fn is None:
-            sub = df[~df['hist_wr'].str.contains('%', na=False)]
-        else:
-            sub = df_with_wr[mask_fn(df_with_wr)]
-        n      = len(sub)
-        actual = sub['win'].mean() * 100 if n > 0 else None
-        se     = _se(actual, n) if actual is not None else 0
-        threshold_rows.append(html.Tr([
-            html.Td(label, style={**TD_L, "color": color}),
-            html.Td([
-                html.Span(f"{actual:.1f}%" if actual is not None else "—",
-                          style={"color": _wr_color(actual) if actual is not None else FADED,
-                                 "fontWeight": "600"}),
-                *([] if actual is None else [
-                    html.Span(f" ±{se:.1f}", style={"color": FADED, "fontSize": "10px"})
-                ]),
-            ], style=TD),
-            html.Td(_n_badge(n), style=TD),
-        ]))
-
-    thresh_table = html.Table([
-        html.Thead(html.Tr([
-            html.Th("Zone", style=TH_L), html.Th("Actual WR", style=TH), html.Th("", style=TH),
-        ])),
-        html.Tbody(threshold_rows),
-    ], style={"width": "100%", "borderCollapse": "collapse"})
-
-    thresh_card = _card([
-        _label("4 — Threshold split: bet zone vs avoid zone"),
-        html.Div("The gap between ≥56% and <56% zones measures signal quality of the filter.",
-                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "14px"}),
-        thresh_table,
-    ])
-
-    # ── BREAKDOWN SECTION ─────────────────────────────────────────────────────
-    # Parse extra columns needed for breakdowns
-    def _parse_avl(s):
-        try:    return float(str(s).replace('%','').replace('+',''))
-        except: return None
-
-    def _parse_line(s):
-        try:    return float(str(s))
-        except: return None
-
-    def _dvp_group(s):
-        s = str(s)
-        for kw in ('Strong Unders','Moderate Unders','Slight Unders','Neutral','Slight Easy','Moderate Easy','Strong Easy'):
-            if kw in s: return kw
-        return 'Other'
-
-    df['_avl']     = df.get('Avg vs Line', pd.Series('', index=df.index)).apply(_parse_avl)
-    df['_line']    = df.get('Line',        pd.Series('', index=df.index)).apply(_parse_line)
-    df['_dvp_grp'] = df.get('DvP',        pd.Series('', index=df.index)).apply(_dvp_group)
-    df['_year']    = pd.to_numeric(df.get('Year', pd.Series('', index=df.index)), errors='coerce')
-    df['_weather'] = df.get('Weather',        pd.Series('', index=df.index)).astype(str).str.strip()
-    df['_travel']  = df.get('Travel Fatigue', pd.Series('', index=df.index)).astype(str).str.strip()
-    df['_pos']     = df.get('Position',       pd.Series('', index=df.index)).astype(str).str.strip()
-
-    def _mini_table(title, note, groups):
-        """
-        groups: list of (label, sub_df) tuples.
-        Renders a compact WR breakdown table with bar chart.
-        """
-        rows = []
-        for label, sub in groups:
-            n = len(sub)
-            if n == 0:
-                rows.append(html.Tr([
-                    html.Td(label, style=TD_L),
-                    html.Td("—",   style=TD),
-                    html.Td("",    style=TD),
-                ]))
-                continue
-            wr = sub['win'].mean() * 100
-            se = _se(wr, n)
-            rows.append(html.Tr([
-                html.Td(label, style=TD_L),
-                html.Td([
-                    html.Span(f"{wr:.1f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
-                    html.Span(f" ±{se:.1f}", style={"color": FADED, "fontSize": "10px"}),
-                ], style=TD),
-                html.Td([
-                    _bar(wr),
-                    html.Span(" ", style={"display":"inline-block","width":"6px"}),
-                    _n_badge(n),
-                ], style={**TD, "display":"flex","alignItems":"center","gap":"8px"}),
-            ]))
-        tbl = html.Table([
-            html.Thead(html.Tr([
-                html.Th("Group", style=TH_L),
-                html.Th("Actual WR", style=TH),
-                html.Th("", style=TH),
-            ])),
-            html.Tbody(rows),
-        ], style={"width":"100%","borderCollapse":"collapse"})
-        return _card([
-            _label(title),
-            html.Div(note, style={"fontSize":"10px","color":FADED,"fontFamily":MONO,"marginBottom":"12px"}),
-            tbl,
-        ])
-
-    # 1 — Position
-    pos_order = ['Wing','Ruck','GenD','InsM','FwdMid','SmF','KeyF','KeyD','MedF','Other']
-    pos_groups = [(p, df[df['_pos']==p]) for p in pos_order if (df['_pos']==p).any()]
-    pos_card = _mini_table(
-        "5 — Position breakdown (within qualifying legs)",
-        "All positions here pass the hard filters. Gaps reveal residual position-level signal.",
-        pos_groups,
-    )
-
-    # 2 — DvP
-    dvp_order = ['Strong Unders','Moderate Unders','Slight Unders','Neutral','Slight Easy','Moderate Easy','Strong Easy']
-    dvp_groups = [(d, df[df['_dvp_grp']==d]) for d in dvp_order if (df['_dvp_grp']==d).any()]
-    dvp_card = _mini_table(
-        "6 — DvP breakdown",
-        "Does opponent tackle concession rate predict leg outcomes beyond the hard DvP filters?",
-        dvp_groups,
-    )
-
-    # 3 — AvL buckets
-    avl_buckets = [
-        ("< -20%  (Dabble line well above avg)",  df[df['_avl'] <  -20]),
-        ("-20% to -10%",                           df[(df['_avl'] >= -20) & (df['_avl'] < -10)]),
-        ("-10% to  0%",                            df[(df['_avl'] >= -10) & (df['_avl'] <   0)]),
-        ("0% to +10%  (line near/above avg)",      df[(df['_avl'] >=   0) & (df['_avl'] <  10)]),
-    ]
-    avl_card = _mini_table(
-        "7 — Avg vs Line (AvL) as continuous signal",
-        "Is more negative AvL (Dabble line set well above average) predictive of unders hitting?",
-        avl_buckets,
-    )
-
-    # 4 — Line size
-    line_buckets = [
-        ("3.0 – 3.9",  df[(df['_line'] >= 3.0) & (df['_line'] < 4.0)]),
-        ("4.0 – 4.9",  df[(df['_line'] >= 4.0) & (df['_line'] < 5.0)]),
-        ("5.0 – 5.9",  df[(df['_line'] >= 5.0) & (df['_line'] < 6.0)]),
-        ("6.0+",       df[df['_line'] >= 6.0]),
-    ]
-    line_card = _mini_table(
-        "8 — Line size",
-        "Do higher tackle lines (harder to go under) behave differently?",
-        line_buckets,
-    )
-
-    # 5 — Year
-    year_groups = [(str(int(y)), df[df['_year']==y])
-                   for y in sorted(df['_year'].dropna().unique())]
-    year_card = _mini_table(
-        "9 — Year-on-year drift",
-        "Is the edge holding up in 2026 vs 2025? Dabble adjusts — watch for erosion.",
-        year_groups,
-    )
-
-    # 6 — Weather + Travel (combined card)
-    weather_groups = [
-        ("Neutral",           df[df['_weather'].str.contains('Neutral', na=False)]),
-        ("Rain / Unders Edge",df[df['_weather'].str.contains('Rain|Medium Unders', na=False)]),
-    ]
-    travel_groups = [
-        ("Neutral",           df[df['_travel'].str.contains('Neutral', na=False)]),
-        ("Long Travel",       df[df['_travel'].str.contains('Long', na=False)]),
-    ]
-    weather_card = _card([
-        _label("10 — Weather & Travel Fatigue"),
-        html.Div("Does rain or long travel shift tackle outcomes? (Long Travel parked at n=100)",
-                 style={"fontSize":"10px","color":FADED,"fontFamily":MONO,"marginBottom":"12px"}),
-        html.Div("WEATHER", style={"fontSize":"9px","color":MUTED,"fontFamily":MONO,
-                                   "letterSpacing":"0.1em","marginBottom":"6px"}),
-        html.Table([
-            html.Thead(html.Tr([html.Th("Group",style=TH_L),html.Th("Actual WR",style=TH),html.Th("",style=TH)])),
-            html.Tbody([
-                html.Tr([
-                    html.Td(lbl, style=TD_L),
-                    html.Td([
-                        html.Span(f"{sub['win'].mean()*100:.1f}%",
-                                  style={"color":_wr_color(sub['win'].mean()*100),"fontWeight":"600"}),
-                        html.Span(f" ±{_se(sub['win'].mean()*100,len(sub)):.1f}",
-                                  style={"color":FADED,"fontSize":"10px"}),
-                    ] if len(sub) > 0 else "—", style=TD),
-                    html.Td([_bar(sub['win'].mean()*100) if len(sub)>0 else "",
-                             html.Span(" ",style={"display":"inline-block","width":"6px"}),
-                             _n_badge(len(sub))],
-                            style={**TD,"display":"flex","alignItems":"center","gap":"8px"}),
-                ]) for lbl, sub in weather_groups
-            ]),
-        ], style={"width":"100%","borderCollapse":"collapse","marginBottom":"16px"}),
-        html.Div("TRAVEL FATIGUE", style={"fontSize":"9px","color":MUTED,"fontFamily":MONO,
-                                          "letterSpacing":"0.1em","marginBottom":"6px"}),
-        html.Table([
-            html.Thead(html.Tr([html.Th("Group",style=TH_L),html.Th("Actual WR",style=TH),html.Th("",style=TH)])),
-            html.Tbody([
-                html.Tr([
-                    html.Td(lbl, style=TD_L),
-                    html.Td([
-                        html.Span(f"{sub['win'].mean()*100:.1f}%",
-                                  style={"color":_wr_color(sub['win'].mean()*100),"fontWeight":"600"}),
-                        html.Span(f" ±{_se(sub['win'].mean()*100,len(sub)):.1f}",
-                                  style={"color":FADED,"fontSize":"10px"}),
-                    ] if len(sub) > 0 else "—", style=TD),
-                    html.Td([_bar(sub['win'].mean()*100) if len(sub)>0 else "",
-                             html.Span(" ",style={"display":"inline-block","width":"6px"}),
-                             _n_badge(len(sub))],
-                            style={**TD,"display":"flex","alignItems":"center","gap":"8px"}),
-                ]) for lbl, sub in travel_groups
-            ]),
-        ], style={"width":"100%","borderCollapse":"collapse"}),
-    ])
-
-    breakdown_divider = html.Div([
-        html.Div("FACTOR BREAKDOWN", style={
-            "fontSize":"9px","color":MUTED,"fontFamily":MONO,
-            "letterSpacing":"0.15em","fontWeight":"600",
-        }),
-        html.Div(style={"flex":"1","height":"1px","background":BORDER,"marginLeft":"12px"}),
-    ], style={"display":"flex","alignItems":"center","margin":"24px 0 16px"})
-
-    return html.Div([
-        banner,
-        dbc.Row([
-            dbc.Col(calib_card,  md=6),
-            dbc.Col(casc_card,   md=6),
-        ]),
-        dbc.Row([
-            dbc.Col(conf_card,   md=6),
-            dbc.Col(thresh_card, md=6),
-        ]),
-        breakdown_divider,
-        dbc.Row([
-            dbc.Col(pos_card,  md=4),
-            dbc.Col(dvp_card,  md=4),
-            dbc.Col(avl_card,  md=4),
-        ]),
-        dbc.Row([
-            dbc.Col(line_card,    md=4),
-            dbc.Col(year_card,    md=4),
-            dbc.Col(weather_card, md=4),
-        ]),
-    ], style={"padding": "18px 0"})
-
-
-def build_analysis_layout():
-    BG        = "#0a0a0a"
-    CARD      = "#111111"
-    CARD2     = "#0d0d0d"
-    BORDER    = "rgba(255,255,255,0.06)"
-    TEXT      = "#f0f0f0"
-    MUTED     = "rgba(240,240,240,0.5)"
-    FADED     = "rgba(240,240,240,0.25)"
-    WIN       = "#00d4aa"
-    LOSS      = "#ff4d6d"
-    AMBER     = "#f59e0b"
-    MONO      = "var(--mono, 'JetBrains Mono', monospace)"
-
-    WR = 0.689  # individual leg win rate
-
-    def binom_prob(n, k, p):
-        from math import comb
-        return comb(n, k) * (p ** k) * ((1 - p) ** (n - k))
-
-    def p_at_least(n, min_k, p):
-        return sum(binom_prob(n, k, p) for k in range(min_k, n + 1))
-
-    # ── data ──────────────────────────────────────────────────────────────────
-    allin_data = [
-        # (legs, payout, threshold_odd)
-        (2,  3.2,   1.789),
-        (3,  6.5,   1.866),
-        (4,  12,    1.861),
-        (5,  25,    1.904),
-        (6,  40,    1.849),
-        (7,  80,    1.870),
-        (8,  150,   1.871),
-        (9,  275,   1.867),
-        (10, 500,   1.862),
-    ]
-
-    hedge_data = [
-        # (legs, [(min_wins, payout), ...], threshold_odd)
-        (3,  [(2, 1.2), (3, 3)],                         1.808),
-        (4,  [(3, 2),   (4, 5)],                         1.855),
-        (5,  [(3, 0.5), (4, 2),   (5, 10)],              1.861),
-        (6,  [(4, 0.5), (5, 2.5), (6, 25)],              1.879),
-        (7,  [(5, 1),   (6, 4),   (7, 40)],              1.871),
-        (8,  [(6, 2),   (7, 5),   (8, 75)],              1.875),
-        (9,  [(7, 3),   (8, 15),  (9, 100)],             1.888),
-        (10, [(7, 0.5), (8, 5),   (9, 25), (10, 125)],  1.884),
-    ]
-
-    def ev_allin(legs, payout):
-        return round((WR ** legs * payout - 1) * 100, 1)
-
-    def ev_hedge(tiers):
-        n = tiers[0][0] + (len(tiers) - 1)  # infer n from tiers
-        # actually n is passed separately — compute EV as sum of P(exactly k)*payout
-        return None  # placeholder — computed inline below
-
-    def _section_label(txt):
-        return html.Div(txt, style={
-            "color": MUTED, "fontWeight": "600", "fontSize": "9px",
-            "fontFamily": MONO, "letterSpacing": "0.12em",
-            "textTransform": "uppercase", "marginBottom": "10px",
-        })
-
-    def _card(children, extra_style=None):
-        s = {"background": CARD, "borderRadius": "10px", "padding": "18px 20px",
-             "border": f"1px solid {BORDER}"}
-        if extra_style:
-            s.update(extra_style)
-        return html.Div(children, style=s)
-
-    TH = {"padding": "8px 14px", "fontSize": "10px", "fontFamily": MONO,
-          "color": MUTED, "fontWeight": "600", "textAlign": "right",
-          "borderBottom": f"1px solid {BORDER}", "whiteSpace": "nowrap"}
-    TH_L = {**TH, "textAlign": "left"}
-    TD = {"padding": "8px 14px", "fontSize": "11px", "fontFamily": MONO,
-          "color": TEXT, "textAlign": "right", "borderBottom": f"1px solid rgba(255,255,255,0.04)"}
-    TD_L = {**TD, "textAlign": "left"}
-
-    def _wr_color(wr_pct):
-        if wr_pct >= 70: return WIN
-        if wr_pct >= 55: return AMBER
+    def _wr_color(pct):
+        if pct is None: return FADED
+        if pct >= 65:   return WIN
+        if pct >= 56:   return "#7dd3fc"
+        if pct >= 50:   return AMBER
         return LOSS
 
     def _ev_color(ev):
@@ -3782,127 +3193,703 @@ def build_analysis_layout():
         if ev >= 80:  return AMBER
         return TEXT
 
-    # ── All-In table ──────────────────────────────────────────────────────────
-    allin_rows = []
-    for legs, payout, thresh in allin_data:
-        breakeven = round(100 / thresh, 1)
-        chance    = round(WR ** legs * 100, 1)
-        ev        = round(WR ** legs * payout * 100 - 100, 1)
-        is_current = legs == 2
-        row_style = {"background": "rgba(255,255,255,0.03)"} if is_current else {}
-        allin_rows.append(html.Tr([
-            html.Td(f"{legs}-leg" + (" ← current" if is_current else ""),
-                    style={**TD_L, "color": AMBER if is_current else TEXT}),
-            html.Td(f"{breakeven}%",  style={**TD, "color": FADED}),
-            html.Td(f"{chance}%",     style={**TD, "color": _wr_color(chance)}),
-            html.Td(f"+{ev}%",        style={**TD, "color": _ev_color(ev), "fontWeight": "600"}),
-            html.Td(f"{payout}x",     style={**TD, "color": FADED}),
-        ], style=row_style))
+    def _bar(actual, predicted=None, width=100):
+        filled = max(0, min(100, actual or 0))
+        color  = _wr_color(actual)
+        return html.Div(style={"display": "flex", "alignItems": "center"}, children=[
+            html.Div(style={"position": "relative", "width": f"{width}px", "height": "6px",
+                            "background": "rgba(255,255,255,0.08)", "borderRadius": "3px"}, children=[
+                html.Div(style={"position": "absolute", "left": "0", "top": "0", "height": "6px",
+                                "borderRadius": "3px", "width": f"{filled}%", "background": color}),
+                *([] if predicted is None else [
+                    html.Div(style={"position": "absolute", "top": "-2px",
+                                    "left": f"{min(100, max(0, predicted))}%",
+                                    "width": "2px", "height": "10px",
+                                    "background": "rgba(255,255,255,0.5)",
+                                    "transform": "translateX(-50%)"})
+                ])
+            ]),
+        ])
 
-    allin_table = html.Table([
-        html.Thead(html.Tr([
-            html.Th(h, style=TH_L if i == 0 else TH)
-            for i, h in enumerate(["Format", "Breakeven WR/leg", "Chance of Hitting", "EV per $1", "Payout"])
-        ])),
-        html.Tbody(allin_rows),
+    def _stats(sub):
+        w = int((sub['wl'] == 1).sum())
+        l = int((sub['wl'] == -1).sum())
+        p = int((sub['wl'] == 0).sum())
+        wr = round(w / (w + l) * 100, 1) if (w + l) > 0 else None
+        return w, l, p, wr
+
+    # ── 4-column factor breakdown helper ─────────────────────────────────────
+    # Columns: 2025 Raw | 2025 HF | 2026 Raw | 2026 HF
+    # HF = hard filters only (Line<3, MedF, GCS opp, GEE home, AvL>+10%, Rain). No LC.
+    DSETS = [(df25_raw, "25 Raw"), (df25_hf, "25 HF"), (df26_raw, "26 Raw"), (df26_hf, "26 HF")]
+
+    def _factor_table(title, note, group_specs):
+        headers = [html.Th("Group", style=TH_L)]
+        for _, col_lbl in DSETS:
+            headers.append(html.Th(col_lbl, style={**TH, "fontSize": "9px"}))
+
+        rows = []
+        for row_label, fn in group_specs:
+            if not any(len(fn(df)) >= 3 for df, _ in DSETS):
+                continue
+            cells = [html.Td(row_label, style=TD_L)]
+            for df, _ in DSETS:
+                sub = fn(df)
+                n   = len(sub)
+                if n < 3:
+                    cells.append(html.Td("—", style={**TD, "color": FADED}))
+                else:
+                    wr = sub['win'].mean() * 100
+                    cells.append(html.Td([
+                        html.Span(f"{wr:.0f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
+                        html.Span(f" ({n})", style={"color": FADED, "fontSize": "9px"}),
+                    ], style=TD))
+            rows.append(html.Tr(cells))
+
+        return _card([
+            _label(title),
+            html.Div(note, style={"fontSize": "10px", "color": FADED,
+                                   "fontFamily": MONO, "marginBottom": "4px"}),
+            html.Div("HF = hard filters — Line<3, MedF, GCS opp, GEE home, AvL>+10%, Rain, LC<50%.",
+                     style={"fontSize": "9px", "color": FADED,
+                            "fontFamily": MONO, "marginBottom": "10px"}),
+            html.Table([
+                html.Thead(html.Tr(headers)),
+                html.Tbody(rows or [html.Tr([html.Td("No data", style=TD_L)])]),
+            ], style={"width": "100%", "borderCollapse": "collapse"}),
+        ])
+
+    # ── SECTION 1: STRATEGY PERFORMANCE (2026, T0/T1/T2) ─────────────────────
+    TIER_DEFS = [('T0', 'T0  LC ≥70%'), ('T1', 'T1  LC 60–70%'), ('T2', 'T2  LC 50–60%')]
+
+    tier_rows = []
+    if not df26_strat.empty:
+        for tier, lbl in TIER_DEFS:
+            sub = df26_strat[df26_strat['Strategy'] == tier]
+            if sub.empty:
+                continue
+            w, l, p, wr = _stats(sub)
+            c = _wr_color(wr) if wr is not None else FADED
+            tier_rows.append(html.Tr([
+                html.Td(lbl, style={**TD_L, "color": AMBER, "fontWeight": "600"}),
+                html.Td(str(w + l + p), style=TD),
+                html.Td(str(w), style={**TD, "color": WIN}),
+                html.Td(str(p), style={**TD, "color": FADED}),
+                html.Td(str(l), style={**TD, "color": LOSS}),
+                html.Td(f"{wr}%" if wr else "—", style={**TD, "color": c, "fontWeight": "700"}),
+            ]))
+        w2, l2, p2, wr2 = _stats(df26_strat)
+        if wr2 is not None:
+            sep = {"borderTop": f"1px solid {BORDER}"}
+            tier_rows.append(html.Tr([
+                html.Td("All Qualifying", style={**TD_L, **sep, "fontWeight": "600"}),
+                html.Td(str(w2 + l2 + p2), style={**TD, **sep}),
+                html.Td(str(w2), style={**TD, **sep, "color": WIN}),
+                html.Td(str(p2), style={**TD, **sep, "color": FADED}),
+                html.Td(str(l2), style={**TD, **sep, "color": LOSS}),
+                html.Td(f"{wr2}%", style={**TD, **sep, "color": _wr_color(wr2), "fontWeight": "700"}),
+            ]))
+
+    tier_table = html.Table([
+        html.Thead(html.Tr([html.Th(h, style=TH_L if i == 0 else TH)
+                            for i, h in enumerate(["Tier", "n", "W", "P", "L", "WR%"])])),
+        html.Tbody(tier_rows or [html.Tr([html.Td("No 2026 results yet", style=TD_L)])]),
     ], style={"width": "100%", "borderCollapse": "collapse"})
 
-    # ── Hedge table ───────────────────────────────────────────────────────────
-    hedge_rows = []
-    for legs, tiers, thresh in hedge_data:
-        breakeven = round(100 / thresh, 1)
-        min_wins  = tiers[0][0]
-        chance    = round(p_at_least(legs, min_wins, WR) * 100, 1)
-        ev_val    = sum(
-            p_at_least(legs, k, WR) * payout
-            - (p_at_least(legs, k, WR) - (p_at_least(legs, k + 1, WR) if k < legs else 0)) * 0
-            for k, payout in tiers
-        )
-        # correct EV: sum over each tier of P(exactly k wins) * payout
-        ev_exact = 0
-        for i, (k, payout) in enumerate(tiers):
-            next_k = tiers[i + 1][0] if i + 1 < len(tiers) else legs + 1
-            p_exact = sum(binom_prob(legs, j, WR) for j in range(k, next_k))
-            ev_exact += p_exact * payout
-        ev_pct = round(ev_exact * 100 - 100, 1)
+    rnd_header = [html.Th("Tier", style=TH_L)]
+    for r in rounds_avail:
+        rnd_header.append(html.Th(f"R{r}", style={**TH, "minWidth": "40px"}))
+    rnd_header.append(html.Th("Total", style=TH))
 
-        tier_str = "/".join(str(k) for k, _ in tiers)
-        pay_str  = "/".join(str(int(p) if p == int(p) else p) for _, p in tiers)
-        hedge_rows.append(html.Tr([
-            html.Td(f"{legs}-leg (≥{min_wins})",  style=TD_L),
-            html.Td(f"{breakeven}%",               style={**TD, "color": FADED}),
-            html.Td(f"{chance}%",                  style={**TD, "color": _wr_color(chance)}),
-            html.Td(f"+{ev_pct}%",                 style={**TD, "color": _ev_color(ev_pct), "fontWeight": "600"}),
-            html.Td(pay_str,                        style={**TD, "color": FADED, "fontSize": "10px"}),
-        ]))
+    rnd_rows = []
+    if not df26_strat.empty and rounds_avail:
+        for tier, lbl in TIER_DEFS:
+            sub = df26_strat[df26_strat['Strategy'] == tier]
+            if sub.empty:
+                continue
+            cells = [html.Td(tier, style={**TD_L, "color": AMBER, "fontWeight": "600"})]
+            for r in rounds_avail:
+                rs = sub[sub['rnd_num'] == r]
+                if rs.empty:
+                    cells.append(html.Td("—", style={**TD, "color": FADED}))
+                else:
+                    w = int((rs['wl'] == 1).sum())
+                    l = int((rs['wl'] == -1).sum())
+                    n = w + l
+                    c = _wr_color(w / n * 100) if n > 0 else FADED
+                    pct = f" ({round(w/n*100)}%)" if n > 0 else ""
+                    cells.append(html.Td(f"{w}/{n}{pct}", style={**TD, "color": c, "fontSize": "10px"}))
+            w2, l2, p2, wr2 = _stats(sub)
+            cells.append(html.Td(
+                f"{wr2}%  ({w2 + l2})" if wr2 else "—",
+                style={**TD, "fontWeight": "700", "color": _wr_color(wr2) if wr2 else FADED}
+            ))
+            rnd_rows.append(html.Tr(cells))
 
-    hedge_table = html.Table([
-        html.Thead(html.Tr([
-            html.Th(h, style=TH_L if i == 0 else TH)
-            for i, h in enumerate(["Format", "Breakeven WR/leg", "Chance of Hitting", "EV per $1", "Payouts (by wins)"])
-        ])),
-        html.Tbody(hedge_rows),
+        # Combined Total row — sum across all tiers
+        sep = {"borderTop": f"1px solid {BORDER}"}
+        total_cells = [html.Td("Total", style={**TD_L, **sep, "fontWeight": "600"})]
+        for r in rounds_avail:
+            rs = df26_strat[df26_strat['rnd_num'] == r]
+            if rs.empty:
+                total_cells.append(html.Td("—", style={**TD, **sep, "color": FADED}))
+            else:
+                w = int((rs['wl'] == 1).sum())
+                l = int((rs['wl'] == -1).sum())
+                n = w + l
+                c = _wr_color(w / n * 100) if n > 0 else FADED
+                pct = f" ({round(w/n*100)}%)" if n > 0 else ""
+                total_cells.append(html.Td(f"{w}/{n}{pct}", style={**TD, **sep, "color": c, "fontSize": "10px"}))
+        wt, lt, pt, wrt = _stats(df26_strat)
+        total_cells.append(html.Td(
+            f"{wrt}%  ({wt + lt})" if wrt else "—",
+            style={**TD, **sep, "fontWeight": "700", "color": _wr_color(wrt) if wrt else FADED}
+        ))
+        rnd_rows.append(html.Tr(total_cells))
+
+    rnd_table = html.Table([
+        html.Thead(html.Tr(rnd_header)),
+        html.Tbody(rnd_rows or [html.Tr([html.Td("No 2026 results yet", style=TD_L)])]),
     ], style={"width": "100%", "borderCollapse": "collapse"})
 
-    # ── Insight callouts ──────────────────────────────────────────────────────
-    insights = [
-        ("Your edge per leg",
-         f"68.9% actual vs ~53-56% breakeven — a {round(68.9 - 54.5, 1)}pt edge that compounds hard with more legs"),
-        ("Current format (2-leg all-in)",
-         "Lowest EV of any available format (+52%). Most admin, least return per dollar staked."),
-        ("Best balance: 5-leg Hedge (≥3)",
-         "82% chance of cashing each pick + 141% EV. High hit rate means consistent weekly cashflow."),
-        ("Best pure EV: 6-leg Hedge (≥4)",
-         "72% cash rate + 256% EV. With ~40 legs/week you'd build ~6 picks — each player appears once only."),
-        ("Player concentration solved",
-         "Grouping 40 legs into 6-8 picks means each player appears in exactly 1 ticket. Luke Jackson going cold only affects 1 pick, not 6 pairs."),
-        ("Round robin of pairs vs grouped picks",
-         "37 separate 2-leg pairs = 37 stakes. 6-8 hedge picks = 6-8 stakes at same amount — dramatically higher EV for the same outlay."),
+    def _cut_rows(col, sort_asc=False, min_n=3):
+        if df26_strat.empty:
+            return []
+        groups = []
+        for val, grp in df26_strat.groupby(col):
+            val = str(val).strip()
+            if not val or val in ('', 'nan'):
+                continue
+            w, l, p, wr = _stats(grp)
+            if w + l < min_n:
+                continue
+            groups.append((val, w + l + p, w, p, l, wr))
+        groups.sort(key=lambda x: (x[5] or 0), reverse=not sort_asc)
+        rows = []
+        for val, n, w, p, l, wr in groups:
+            c = _wr_color(wr) if wr else FADED
+            rows.append(html.Tr([
+                html.Td(val, style=TD_L),
+                html.Td(str(n), style={**TD, "color": FADED}),
+                html.Td(str(w), style={**TD, "color": WIN}),
+                html.Td(str(p), style={**TD, "color": FADED}),
+                html.Td(str(l), style={**TD, "color": LOSS}),
+                html.Td(f"{wr}%" if wr else "—", style={**TD, "color": c, "fontWeight": "600"}),
+            ]))
+        return rows
+
+    def _cut_card(title, col, sort_asc=False, min_n=3):
+        rows = _cut_rows(col, sort_asc=sort_asc, min_n=min_n)
+        return _card([
+            _label(title),
+            html.Table([
+                html.Thead(html.Tr([html.Th(h, style=TH_L if i == 0 else TH)
+                                    for i, h in enumerate(["", "n", "W", "P", "L", "WR%"])])),
+                html.Tbody(rows or [html.Tr([html.Td("—", style=TD_L)])]),
+            ], style={"width": "100%", "borderCollapse": "collapse"}),
+        ], {"flex": "1"})
+
+    pos_cut = _cut_card("BY POSITION · 2026 QUALIFYING", "Position")
+    dvp_cut = _cut_card("BY DvP · 2026 QUALIFYING", "DvP")
+    opp_cut = _cut_card("BY OPPONENT · 2026 QUALIFYING  (worst first)", "Opponent", sort_asc=True)
+
+    # ── SECTION 2: SUBJECTIVE AVOIDANCE AUDIT ────────────────────────────────
+    avoid_col = 'Subjective Avoid Reason'
+    avoided = raw[
+        raw[avoid_col].notna() &
+        (raw[avoid_col] != '') &
+        (raw[avoid_col].str.lower() != 'nan')
+    ].copy()
+    avoid_block = html.Div()
+    if not avoided.empty:
+        av = avoided.sort_values(['year_num', 'rnd_num', 'Player'],
+                                  ascending=[False, False, True], na_position='last')
+        has_result = av[av['W/L'].isin(['1', '-1', '0', '1.0', '-1.0', '0.0'])]
+        good_calls = int((has_result['wl'] == -1).sum())
+        missed     = int((has_result['wl'] ==  1).sum())
+        pushed     = int((has_result['wl'] ==  0).sum())
+        pending    = len(av) - len(has_result)
+        acc        = round(good_calls / (good_calls + missed) * 100, 1) if (good_calls + missed) > 0 else None
+
+        chips = html.Div([
+            html.Span(f"Good calls: {good_calls}",
+                      style={"color": WIN,  "fontFamily": MONO, "fontSize": "11px", "marginRight": "16px"}),
+            html.Span(f"Missed: {missed}",
+                      style={"color": LOSS, "fontFamily": MONO, "fontSize": "11px", "marginRight": "16px"}),
+            html.Span(f"Push: {pushed}",
+                      style={"color": FADED, "fontFamily": MONO, "fontSize": "11px", "marginRight": "16px"}),
+            html.Span(f"Pending: {pending}",
+                      style={"color": FADED, "fontFamily": MONO, "fontSize": "11px", "marginRight": "16px"}),
+            html.Span(f"Accuracy: {acc}%" if acc else "Accuracy: —",
+                      style={"color": _wr_color(acc) if acc else FADED,
+                             "fontFamily": MONO, "fontSize": "11px", "fontWeight": "700"}),
+        ], style={"marginBottom": "12px"})
+
+        avoid_rows = []
+        for _, r in av.iterrows():
+            wl_raw = r.get('W/L', '')
+            if   wl_raw in ('1',  '1.0'):  rs, rc = "W — missed",    LOSS
+            elif wl_raw in ('-1', '-1.0'): rs, rc = "L — good call", WIN
+            elif wl_raw in ('0',  '0.0'):  rs, rc = "Push",          FADED
+            else:                          rs, rc = "pending",        FADED
+            rnd = int(r['rnd_num'])  if pd.notna(r.get('rnd_num'))  else "?"
+            yr  = int(r['year_num']) if pd.notna(r.get('year_num')) else ""
+            avoid_rows.append(html.Tr([
+                html.Td(f"{yr} R{rnd}" if yr else f"R{rnd}",
+                        style={**TD_L, "color": FADED, "whiteSpace": "nowrap"}),
+                html.Td(r.get('Player', ''),   style={**TD_L, "fontWeight": "500"}),
+                html.Td(r.get('Strategy', ''), style={**TD, "color": AMBER}),
+                html.Td(r.get('Line', ''),     style={**TD, "color": FADED}),
+                html.Td(r.get('Actual', '') or "—", style={**TD, "color": FADED}),
+                html.Td(rs, style={**TD_L, "color": rc, "fontWeight": "600"}),
+                html.Td(r.get(avoid_col, ''),
+                        style={**TD_L, "color": MUTED, "fontSize": "10px",
+                               "maxWidth": "260px", "whiteSpace": "normal", "lineHeight": "1.4"}),
+            ]))
+
+        avoid_block = _card([
+            _label("SUBJECTIVE AVOIDANCE AUDIT · ALL YEARS"),
+            chips,
+            html.Table([
+                html.Thead(html.Tr([html.Th(h, style=TH_L if i not in (3, 4) else TH)
+                                    for i, h in enumerate(["Rnd", "Player", "Tier", "Line",
+                                                           "Actual", "Result", "Reason"])])),
+                html.Tbody(avoid_rows),
+            ], style={"width": "100%", "borderCollapse": "collapse"}),
+        ], {"marginBottom": "24px"})
+
+    # ── SECTION 3: PICK'EM FORMAT ANALYSIS ───────────────────────────────────
+    def binom_prob(n, k, p):
+        return comb(n, k) * (p ** k) * ((1 - p) ** (n - k))
+
+    def p_at_least(n, min_k, p):
+        return sum(binom_prob(n, k, p) for k in range(min_k, n + 1))
+
+    allin_data = [
+        (2,  3.2,   1.789), (3,  6.5,   1.866), (4,  12,    1.861),
+        (5,  25,    1.904), (6,  40,    1.849), (7,  80,    1.870),
+        (8,  150,   1.871), (9,  275,   1.867), (10, 500,   1.862),
+    ]
+    hedge_data = [
+        (3,  [(2, 1.2), (3, 3)],                        1.808),
+        (4,  [(3, 2),   (4, 5)],                        1.855),
+        (5,  [(3, 0.5), (4, 2),   (5, 10)],             1.861),
+        (6,  [(4, 0.5), (5, 2.5), (6, 25)],             1.879),
+        (7,  [(5, 1),   (6, 4),   (7, 40)],             1.871),
+        (8,  [(6, 2),   (7, 5),   (8, 75)],             1.875),
+        (9,  [(7, 3),   (8, 15),  (9, 100)],            1.888),
+        (10, [(7, 0.5), (8, 5),   (9, 25), (10, 125)],  1.884),
     ]
 
-    insight_cards = html.Div([
-        html.Div([
-            html.Div(title, style={"color": AMBER, "fontSize": "10px", "fontFamily": MONO,
-                                   "fontWeight": "600", "marginBottom": "4px"}),
-            html.Div(body,  style={"color": TEXT,  "fontSize": "12px", "fontFamily": MONO,
-                                   "lineHeight": "1.5"}),
-        ], style={"background": CARD2, "borderRadius": "8px", "padding": "12px 14px",
-                  "border": f"1px solid {BORDER}"})
-        for title, body in insights
-    ], style={"display": "grid", "gridTemplateColumns": "1fr 1fr", "gap": "10px"})
+    allin_rows = []
+    for legs, payout, thresh in allin_data:
+        be     = round(100 / thresh, 1)
+        chance = round(WR ** legs * 100, 1)
+        ev     = round(WR ** legs * payout * 100 - 100, 1)
+        allin_rows.append(html.Tr([
+            html.Td(f"{legs}-leg", style=TD_L),
+            html.Td(f"{be}%",      style={**TD, "color": FADED}),
+            html.Td(f"{chance}%",  style={**TD, "color": _wr_color(chance)}),
+            html.Td(f"+{ev}%",     style={**TD, "color": _ev_color(ev), "fontWeight": "600"}),
+            html.Td(f"{payout}x",  style={**TD, "color": FADED}),
+        ]))
 
-    return html.Div([
-        # header
+    hedge_rows = []
+    for legs, tiers, thresh in hedge_data:
+        be        = round(100 / thresh, 1)
+        min_wins  = tiers[0][0]
+        profit_k  = next((k for k, pay in tiers if pay > 1.0), None)
+        chance    = round(p_at_least(legs, profit_k, WR) * 100, 1) if profit_k is not None else 0.0
+        ev_exact  = 0
+        for i, (k, pay) in enumerate(tiers):
+            next_k   = tiers[i + 1][0] if i + 1 < len(tiers) else legs + 1
+            p_exact  = sum(binom_prob(legs, j, WR) for j in range(k, next_k))
+            ev_exact += p_exact * pay
+        ev_pct  = round(ev_exact * 100 - 100, 1)
+        pay_str = "/".join(str(int(p) if p == int(p) else p) for _, p in tiers)
+        pl      = html.Span(f" ≥{profit_k}/{legs}",
+                            style={"color": FADED, "fontSize": "9px", "marginLeft": "4px"}) if profit_k else None
+        hedge_rows.append(html.Tr([
+            html.Td(f"{legs}-leg (≥{min_wins})", style=TD_L),
+            html.Td(f"{be}%",                   style={**TD, "color": FADED}),
+            html.Td([f"{chance}%", pl],          style={**TD, "color": _wr_color(chance)}),
+            html.Td(f"+{ev_pct}%",              style={**TD, "color": _ev_color(ev_pct), "fontWeight": "600"}),
+            html.Td(pay_str,                     style={**TD, "color": FADED, "fontSize": "10px"}),
+        ]))
+
+    pickem_section = html.Div([
         html.Div([
             html.Span("PICK'EM FORMAT ANALYSIS", style={
-                "color": TEXT, "fontWeight": "700", "fontSize": "14px", "fontFamily": MONO,
-            }),
-            html.Span(f"  ·  based on {round(WR*100,1)}% individual leg WR  ·  Dabble Pick'Em",
+                "color": TEXT, "fontWeight": "700", "fontSize": "14px", "fontFamily": MONO}),
+            html.Span(f"  ·  {round(WR * 100, 1)}% actual 2026 qualifying WR",
                       style={"color": MUTED, "fontSize": "11px", "fontFamily": MONO}),
-        ], style={"marginBottom": "18px"}),
-
-        # tables row
+        ], style={"marginBottom": "14px"}),
         html.Div([
             _card([
-                _section_label("ALL-IN  ·  must win every leg"),
-                allin_table,
+                _label("ALL-IN  ·  must win every leg"),
+                html.Table([
+                    html.Thead(html.Tr([html.Th(h, style=TH_L if i == 0 else TH)
+                                        for i, h in enumerate(["Format", "Breakeven", "Chance", "EV", "Payout"])])),
+                    html.Tbody(allin_rows),
+                ], style={"width": "100%", "borderCollapse": "collapse"}),
             ], {"flex": "1"}),
             _card([
-                _section_label("HEDGE  ·  pays on partial wins"),
-                hedge_table,
+                _label("HEDGE  ·  pays on partial wins"),
+                html.Table([
+                    html.Thead(html.Tr([html.Th(h, style=TH_L if i == 0 else TH)
+                                        for i, h in enumerate(["Format", "Breakeven", "To Profit", "EV", "Payouts"])])),
+                    html.Tbody(hedge_rows),
+                ], style={"width": "100%", "borderCollapse": "collapse"}),
             ], {"flex": "1"}),
-        ], style={"display": "flex", "gap": "14px", "alignItems": "flex-start", "marginBottom": "14px"}),
+        ], style={"display": "flex", "gap": "14px", "alignItems": "flex-start"}),
+    ], style={"marginBottom": "24px"})
 
-        # insights
-        _card([
-            _section_label("KEY INSIGHTS"),
-            insight_cards,
+    # ── SECTION 4: FACTOR BREAKDOWN (4 columns: 25 Raw / 25 HF / 26 Raw / 26 HF) ──
+    factor_divider = html.Div([
+        html.Div("FACTOR BREAKDOWN — 2025 TEST  vs  2026 TRAIN  ·  Raw vs Hard Filters", style={
+            "fontSize": "9px", "color": MUTED, "fontFamily": MONO,
+            "letterSpacing": "0.15em", "fontWeight": "600",
+        }),
+        html.Div(style={"flex": "1", "height": "1px", "background": BORDER, "marginLeft": "12px"}),
+    ], style={"display": "flex", "alignItems": "center", "margin": "24px 0 16px"})
+
+    pos_order = ['Wing', 'Ruck', 'GenD', 'InsM', 'FwdMid', 'SmF', 'KeyF', 'KeyD', 'MedF']
+    pos_ft = _factor_table(
+        "POSITION",
+        "MedF is a hard filter — MedF rows vanish in HF columns. Raw shows the unfiltered rate.",
+        [(p, lambda df, p=p: df[df['_pos'] == p]) for p in pos_order],
+    )
+
+    dvp_order = ['Strong Unders', 'Moderate Unders', 'Slight Unders', 'Neutral',
+                 'Slight Easy', 'Moderate Easy', 'Strong Easy']
+    dvp_ft = _factor_table(
+        "DvP — OPPONENT TACKLE DIFFICULTY",
+        "No hard DvP filter active. Neutral DvP is a T2-only soft skip in flag logic.",
+        [(d, lambda df, d=d: df[df['_dvp'] == d]) for d in dvp_order],
+    )
+
+    # AvL × LC matrix — 4 datasets shown as 2×2 grid
+    AVL_SPECS = [
+        ("< −20%",             lambda df: df[df['_avl'] <  -20]),
+        ("−20% to −10%",       lambda df: df[(df['_avl'] >= -20) & (df['_avl'] < -10)]),
+        ("−10% to  0%",        lambda df: df[(df['_avl'] >= -10) & (df['_avl'] <   0)]),
+        ("0% to +10%",         lambda df: df[(df['_avl'] >=   0) & (df['_avl'] <  10)]),
+        ("+10%+  (HF cuts)",   lambda df: df[df['_avl'] >= 10]),
+        ("All AvL",            lambda df: df),
+    ]
+    LC_BANDS = [
+        ("<50%",         lambda df: df[df['_lc'] <  50]),
+        ("50–60% (T2)",  lambda df: df[(df['_lc'] >= 50) & (df['_lc'] < 60)]),
+        ("60–70% (T1)",  lambda df: df[(df['_lc'] >= 60) & (df['_lc'] < 70)]),
+        ("≥70% (T0)",    lambda df: df[df['_lc'] >= 70]),
+        ("All LC",       lambda df: df),
+    ]
+    TH_XS = {**TH, "fontSize": "8px", "padding": "5px 6px"}
+    TD_XS = {**TD, "fontSize": "10px", "padding": "5px 6px"}
+    TD_XS_L = {**TD_XS, "textAlign": "left"}
+
+    def _avl_lc_mini(base_df, label):
+        headers = [html.Th("AvL \\ LC", style={**TH_XS, "textAlign": "left"})]
+        for lc_lbl, _ in LC_BANDS:
+            headers.append(html.Th(lc_lbl, style=TH_XS))
+        rows = []
+        for avl_lbl, avl_fn in AVL_SPECS:
+            avl_sub = avl_fn(base_df.dropna(subset=['_avl', '_lc']))
+            cells = [html.Td(avl_lbl, style=TD_XS_L)]
+            any_data = False
+            for _, lc_fn in LC_BANDS:
+                sub = lc_fn(avl_sub)
+                n = len(sub)
+                if n < 3:
+                    cells.append(html.Td("—", style={**TD_XS, "color": FADED}))
+                else:
+                    wr = sub['win'].mean() * 100
+                    any_data = True
+                    cells.append(html.Td([
+                        html.Span(f"{wr:.0f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
+                        html.Span(f" ({n})", style={"color": FADED, "fontSize": "8px"}),
+                    ], style=TD_XS))
+            if any_data or avl_lbl == "All AvL":
+                rows.append(html.Tr(cells))
+        return html.Div([
+            html.Div(label, style={"fontSize": "9px", "color": MUTED, "fontFamily": MONO,
+                                   "letterSpacing": "0.08em", "fontWeight": "600",
+                                   "marginBottom": "6px", "marginTop": "10px"}),
+            html.Table([
+                html.Thead(html.Tr(headers)),
+                html.Tbody(rows),
+            ], style={"width": "100%", "borderCollapse": "collapse"}),
+        ])
+
+    avl_ft = _card([
+        _label("AVL × LC MATRIX — AVG vs LINE  ×  LINE CONSISTENCY"),
+        html.Div(
+            "Rows = AvL bucket. Cols = LC band (maps to T2/T1/T0). "
+            "HF removes AvL>+10% — that row is sparse in HF columns.",
+            style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "4px"}),
+        html.Div("HF = hard filters — Line<3, MedF, GCS opp, GEE home, AvL>+10%, Rain, LC<50%.",
+                 style={"fontSize": "9px", "color": FADED, "fontFamily": MONO, "marginBottom": "10px"}),
+        dbc.Row([
+            dbc.Col(_avl_lc_mini(df25_raw, "2025 RAW"), md=6),
+            dbc.Col(_avl_lc_mini(df26_raw, "2026 RAW"), md=6),
+        ], style={"marginBottom": "4px"}),
+        dbc.Row([
+            dbc.Col(_avl_lc_mini(df25_hf,  "2025 HF — TEST"),  md=6),
+            dbc.Col(_avl_lc_mini(df26_hf,  "2026 HF — TRAIN"), md=6),
         ]),
+    ])
 
+    # Line × LC  and  Line × AvL  interaction matrices
+    LINE_BUCKETS = [
+        ("3.0–3.9",  lambda df: df[(df['_line'] >= 3.0) & (df['_line'] < 4.0)]),
+        ("4.0–4.9",  lambda df: df[(df['_line'] >= 4.0) & (df['_line'] < 5.0)]),
+        ("5.0–5.9",  lambda df: df[(df['_line'] >= 5.0) & (df['_line'] < 6.0)]),
+        ("6.0+",     lambda df: df[df['_line'] >= 6.0]),
+        ("All",      lambda df: df),
+    ]
+    AVL_GROUPS = [
+        ("< −10%",    lambda df: df[df['_avl'] < -10]),
+        ("−10 to 0%", lambda df: df[(df['_avl'] >= -10) & (df['_avl'] <  0)]),
+        ("0 to +10%", lambda df: df[(df['_avl'] >=   0) & (df['_avl'] < 10)]),
+        ("All AvL",   lambda df: df),
+    ]
+
+    def _line_lc_mini(base_df, label):
+        headers = [html.Th("Line \\ LC", style={**TH_XS, "textAlign": "left"})]
+        for lc_lbl, _ in LC_BANDS:
+            headers.append(html.Th(lc_lbl, style=TH_XS))
+        rows = []
+        for line_lbl, line_fn in LINE_BUCKETS:
+            line_sub = line_fn(base_df.dropna(subset=['_line', '_lc']))
+            cells = [html.Td(line_lbl, style=TD_XS_L)]
+            any_data = False
+            for _, lc_fn in LC_BANDS:
+                sub = lc_fn(line_sub)
+                n = len(sub)
+                if n < 3:
+                    cells.append(html.Td("—", style={**TD_XS, "color": FADED}))
+                else:
+                    wr = sub['win'].mean() * 100
+                    any_data = True
+                    cells.append(html.Td([
+                        html.Span(f"{wr:.0f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
+                        html.Span(f" ({n})",    style={"color": FADED, "fontSize": "8px"}),
+                    ], style=TD_XS))
+            if any_data or line_lbl == "All":
+                rows.append(html.Tr(cells))
+        return html.Div([
+            html.Div(label, style={"fontSize": "9px", "color": MUTED, "fontFamily": MONO,
+                                   "letterSpacing": "0.08em", "fontWeight": "600",
+                                   "marginBottom": "6px", "marginTop": "10px"}),
+            html.Table([html.Thead(html.Tr(headers)), html.Tbody(rows)],
+                       style={"width": "100%", "borderCollapse": "collapse"}),
+        ])
+
+    def _line_avl_mini(base_df, label):
+        headers = [html.Th("Line \\ AvL", style={**TH_XS, "textAlign": "left"})]
+        for avl_lbl, _ in AVL_GROUPS:
+            headers.append(html.Th(avl_lbl, style=TH_XS))
+        rows = []
+        for line_lbl, line_fn in LINE_BUCKETS:
+            line_sub = line_fn(base_df.dropna(subset=['_line', '_avl']))
+            cells = [html.Td(line_lbl, style=TD_XS_L)]
+            any_data = False
+            for _, avl_fn in AVL_GROUPS:
+                sub = avl_fn(line_sub)
+                n = len(sub)
+                if n < 3:
+                    cells.append(html.Td("—", style={**TD_XS, "color": FADED}))
+                else:
+                    wr = sub['win'].mean() * 100
+                    any_data = True
+                    cells.append(html.Td([
+                        html.Span(f"{wr:.0f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
+                        html.Span(f" ({n})",    style={"color": FADED, "fontSize": "8px"}),
+                    ], style=TD_XS))
+            if any_data or line_lbl == "All":
+                rows.append(html.Tr(cells))
+        return html.Div([
+            html.Div(label, style={"fontSize": "9px", "color": MUTED, "fontFamily": MONO,
+                                   "letterSpacing": "0.08em", "fontWeight": "600",
+                                   "marginBottom": "6px", "marginTop": "10px"}),
+            html.Table([html.Thead(html.Tr(headers)), html.Tbody(rows)],
+                       style={"width": "100%", "borderCollapse": "collapse"}),
+        ])
+
+    line_lc_ft = _card([
+        _label("LINE × LC — LINE SIZE  ×  LINE CONSISTENCY"),
+        html.Div("Does WR within each LC tier hold flat across line sizes, or do certain line buckets underperform?",
+                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "4px"}),
+        html.Div("HF = hard filters — Line<3, MedF, GCS opp, GEE home, AvL>+10%, Rain, LC<50%.",
+                 style={"fontSize": "9px", "color": FADED, "fontFamily": MONO, "marginBottom": "10px"}),
+        dbc.Row([
+            dbc.Col(_line_lc_mini(df25_raw, "2025 RAW"),        md=6),
+            dbc.Col(_line_lc_mini(df26_raw, "2026 RAW"),        md=6),
+        ], style={"marginBottom": "4px"}),
+        dbc.Row([
+            dbc.Col(_line_lc_mini(df25_hf,  "2025 HF — TEST"),  md=6),
+            dbc.Col(_line_lc_mini(df26_hf,  "2026 HF — TRAIN"), md=6),
+        ]),
+    ])
+
+    line_avl_ft = _card([
+        _label("LINE × AvL — LINE SIZE  ×  AVG vs LINE"),
+        html.Div("Does AvL edge hold across all line sizes, or do small/large lines behave differently?",
+                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "4px"}),
+        html.Div("HF = hard filters — Line<3, MedF, GCS opp, GEE home, AvL>+10%, Rain, LC<50%.",
+                 style={"fontSize": "9px", "color": FADED, "fontFamily": MONO, "marginBottom": "10px"}),
+        dbc.Row([
+            dbc.Col(_line_avl_mini(df25_raw, "2025 RAW"),        md=6),
+            dbc.Col(_line_avl_mini(df26_raw, "2026 RAW"),        md=6),
+        ], style={"marginBottom": "4px"}),
+        dbc.Row([
+            dbc.Col(_line_avl_mini(df25_hf,  "2025 HF — TEST"),  md=6),
+            dbc.Col(_line_avl_mini(df26_hf,  "2026 HF — TRAIN"), md=6),
+        ]),
+    ])
+
+    line_ft = _factor_table(
+        "LINE SIZE",
+        "HF removes Line<3. The <3 row appears in Raw only.",
+        [
+            ("< 3.0  (filtered in HF)",  lambda df: df[df['_line'] <  3.0]),
+            ("3.0 – 3.9",               lambda df: df[(df['_line'] >= 3.0) & (df['_line'] < 4.0)]),
+            ("4.0 – 4.9",               lambda df: df[(df['_line'] >= 4.0) & (df['_line'] < 5.0)]),
+            ("5.0 – 5.9",               lambda df: df[(df['_line'] >= 5.0) & (df['_line'] < 6.0)]),
+            ("6.0+",                    lambda df: df[df['_line'] >= 6.0]),
+        ],
+    )
+
+    weather_ft = _factor_table(
+        "WEATHER  (HF removes Rain)",
+        "Rain is a hard filter — Rain rows appear in Raw only.",
+        [
+            ("Neutral",     lambda df: df[df['Weather'].str.contains('Neutral', na=False)]),
+            ("Rain",        lambda df: df[df['Weather'].str.contains('Rain',    na=False)]),
+        ],
+    )
+
+    travel_ft = _factor_table(
+        "TRAVEL FATIGUE  (parked at n=100)",
+        "Long Travel ~9.7pp gap vs Neutral in historical analysis — revisit at n=100.",
+        [
+            ("Neutral",     lambda df: df[df['Travel Fatigue'].str.contains('Neutral', na=False)]),
+            ("Long Travel", lambda df: df[df['Travel Fatigue'].str.contains('Long',    na=False)]),
+        ],
+    )
+
+    # ── SECTION 5: CALIBRATION META (predicted WR vs actual, year-split) ─────
+    calib_divider = html.Div([
+        html.Div("HIST WR CALIBRATION — does predicted WR match actual?", style={
+            "fontSize": "9px", "color": MUTED, "fontFamily": MONO,
+            "letterSpacing": "0.15em", "fontWeight": "600",
+        }),
+        html.Div(style={"flex": "1", "height": "1px", "background": BORDER, "marginLeft": "12px"}),
+    ], style={"display": "flex", "alignItems": "center", "margin": "24px 0 16px"})
+
+    META  = [(df25_hf, "2025 HF (test)"), (df26_hf, "2026 HF (train)")]
+    BUCKETS = [("<50%", None, 50), ("50–55%", 50, 55), ("55–60%", 55, 60),
+               ("60–65%", 60, 65), ("65–70%", 65, 70), ("70%+", 70, None)]
+
+    meta_headers = [html.Th("Pred bucket", style=TH_L)] + [html.Th(lbl, style=TH) for _, lbl in META]
+    meta_rows_built = []
+    for bkt_lbl, lo, hi in BUCKETS:
+        cells = [html.Td(bkt_lbl, style=TD_L)]
+        for _df, _ in META:
+            sub = _df.dropna(subset=['_hwr_p'])
+            mask = pd.Series([True] * len(sub), index=sub.index)
+            if lo is not None: mask &= sub['_hwr_p'] >= lo
+            if hi is not None: mask &= sub['_hwr_p'] <  hi
+            sub = sub[mask]
+            n   = len(sub)
+            if n < 3:
+                cells.append(html.Td("—", style={**TD, "color": FADED}))
+            else:
+                wr       = sub['win'].mean() * 100
+                se       = _se(wr, n)
+                pred_mid = ((lo or 45) + (hi or 75)) / 2
+                diff     = wr - pred_mid
+                dcol     = WIN if diff >= 0 else LOSS
+                cells.append(html.Td([
+                    html.Span(f"{wr:.0f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
+                    html.Span(f" ±{se:.0f}", style={"color": FADED, "fontSize": "9px"}),
+                    html.Span(f" {diff:+.0f}", style={"color": dcol, "fontSize": "9px", "marginLeft": "3px"}),
+                    html.Br(),
+                    html.Span(f"n={n}", style={"color": FADED, "fontSize": "9px"}),
+                ], style=TD))
+        meta_rows_built.append(html.Tr(cells))
+
+    meta_calib_card = _card([
+        _label("PREDICTED WR BUCKET vs ACTUAL  ·  2025 HF (test) vs 2026 HF (train)"),
+        html.Div("Actual% ±SE  Δ=actual−predicted_mid. Both sides use hard filters only, no LC.",
+                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "12px"}),
+        html.Table([
+            html.Thead(html.Tr(meta_headers)),
+            html.Tbody(meta_rows_built),
+        ], style={"width": "100%", "borderCollapse": "collapse"}),
+    ])
+
+    thresh_headers = [html.Th("Zone", style=TH_L)] + [html.Th(lbl, style=TH) for _, lbl in META]
+    thresh_rows_built = []
+    for zone_lbl, min_b, color in [("≥56% predicted  (bet zone)",  56,   WIN),
+                                    ("<56% predicted  (avoid zone)", None, LOSS)]:
+        cells = [html.Td(zone_lbl, style={**TD_L, "color": color})]
+        for _df, _ in META:
+            sub = _df.dropna(subset=['_hwr_p'])
+            sub = sub[sub['_hwr_p'] >= min_b] if min_b else sub[sub['_hwr_p'] < 56]
+            n   = len(sub)
+            if n < 3:
+                cells.append(html.Td("—", style={**TD, "color": FADED}))
+            else:
+                wr = sub['win'].mean() * 100
+                cells.append(html.Td([
+                    html.Span(f"{wr:.0f}%", style={"color": _wr_color(wr), "fontWeight": "600"}),
+                    html.Span(f" ({n})", style={"color": FADED, "fontSize": "9px", "marginLeft": "3px"}),
+                ], style=TD))
+        thresh_rows_built.append(html.Tr(cells))
+
+    thresh_card_built = _card([
+        _label("THRESHOLD SPLIT — bet zone (≥56%) vs avoid zone (<56%)"),
+        html.Div("Gap between zones measures signal quality of the Hist WR filter.",
+                 style={"fontSize": "10px", "color": FADED, "fontFamily": MONO, "marginBottom": "12px"}),
+        html.Table([
+            html.Thead(html.Tr(thresh_headers)),
+            html.Tbody(thresh_rows_built),
+        ], style={"width": "100%", "borderCollapse": "collapse"}),
+    ])
+
+    # ── ASSEMBLE ──────────────────────────────────────────────────────────────
+    return html.Div([
+        html.Div([
+            html.Span("2026 RESULTS", style={"color": TEXT, "fontWeight": "700",
+                                              "fontSize": "14px", "fontFamily": MONO}),
+            html.Span(f"  ·  through R{max_round}  ·  qualifying legs only (T0 / T1 / T2)",
+                      style={"color": MUTED, "fontSize": "11px", "fontFamily": MONO}),
+        ], style={"marginBottom": "14px"}),
+        html.Div([
+            _card([_label("WIN RATE BY TIER"), tier_table], {"flex": "0 0 auto"}),
+            _card([_label("WR BY ROUND  ·  W / placed  (excl pushes)"),
+                   html.Div(rnd_table, style={"overflowX": "auto"})],
+                  {"flex": "1", "minWidth": "0"}),
+        ], style={"display": "flex", "gap": "14px", "alignItems": "flex-start", "marginBottom": "14px"}),
+        html.Div([pos_cut, dvp_cut, opp_cut],
+                 style={"display": "flex", "gap": "14px", "alignItems": "flex-start", "marginBottom": "14px"}),
+        avoid_block,
+        pickem_section,
+        factor_divider,
+        dbc.Row([dbc.Col(pos_ft,     md=6), dbc.Col(dvp_ft,     md=6)]),
+        dbc.Row([dbc.Col(avl_ft, md=12)]),
+        dbc.Row([dbc.Col(line_ft, md=4), dbc.Col(weather_ft, md=4), dbc.Col(travel_ft, md=4)]),
+        calib_divider,
+        dbc.Row([dbc.Col(meta_calib_card, md=8), dbc.Col(thresh_card_built, md=4)]),
     ], style={"background": BG, "padding": "18px", "borderRadius": "8px", "minHeight": "100vh"})
 
 
-# ── Performance + Multi Builder tab callback ──────────────────────────────────
+
+
+
+# ── Performance + Multi Builder tab callback ─────────────────────────────────
+
 @app.callback(
     Output('excluded-teams-store',  'data'),
     Input({'type': 'team-chip', 'index': ALL}, 'n_clicks'),
@@ -3923,15 +3910,31 @@ def toggle_team(n_clicks_list, excluded):
 
 @app.callback(
     Output('excluded-legs-store', 'data'),
-    Input('legs-table', 'selected_row_ids'),
+    Input('legs-table', 'active_cell'),
+    State('legs-table', 'data'),
+    State('excluded-legs-store', 'data'),
     prevent_initial_call=True,
 )
-def update_excluded_legs(selected_ids):
-    return selected_ids or []
+def toggle_excluded_leg(active_cell, table_data, current_excluded):
+    if not active_cell or not table_data:
+        return dash.no_update
+    if active_cell.get('column_id') != '_excl':
+        return dash.no_update
+    row_idx = active_cell.get('row', -1)
+    if row_idx < 0 or row_idx >= len(table_data):
+        return dash.no_update
+    row_id = table_data[row_idx].get('id', '')
+    if not row_id:
+        return dash.no_update
+    excluded = set(current_excluded or [])
+    if row_id in excluded:
+        excluded.discard(row_id)
+    else:
+        excluded.add(row_id)
+    return sorted(excluded)
 
 
 @app.callback(
-    Output('performance-content',   'children'),
     Output('multi-builder-content', 'children'),
     Output('analysis-content',      'children'),
     Output('calibration-content',   'children'),
@@ -3943,15 +3946,8 @@ def update_excluded_legs(selected_ids):
     Input('excluded-legs-store',    'data'),
 )
 def update_special_tabs(active_tab, rr_top_n, placed_ids, excluded_teams, excluded_legs):
-    if active_tab == 'tab-performance':
-        df      = load_performance_data()
-        pair_df = load_pair_log_data()
-        content = build_performance_layout(df, pair_df)
-        return content, html.Div(), html.Div(), html.Div(), {}
-    elif active_tab == 'tab-analysis':
-        return html.Div(), html.Div(), build_analysis_layout(), html.Div(), {}
-    elif active_tab == 'tab-calibration':
-        return html.Div(), html.Div(), html.Div(), build_calibration_layout(), {}
+    if active_tab == 'tab-analysis':
+        return html.Div(), build_combined_layout(), html.Div(), {}
     else:  # tab-multi (default)
         layout, pairings_data = build_multi_builder_layout(
             checked_ids=placed_ids or [],
@@ -3959,7 +3955,7 @@ def update_special_tabs(active_tab, rr_top_n, placed_ids, excluded_teams, exclud
             excluded_teams=excluded_teams or [],
             excluded_legs=excluded_legs or [],
         )
-        return html.Div(), layout, html.Div(), html.Div(), pairings_data
+        return layout, html.Div(), html.Div(), pairings_data
 
 
 
@@ -4001,5 +3997,48 @@ debug_pickem_matching('disposals')
 debug_pickem_matching('marks')
 debug_pickem_matching('tackles')
 
+def _run_startup_scripts():
+    import subprocess, sys, os
+    cwd = os.path.dirname(os.path.abspath(__file__))
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    scripts = [
+        ("update_results.py",           "Update Results"),
+        ("_fetch_gbg.py",               "GBG Data"),
+        ("_build_tackle_avgs.py",       "Rebuild Tackle Avgs CSV"),
+        ("_push_lc_to_sheets.py",       "Line Consistency"),
+        ("_push_avl_per_round.py",      "AvL + Avg Tackles"),
+        ("_push_l5_per_round.py",       "Last 5 Tackles"),
+        ("_push_strategy_to_sheets.py", "Strategy Tiers"),
+    ]
+    pad = max(len(label) for _, label in scripts)
+    print("\n" + "─" * 52)
+    print("  AFL Dashboard — startup data refresh")
+    print("─" * 52)
+    for script, label in scripts:
+        script_path = os.path.join(cwd, script)
+        if not os.path.exists(script_path):
+            print(f"  SKIP  {label:<{pad}}  (script not found)")
+            continue
+        print(f"  ...   {label:<{pad}}", end="", flush=True)
+        try:
+            result = subprocess.run(
+                [sys.executable, script],
+                capture_output=True, text=True, encoding='utf-8', errors='replace',
+                cwd=cwd, timeout=180, env=env,
+            )
+            if result.returncode == 0:
+                last_line = result.stdout.strip().splitlines()[-1] if result.stdout.strip() else "ok"
+                print(f"\r  OK    {label:<{pad}}  {last_line}")
+            else:
+                err = (result.stderr or result.stdout).strip().splitlines()[-1] if (result.stderr or result.stdout).strip() else "exit " + str(result.returncode)
+                print(f"\r  FAIL  {label:<{pad}}  {err}")
+        except subprocess.TimeoutExpired:
+            print(f"\r  FAIL  {label:<{pad}}  timed out after 180s")
+        except Exception as e:
+            print(f"\r  FAIL  {label:<{pad}}  {e}")
+    print("─" * 52 + "\n")
+
+
 if __name__ == '__main__':
+    _run_startup_scripts()
     app.run(debug=True)
